@@ -63,6 +63,8 @@ class ServerPublicTests(unittest.TestCase):
         self.assertEqual(body.get("name"), "BookPup")
         icons = body.get("icons") or []
         self.assertTrue(any("192" in str(i.get("sizes", "")) for i in icons))
+        maskable = [i for i in icons if i.get("purpose") == "maskable"]
+        self.assertTrue(len(maskable) >= 2)
 
     def test_service_worker(self) -> None:
         with urllib.request.urlopen(self.base + "/sw.js", timeout=5) as resp:

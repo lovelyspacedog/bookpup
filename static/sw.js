@@ -18,6 +18,10 @@ const SHELL = [
   "/static/about.md",
   "/static/pwa/icon-192.png",
   "/static/pwa/icon-512.png",
+  "/static/pwa/icon-192-maskable-flat.png",
+  "/static/pwa/icon-512-maskable-flat.png",
+  "/static/pwa/apple-touch-icon.png",
+  "/static/pwa/favicon-32-flat.png",
   "/manifest.webmanifest",
 ];
 

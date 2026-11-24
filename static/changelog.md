@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.1
+
+- **UX:** New **Neon Kennel** home-screen icon (hound + book), maskable Android variant, and sharper tab favicon.
+
 ## 1.4.0
 
 - **UX:** Install BookPup on your phone — PWA with home-screen icon; **Your tag** shows install help and what works offline vs online.
