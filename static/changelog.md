@@ -1,5 +1,11 @@
 # BookPup changelog
 
+## 1.4.18
+
+- **Ops:** `GET /api/ready` for readiness (IRC worker, Soulseek when enabled, optional Calibre/7z/unrar); `GET /api/health` stays liveness-only (`ok` = config dir writable).
+- **Ops:** Sample **systemd user unit**, **nginx** snippet, and **PKGBUILD** under `packaging/`; README health vs readiness + E2E smoke docs.
+- **Fix:** CI-oriented `tests.test_e2e_flow` (mock login → sniff → kennel); optional `scripts/e2e_browser.py` (Playwright).
+
 ## 1.4.17
 
 - **Pack:** **Pack digest** lists pups who have not finished **Walk the Trail**; finishing the tour records completion on the server (syncs across devices).

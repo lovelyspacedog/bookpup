@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from .. import cover_search, kindle_smtp, reader_ai
-from ..core import CONFIG_DIR, IRC_MOCK, VERSION, load_config, public_base_url
+from .. import cover_search, kindle_smtp, ops_readiness, reader_ai
+from ..core import IRC_MOCK, VERSION, load_config, public_base_url
 from ..irc_worker import worker
 from .. import slskd_client, xdcc_search
 from ._types import RequestHandler
@@ -21,16 +21,13 @@ def route_public_config(handler: RequestHandler) -> None:
     )
 
 
+def route_public_ready(handler: RequestHandler) -> None:
+    handler.send_json(200, ops_readiness.build_ready())
+
+
 def route_public_health(handler: RequestHandler) -> None:
     cfg = load_config()
-    writable = False
-    try:
-        probe = CONFIG_DIR / ".health_probe"
-        probe.write_text("ok")
-        probe.unlink(missing_ok=True)
-        writable = True
-    except OSError:
-        writable = False
+    writable = ops_readiness.config_dir_writable()
     irc = worker.health_snapshot()
     xdcc = xdcc_search.health_probe()
     slskd = slskd_client.health_probe()

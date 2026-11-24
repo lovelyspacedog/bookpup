@@ -189,6 +189,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self.dispatch(lambda: public_routes.route_public_health(self))
             return
+        if path == "/api/ready":
+            self.dispatch(lambda: public_routes.route_public_ready(self))
+            return
         if path.startswith("/api/sideload/"):
             token = path[len("/api/sideload/") :].strip("/")
             if token and "/" not in token:

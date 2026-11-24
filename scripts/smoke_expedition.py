@@ -58,6 +58,14 @@ def main() -> int:
 
     code, health = req("GET", "/api/health")
     ok("health", code == 200 and health.get("ok"), f"code={code}")
+    ok(
+        "health_liveness_contract",
+        health.get("ok") == health.get("config_dir_writable"),
+        str(health.get("ok")),
+    )
+
+    code, ready = req("GET", "/api/ready")
+    ok("ready", code == 200 and "ready" in ready, f"code={code} ready={ready.get('ready')}")
 
     code, cfg = req("GET", "/api/config")
     pub = cfg.get("koreader_sync_url", "")

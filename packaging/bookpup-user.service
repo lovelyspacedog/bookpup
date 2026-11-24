@@ -1,0 +1,15 @@
+[Unit]
+Description=BookPup household ebook portal
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/bookpup
+Environment=BOOKPUP_APP_DIR=%h/bookpup
+ExecStart=/usr/bin/python3 %h/bookpup/bookpup.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,25 @@
+# Sample reverse proxy (TLS terminated elsewhere). BookPup listens on 127.0.0.1:18478 only.
+upstream bookpup_app {
+    server 127.0.0.1:18478;
+    keepalive 8;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name bookpup.example.test;
+
+    # ssl_certificate ...;
+    # ssl_certificate_key ...;
+
+    client_max_body_size 64m;
+
+    location / {
+        proxy_pass http://bookpup_app;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 600s;
+    }
+}

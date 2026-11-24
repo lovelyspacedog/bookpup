@@ -55,7 +55,7 @@ Runtime config and libraries live under `~/.config/bookpup/`:
 | `sessions.json` | Bearer sessions (7-day TTL) |
 | `pack_chat.json` | Household pack chat history (capped on disk) |
 
-See `GET /api/health` and `GET /api/config` (after login) for effective settings. Mock flags: `BOOKPUP_IRC_MOCK`, `BOOKPUP_XDCC_MOCK`, `BOOKPUP_SLSKD_MOCK`.
+See `GET /api/health` (liveness), `GET /api/ready` (readiness), and `GET /api/config` (after login) for effective settings. Mock flags: `BOOKPUP_IRC_MOCK`, `BOOKPUP_XDCC_MOCK`, `BOOKPUP_SLSKD_MOCK`.
 
 ### Send-to-Kindle email (one household Gmail)
 
@@ -79,12 +79,42 @@ Each pup saves their `@kindle.com` address under **Your tag**. In Kennel, **Send
 2. Run `python3 bookpup.py` bound to `127.0.0.1` and your chosen port (default **18478**).
 3. Point your reverse proxy / Whatbox custom app at that port and set `public_url` to the public HTTPS URL.
 
+Sample **nginx** reverse-proxy block: [`packaging/nginx-bookpup.conf.snippet`](packaging/nginx-bookpup.conf.snippet). Whatbox custom apps usually skip nginx and map the public hostname straight to your loopback port.
+
+### systemd (user unit)
+
+```bash
+mkdir -p ~/.config/systemd/user
+cp packaging/bookpup-user.service ~/.config/systemd/user/bookpup.service
+# Edit WorkingDirectory if the tree is not ~/bookpup
+systemctl --user daemon-reload
+systemctl --user enable --now bookpup.service
+```
+
+An example **Arch PKGBUILD** (installs under `/opt/bookpup`) lives in [`packaging/PKGBUILD`](packaging/PKGBUILD).
+
+### Health vs readiness
+
+| Endpoint | Semantics | Use |
+|----------|-----------|-----|
+| `GET /api/health` | **Liveness** — process up and `~/.config/bookpup` writable; `ok` is **only** `config_dir_writable` (unchanged contract for deploy scripts). | Cron, Whatbox custom app, `deploy.sh` curl |
+| `GET /api/ready` | **Readiness** — IRC worker alive; optional Soulseek sidecar reachable when enabled; reports optional tools (`calibre`, `7z`, `unrar`) without failing liveness. | Operator dashboards, “can we sniff/fetch now?” |
+
 Optional: `deploy.sh` rsyncs the working tree and installs a cron **start** hook when `EXPEDITION_HOST` and `EXPEDITION_SECRET` are set (Whatbox-style SSH + password file). **Do not commit secrets.**
 
 Post-deploy smoke on the box:
 
 ```bash
 python3 ~/bookpup/scripts/smoke_expedition.py
+curl -fsS http://127.0.0.1:18478/api/ready | python3 -m json.tool
+```
+
+### Quality gates (local / CI)
+
+```bash
+python3 -m unittest discover -s tests -v
+./scripts/smoke_mock.sh
+python3 scripts/e2e_browser.py   # optional; needs playwright
 ```
 
 Optional Calibre bundle: `scripts/install_calibre.sh`. Optional **Study**: `scripts/install_reader_ai.sh`.
@@ -100,7 +130,7 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 | Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, `GET/POST /api/library/{id}/sideload` (format picker + one-time link), whole-kennel `/api/library/shares…`, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |
 | Pack chat | `GET /api/pack/chat?after=&del_after=`, `GET /api/pack/chat/peers`, `GET /api/pack/chat/bugbot/open` / `featurecat/open` (first-open intros), `POST /api/pack/chat` (`message`, optional `to` for PM, `bugbot`, or `featurecat`), `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin, pack channel only). Scheduled sniff alerts → owner PM from `bookpup` (not ntfy). Bug / feature messages → admin **Bug inbox** / **Feature inbox** (`GET/DELETE /api/admin/bug-inbox`, `/api/admin/feature-inbox`). |
-| Public | `GET /api/health`, `GET /api/irc/targets`, `GET /api/sideload/{token}` (one-time catalogued-book download; set `public_url` or `BOOKPUP_PUBLIC_URL` for correct HTTPS links) |
+| Public | `GET /api/health`, `GET /api/ready`, `GET /api/irc/targets`, `GET /api/sideload/{token}` (one-time catalogued-book download; set `public_url` or `BOOKPUP_PUBLIC_URL` for correct HTTPS links) |
 
 Frontend loads `static/app-*.js` in order; shared state is on `window.BookPup`.
 

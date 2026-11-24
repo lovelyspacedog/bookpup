@@ -1,0 +1,29 @@
+# Maintainer: household / fork at will
+pkgname=bookpup
+pkgver=1.4.18
+pkgrel=1
+pkgdesc="Household IRC ebook portal (BookPup)"
+arch=('any')
+url="https://github.com/lovelyspacedog/bookpup"
+license=('GPL3')
+depends=('python>=3.10')
+makedepends=()
+source=()
+pkgver_set_by_upstream=true
+
+package() {
+  install -dm755 "$pkgdir/opt/bookpup"
+  install -dm755 "$pkgdir/usr/bin"
+  cp -a bookpup.py lib static vendor scripts "$pkgdir/opt/bookpup/"
+  install -m755 start "$pkgdir/opt/bookpup/start"
+  cat >"$pkgdir/usr/bin/bookpup" <<'EOF'
+#!/bin/sh
+exec python3 /opt/bookpup/bookpup.py "$@"
+EOF
+  chmod 755 "$pkgdir/usr/bin/bookpup"
+  install -Dm644 packaging/bookpup-user.service "$pkgdir/usr/lib/systemd/user/bookpup.service"
+}
+
+# Build from a clean git checkout at repo root:
+#   makepkg -p packaging/PKGBUILD
+# Or copy this PKGBUILD to the repo root and run makepkg.
