@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.6.1
+
+- **Pack:** Tighter in-chat layout — reactions as compact pills on one row; **Reply** / **Remove** as footer links (no tall side stack).
+
 ## 1.6.0
 
 - **Pack:** **Pack chat v2** — attach **catalogued books** (recommend or offer copy) and **kennel invites**; reply quotes; **paw / heart / laugh** reactions. Owner invites accept lend/give from the chat card.

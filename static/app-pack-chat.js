@@ -177,16 +177,6 @@
     BP.state.packChatById[id] = msg;
     if (BP.renderPackMessageRowV2) {
       BP.renderPackMessageRowV2(msg);
-      const row = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
-      if (row && canDeleteMessage(msg)) {
-        const del = document.createElement("button");
-        del.type = "button";
-        del.className = "bp-btn bp-btn--ghost bp-pack-chat-delete";
-        del.setAttribute("data-pack-delete", String(id));
-        del.setAttribute("aria-label", "Delete message");
-        del.textContent = "Remove";
-        row.appendChild(del);
-      }
       return;
     }
     let row = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
@@ -626,4 +616,5 @@
   BP.onPackChatTabActive = onPackChatTabActive;
   BP.onPackChatTabInactive = onPackChatTabInactive;
   BP.setPackChatDmMode = setDmMode;
+  BP.canDeletePackMessage = canDeleteMessage;
 })(window.BookPup);

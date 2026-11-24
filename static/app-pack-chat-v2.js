@@ -182,7 +182,7 @@
       const users = rx[r.key] || [];
       const on = users.includes(me);
       bar +=
-        '<button type="button" class="bp-btn bp-btn--ghost bp-pack-react' +
+        '<button type="button" class="bp-pack-react' +
         (on ? " bp-pack-react--on" : "") +
         '" data-pack-react="' +
         mid +
@@ -190,9 +190,11 @@
         r.key +
         '" aria-pressed="' +
         (on ? "true" : "false") +
+        '" title="' +
+        r.key +
         '">' +
         r.label +
-        (users.length ? " " + users.length : "") +
+        (users.length ? '<span class="bp-pack-react-count">' + users.length + "</span>" : "") +
         "</button>";
     });
     bar += "</div>";
@@ -225,7 +227,7 @@
           : from === "featurecat"
             ? "FeatureCat"
             : from;
-    let body = "";
+    let body = '<div class="bp-pack-chat-line-main">';
     if (msg.parent && msg.parent.text_snippet) {
       body +=
         '<p class="bp-pack-reply-quote muted">↩ ' +
@@ -234,25 +236,34 @@
         BP.escapeHtml(msg.parent.text_snippet) +
         "</p>";
     }
+    body += '<div class="bp-pack-chat-head-row">';
     body +=
-      '<p class="bp-pack-chat-line-body"><span class="bp-irc-meta">' +
+      '<span class="bp-irc-meta">' +
       (msg.ts ? new Date(msg.ts * 1000).toLocaleString() : "") +
-      '</span> <strong>' +
-      BP.escapeHtml(whoLabel) +
-      "</strong>";
+      "</span> ";
+    body += "<strong>" + BP.escapeHtml(whoLabel) + "</strong>";
     if (!isVirtualBotSender && BP.state.sessionUsername) {
       body +=
-        ' <button type="button" class="bp-link-btn" data-pack-reply="' + id + '">Reply</button>';
+        ' <button type="button" class="bp-pack-msg-link" data-pack-reply="' + id + '">Reply</button>';
     }
-    body += ": ";
+    body += "</div>";
     if (msg.text) {
-      body += '<span class="bp-pack-chat-text">' + BP.escapeHtml(String(msg.text)) + "</span>";
+      body += '<p class="bp-pack-chat-line-body"><span class="bp-pack-chat-text">' +
+        BP.escapeHtml(String(msg.text)) +
+        "</span></p>";
     }
-    body += "</p>";
     (msg.attachments || []).forEach((att, idx) => {
       body += attachmentCardHtml(att, id, idx);
     });
+    body += '<div class="bp-pack-chat-footer">';
     body += reactionsHtml(msg);
+    if (BP.canDeletePackMessage?.(msg)) {
+      body +=
+        '<button type="button" class="bp-pack-msg-link bp-pack-msg-link--danger" data-pack-delete="' +
+        id +
+        '" aria-label="Remove message">Remove</button>';
+    }
+    body += "</div></div>";
     row.innerHTML = body;
   };
 
