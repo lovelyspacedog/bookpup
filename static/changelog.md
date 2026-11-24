@@ -4,9 +4,13 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.61
+
+- **Sniff:** **Scheduled sniff** on the sniff card collapses by default (compact summary; **On · …** when active).
+
 ## 1.3.60
 
-- **Sniff:** **Schedule sniff** on the main sniff card (Enable + interval, **?** tooltip); ties to a matching bookmark or creates one when you turn it on.
+- **Sniff:** **Scheduled sniff** on the main sniff card (Enable + interval, **?** tooltip); ties to a matching bookmark or creates one when you turn it on.
 
 ## 1.3.59
 

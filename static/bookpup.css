@@ -451,23 +451,59 @@ body {
 }
 
 .bp-form-schedule {
-  margin: 0.65rem 0 0.85rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: 0.35rem;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.28rem 0.5rem;
+  border-radius: 0.3rem;
   border: 1px solid color-mix(in srgb, var(--border, #444) 85%, transparent);
   background: color-mix(in srgb, var(--bp-section-bg) 92%, var(--text, #ccc) 8%);
 }
 
-.bp-form-schedule__head {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.45rem;
+.bp-form-schedule[open] {
+  padding: 0.4rem 0.55rem 0.55rem;
 }
 
-.bp-form-schedule__label {
-  font-size: 0.92rem;
+.bp-form-schedule__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.4rem;
+  cursor: pointer;
+  font-size: 0.82rem;
   font-weight: 600;
+  list-style: none;
+  user-select: none;
+}
+
+.bp-form-schedule__summary::-webkit-details-marker {
+  display: none;
+}
+
+.bp-form-schedule__summary::before {
+  content: "▸";
+  font-size: 0.68rem;
+  opacity: 0.75;
+  margin-right: 0.1rem;
+}
+
+.bp-form-schedule[open] > .bp-form-schedule__summary::before {
+  content: "▾";
+}
+
+.bp-form-schedule__summary-text {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.bp-form-schedule__hint {
+  font-size: 0.78rem;
+  font-weight: 400;
+  margin-left: auto;
+}
+
+.bp-form-schedule__body {
+  padding-top: 0.4rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid color-mix(in srgb, var(--border, #444) 55%, transparent);
 }
 
 .bp-help-wrap {

@@ -22,6 +22,8 @@
   const formSchedStatus = document.getElementById("sniff-form-schedule-status");
   const formSchedHelp = document.getElementById("sniff-schedule-help");
   const formSchedHelpWrap = document.getElementById("sniff-schedule-help-wrap");
+  const formSchedPanel = document.getElementById("sniff-form-schedule");
+  const formSchedHint = document.getElementById("sniff-form-schedule-hint");
   let resultRows = [];
   const SNIFF_BATCH_MAX = 5;
   const SNIFF_PAGE_SIZE_KEY = "bookpupSniffPageSize";
@@ -199,6 +201,13 @@
     return matches.reduce((a, b) => ((b.saved_at || 0) > (a.saved_at || 0) ? b : a));
   }
 
+  function scheduleIntervalShort(hours) {
+    const h = hours || 24;
+    const opt = SCHEDULE_INTERVALS.find((o) => o.hours === h);
+    if (!opt) return `${h}h`;
+    return opt.label.replace(/^Every /, "");
+  }
+
   function scheduleStatusParts(sched) {
     const parts = [];
     if (sched?.enabled) {
@@ -228,6 +237,17 @@
     suppressFormSchedEvents = false;
     if (formSchedStatus?.classList.contains("err")) return;
     if (formSchedStatus) formSchedStatus.className = "bp-msg muted bp-form-schedule-status";
+    if (formSchedHint) {
+      if (sched.enabled && match) {
+        formSchedHint.textContent = `On · ${scheduleIntervalShort(sched.interval_hours)}`;
+        formSchedHint.classList.remove("hidden");
+        formSchedHint.setAttribute("aria-hidden", "false");
+      } else {
+        formSchedHint.textContent = "";
+        formSchedHint.classList.add("hidden");
+        formSchedHint.setAttribute("aria-hidden", "true");
+      }
+    }
     if (!hasRows) {
       if (formSchedStatus) {
         formSchedStatus.textContent = "Sniff first — schedule needs open results to bookmark.";
@@ -277,6 +297,7 @@
       }
       if (!id) return;
       await patchSavedSchedule(id, body);
+      if (body.enabled && formSchedPanel) formSchedPanel.open = true;
       updateFormSchedule();
     } catch (err) {
       if (formSchedStatus) {
@@ -1442,6 +1463,7 @@
     });
   });
   formSchedHelp?.addEventListener("click", (ev) => {
+    ev.preventDefault();
     ev.stopPropagation();
     const open = formSchedHelpWrap?.classList.toggle("is-open");
     formSchedHelp.setAttribute("aria-expanded", open ? "true" : "false");
