@@ -360,6 +360,10 @@
       wireDmListItem(li, botId);
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
+      if (botId === BUGBOT_USER) {
+        dot.classList.add("bp-pack-presence-dot--on");
+        dot.title = "Online";
+      }
       dot.setAttribute("aria-hidden", "true");
       const nameRow = appendPresenceNameRow(displayName);
       const stat = document.createElement("span");

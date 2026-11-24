@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.77
+
+- **Pack:** **BugBot** always shows an online dot in Pack chat.
+
 ## 1.3.76
 
 - **Pack:** **BugBot** in Pack chat — first open sends a how-to intro; pups DM bug reports; admins read them on **Pack roster** → **Bug inbox**.
