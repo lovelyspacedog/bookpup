@@ -980,12 +980,12 @@
         <div id="cover-modal-images" class="bp-cover-images hidden" aria-live="polite"></div>
       </div>
     </div>
-    <div id="reader-modal" class="bp-reader-modal hidden" role="dialog" aria-modal="true">
+    <div id="reader-modal" class="bp-reader-modal hidden" role="dialog" aria-modal="true" aria-labelledby="reader-title">
       <header class="bp-reader-head">
         <div class="bp-reader-title-wrap">
           <h2 id="reader-title">Curl up &amp; read</h2>
           <button type="button" id="reader-bookmark" class="bp-btn">Bookmark</button>
-          <button type="button" id="reader-study-toggle" class="bp-btn" aria-expanded="false">Study</button>
+          <button type="button" id="reader-study-toggle" class="bp-btn" aria-expanded="false" aria-controls="reader-study">Study</button>
         </div>
         <button type="button" id="reader-close" class="bp-btn">Close</button>
       </header>
@@ -1005,7 +1005,7 @@
       </div>
       <div id="reader-bookmarks" class="bp-reader-bookmarks hidden"></div>
       <div id="reader-body" class="bp-reader-body"></div>
-      <div id="reader-epub-nav" class="bp-reader-epub-nav hidden">
+      <div id="reader-epub-nav" class="bp-reader-epub-nav hidden" role="toolbar" aria-label="Reader navigation">
         <button type="button" id="reader-prev" class="bp-btn" aria-label="Previous page">Prev</button>
         <button type="button" id="reader-dual-page" class="bp-btn" aria-pressed="false">Dual page</button>
         <button type="button" id="reader-next" class="bp-btn" aria-label="Next page">Next</button>

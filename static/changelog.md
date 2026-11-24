@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.15
+
+- **Reader:** Keyboard shortcuts in the reader — arrow keys (pages), **S** (Study), **D** (dual-page spread), comic **+/−/0** zoom and arrow pan when zoomed; **Escape** closes Study then the book; focus stays in the reader while it is open.
+- **Reader:** **Copy study notes** includes your **reading position**; notes for the same EPUB/TXT section can **resume** when you reopen Study.
+
 ## 1.4.14
 
 - **UX:** Header **version** opens **About**; **logo** refreshes the app and lands on **Sniff**.

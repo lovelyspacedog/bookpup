@@ -49,6 +49,216 @@
   let comicPageCount = 0;
   const COMIC_FMTS = new Set(["cbz", "cbr", "cb7"]);
   const SCROLL_FMTS = new Set(["txt", "md", "html"]);
+  const STUDY_SESSION_PREFIX = "bookpupStudySession:";
+  let readerOpenFocus = null;
+  let formatKeyExtra = null;
+  let comicKeyActions = null;
+
+  function readerFocusables() {
+    if (!modal || modal.classList.contains("hidden")) return [];
+    return [...modal.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )].filter((el) => {
+      if (el.offsetParent === null) return false;
+      return !el.closest(".hidden");
+    });
+  }
+
+  function trapReaderFocus(ev) {
+    if (ev.key !== "Tab" || modal.classList.contains("hidden")) return;
+    const nodes = readerFocusables();
+    if (nodes.length < 2) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (ev.shiftKey && document.activeElement === first) {
+      ev.preventDefault();
+      last.focus();
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault();
+      first.focus();
+    }
+  }
+
+  function readerInputFocused() {
+    const el = document.activeElement;
+    if (!el || !modal.contains(el)) return false;
+    const tag = el.tagName;
+    return tag === "INPUT" || tag === "TEXTAREA" || el.isContentEditable;
+  }
+
+  function formatLocationForExport(loc) {
+    if (!loc) return null;
+    if (loc.type === "epub") {
+      if (loc.flow === "scrolled") {
+        const pct = Math.round((loc.scroll ?? loc.percentage ?? 0) * 100);
+        return "EPUB scroll ~" + pct + "%";
+      }
+      if (loc.cfi) return "EPUB " + loc.cfi;
+      if (typeof loc.percentage === "number") {
+        return "EPUB ~" + Math.round(loc.percentage * 100) + "%";
+      }
+    }
+    if (SCROLL_FMTS.has(loc.type) && typeof loc.scroll === "number") {
+      return loc.type.toUpperCase() + " scroll ~" + Math.round(loc.scroll * 100) + "%";
+    }
+    if (loc.type === "pdf" && loc.page) return "PDF page " + loc.page;
+    if (COMIC_FMTS.has(loc.type) && typeof loc.page === "number") {
+      const total = loc.pages ? " / " + loc.pages : "";
+      return "Comic page " + (loc.page + 1) + total;
+    }
+    return null;
+  }
+
+  function studySessionKey() {
+    return activeItemId ? STUDY_SESSION_PREFIX + activeItemId : null;
+  }
+
+  function persistStudySession() {
+    const key = studySessionKey();
+    if (!key) return;
+    const ctx = aiContextPayload();
+    if (!ctx) return;
+    const payload = {
+      ctx,
+      summary: studySummary?.textContent?.trim() || "",
+      history: studyHistory.slice(),
+      ts: Date.now(),
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(payload));
+    } catch (_e) {
+      /* quota */
+    }
+  }
+
+  function resumeStudySessionIfAny() {
+    const key = studySessionKey();
+    if (!key) return false;
+    let raw;
+    try {
+      raw = localStorage.getItem(key);
+    } catch (_e) {
+      return false;
+    }
+    if (!raw) return false;
+    let data;
+    try {
+      data = JSON.parse(raw);
+    } catch (_e) {
+      return false;
+    }
+    const ctx = aiContextPayload();
+    if (!ctx || !data.ctx || ctx.format !== data.ctx.format) return false;
+    if (ctx.format === "epub") {
+      if (ctx.spine_index !== data.ctx.spine_index) return false;
+    } else if (ctx.format === "txt") {
+      const len = activeTxtLength || 1;
+      if (Math.abs((ctx.offset || 0) - (data.ctx.offset || 0)) > len * 0.05) return false;
+    } else {
+      return false;
+    }
+    if (data.summary && studySummary) {
+      studySummary.textContent = data.summary;
+      studySummary.classList.remove("hidden");
+    }
+    studyHistory.length = 0;
+    (data.history || []).forEach((turn) => studyHistory.push(turn));
+    if (studyStatus) {
+      studyStatus.textContent = "Resumed your last study notes for this section.";
+    }
+    return true;
+  }
+
+  function removeReaderKeys() {
+    if (keyHandler) {
+      modal.removeEventListener("keydown", keyHandler);
+      keyHandler = null;
+    }
+  }
+
+  function installReaderKeyHandler() {
+    removeReaderKeys();
+    keyHandler = (ev) => {
+      if (modal.classList.contains("hidden")) return;
+      if (ev.key === "Escape") {
+        if (comicDebugOverlay) {
+          comicDebugOverlay.remove();
+          comicDebugOverlay = null;
+          ev.preventDefault();
+          return;
+        }
+        if (studyPanel && !studyPanel.classList.contains("hidden")) {
+          studyPanel.classList.add("hidden");
+          studyToggle?.setAttribute("aria-expanded", "false");
+          studyToggle?.focus();
+          ev.preventDefault();
+          return;
+        }
+        ev.preventDefault();
+        void closeReader();
+        return;
+      }
+      if (ev.key === "Tab") {
+        trapReaderFocus(ev);
+        return;
+      }
+      if (readerInputFocused()) return;
+      if (
+        studyToggle &&
+        !studyToggle.classList.contains("hidden") &&
+        (ev.key === "s" || ev.key === "S") &&
+        !ev.ctrlKey &&
+        !ev.metaKey &&
+        !ev.altKey
+      ) {
+        ev.preventDefault();
+        studyToggle.click();
+        return;
+      }
+      if (
+        spreadBtn &&
+        !spreadBtn.classList.contains("hidden") &&
+        !spreadBtn.disabled &&
+        (ev.key === "d" || ev.key === "D") &&
+        !ev.ctrlKey &&
+        !ev.metaKey &&
+        !ev.altKey
+      ) {
+        ev.preventDefault();
+        spreadBtn.click();
+        return;
+      }
+      if (comicKeyActions) {
+        const zoomed =
+          comicKeyActions.isZoomed && comicKeyActions.isZoomed();
+        if (ev.key === "+" || ev.key === "=") {
+          ev.preventDefault();
+          comicKeyActions.zoomIn();
+          return;
+        }
+        if (ev.key === "-" || ev.key === "_") {
+          ev.preventDefault();
+          comicKeyActions.zoomOut();
+          return;
+        }
+        if (ev.key === "0") {
+          ev.preventDefault();
+          comicKeyActions.zoomFit();
+          return;
+        }
+        const panStep = 48;
+        if (zoomed && (ev.key === "ArrowUp" || ev.key === "ArrowDown" || ev.key === "ArrowLeft" || ev.key === "ArrowRight")) {
+          ev.preventDefault();
+          const dx = ev.key === "ArrowLeft" ? panStep : ev.key === "ArrowRight" ? -panStep : 0;
+          const dy = ev.key === "ArrowUp" ? panStep : ev.key === "ArrowDown" ? -panStep : 0;
+          comicKeyActions.pan(dx, dy);
+          return;
+        }
+      }
+      if (formatKeyExtra) formatKeyExtra(ev);
+    };
+    modal.addEventListener("keydown", keyHandler);
+  }
 
   function inlineMarkdown(text) {
     let t = escapeHtml(text);
@@ -390,10 +600,9 @@
       stopProgress();
       stopProgress = null;
     }
-    if (keyHandler) {
-      modal.removeEventListener("keydown", keyHandler);
-      keyHandler = null;
-    }
+    removeReaderKeys();
+    formatKeyExtra = null;
+    comicKeyActions = null;
     epubHost = null;
     epubScrolled = false;
     if (progressFill) progressFill.style.width = "0%";
@@ -460,9 +669,18 @@
   async function closeReader() {
     clearTimeout(saveTimer);
     if (activeItemId && activeAuthHeader) await saveReadingLocation(activeAuthHeader);
+    const restore = readerOpenFocus;
     cleanup();
     modal.classList.add("hidden");
     document.body.classList.remove("bp-reader-open");
+    readerOpenFocus = null;
+    if (restore && typeof restore.focus === "function") {
+      try {
+        restore.focus();
+      } catch (_e) {
+        /* detached node */
+      }
+    }
   }
 
   closeBtn.addEventListener("click", () => void closeReader());
@@ -535,6 +753,7 @@
       if (studyStatus) {
         studyStatus.textContent = data.cached ? "Loaded cached summary." : "Summary ready.";
       }
+      persistStudySession();
     } catch (err) {
       if (studyStatus) studyStatus.textContent = err.message || String(err);
     } finally {
@@ -562,6 +781,7 @@
       studyHistory.push({ role: "assistant", content: answer });
       studyQuestion.value = "";
       if (studyStatus) studyStatus.textContent = data.cached ? "Cached answer." : "Answer ready.";
+      persistStudySession();
     } catch (err) {
       if (studyStatus) studyStatus.textContent = err.message || String(err);
     } finally {
@@ -572,6 +792,10 @@
   function exportStudyNotes() {
     const title = titleEl?.textContent || "Study notes";
     const lines = ["# " + title, ""];
+    const locLine = formatLocationForExport(currentLocationSnapshot());
+    if (locLine) {
+      lines.push("**Reading position:** " + locLine, "");
+    }
     const sum = studySummary?.textContent?.trim();
     if (sum) {
       lines.push("## Summary", "", sum, "");
@@ -612,8 +836,11 @@
 
   if (studyToggle && studyPanel) {
     studyToggle.addEventListener("click", () => {
-      const open = studyPanel.classList.toggle("hidden");
-      studyToggle.setAttribute("aria-expanded", open ? "false" : "true");
+      const wasHidden = studyPanel.classList.contains("hidden");
+      studyPanel.classList.toggle("hidden");
+      const open = !studyPanel.classList.contains("hidden");
+      studyToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open && wasHidden) resumeStudySessionIfAny();
     });
   }
   if (studySummarize) {
@@ -884,8 +1111,11 @@
     if (bookmarkBtn) bookmarkBtn.onclick = () => void addBookmark(authHeader);
     renderBookmarks(authHeader);
 
+    readerOpenFocus = document.activeElement;
     modal.classList.remove("hidden");
     document.body.classList.add("bp-reader-open");
+    installReaderKeyHandler();
+    requestAnimationFrame(() => closeBtn?.focus());
     titleEl.textContent = meta.title || "Reader";
     const fmt = meta.format;
     if (studyToggle) {
@@ -1050,8 +1280,8 @@
         nextBtn.onclick = goEpubNext;
         if (spreadBtn) spreadBtn.onclick = toggleDualPage;
         updateSpreadButton();
-        keyHandler = (ev) => {
-          if (modal.classList.contains("hidden") || fmt !== "epub") return;
+        formatKeyExtra = (ev) => {
+          if (fmt !== "epub") return;
           if (ev.key === "ArrowLeft" || ev.key === "PageUp") {
             ev.preventDefault();
             goEpubPrev();
@@ -1060,7 +1290,6 @@
             goEpubNext();
           }
         };
-        modal.addEventListener("keydown", keyHandler);
 
         msgEl.textContent = "";
         await setupReaderAi(meta, authHeader);
@@ -1190,6 +1419,8 @@
 
         const toolbar = document.createElement("div");
         toolbar.className = "bp-reader-comic-toolbar";
+        toolbar.setAttribute("role", "toolbar");
+        toolbar.setAttribute("aria-label", "Comic zoom");
         const zoomOut = document.createElement("button");
         zoomOut.type = "button";
         zoomOut.className = "bp-btn";
@@ -1421,6 +1652,48 @@
         if (nextBtn) nextBtn.classList.add("hidden");
         if (spreadBtn) spreadBtn.onclick = toggleComicDual;
         updateComicSpreadUi();
+        comicKeyActions = {
+          isZoomed: () => paneView[0].zoom > 1.001 || paneView[1].zoom > 1.001,
+          zoomIn: () => setPaneZoom(activePane, paneView[activePane].zoom * 1.25),
+          zoomOut: () => setPaneZoom(activePane, paneView[activePane].zoom / 1.25),
+          zoomFit: () => resetComicFit(),
+          pan: (dx, dy) => {
+            const pv = paneView[activePane];
+            pv.panX += dx;
+            pv.panY += dy;
+            applyPaneTransform(activePane);
+          },
+        };
+        formatKeyExtra = (ev) => {
+          if (comicKeyActions?.isZoomed()) return;
+          if (ev.key === "ArrowLeft" || ev.key === "PageUp") {
+            ev.preventDefault();
+            prev.click();
+          } else if (ev.key === "ArrowRight" || ev.key === "PageDown") {
+            ev.preventDefault();
+            next.click();
+          }
+        };
+        viewport.addEventListener("keydown", (ev) => {
+          if (
+            ev.key === "ArrowLeft" ||
+            ev.key === "ArrowRight" ||
+            ev.key === "PageUp" ||
+            ev.key === "PageDown" ||
+            ev.key === "+" ||
+            ev.key === "=" ||
+            ev.key === "-" ||
+            ev.key === "0"
+          ) {
+            modal.dispatchEvent(
+              new KeyboardEvent("keydown", {
+                key: ev.key,
+                bubbles: true,
+                cancelable: true,
+              })
+            );
+          }
+        });
         await showPage();
         msgEl.textContent = "";
         return;

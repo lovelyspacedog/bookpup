@@ -57,8 +57,8 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 
 - **Catalogued bones** → **Read** opens the book in the browser (common types work directly; some older formats are converted once on the server).
 - **Cover** shows the jacket. Reading position and in-book bookmarks sync to your account on the server.
-- Comic-style books (CBZ and similar) can use **Dual page** in the reader; that view preference is remembered on this device.
-- **Study** (if your admin turned it on): ask questions or get a summary about the open book — the first answer can be slow on a busy server.
+- Comic-style books (CBZ and similar) can use **Dual page** (**D** on a keyboard, or the toolbar button); **+** / **−** zoom and arrow keys pan when zoomed. Preference is remembered on this device.
+- **Study** (if your admin turned it on): ask questions or get a summary about the open book — the first answer can be slow on a busy server. Press **S** to open Study; **Escape** closes it before closing the book. **Copy study notes** includes where you were reading; reopening Study on the same section can pick up your last notes.
 
 ## Page 7 — Save a search list
 

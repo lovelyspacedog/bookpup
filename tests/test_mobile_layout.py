@@ -45,6 +45,18 @@ class MobileLayoutTests(unittest.TestCase):
         html = INDEX.read_text()
         self.assertIn('id="reader-modal"', html)
         self.assertIn("bp-reader", html)
+        self.assertIn('aria-labelledby="reader-title"', html)
+
+    def test_reader_toolbar_a11y(self) -> None:
+        html = INDEX.read_text()
+        self.assertIn('id="reader-epub-nav"', html)
+        self.assertIn('role="toolbar"', html)
+        self.assertIn("Reader navigation", html)
+        self.assertIn('aria-controls="reader-study"', html)
+        reader_js = (ROOT / "static" / "reader.js").read_text()
+        self.assertIn("installReaderKeyHandler", reader_js)
+        self.assertIn("trapReaderFocus", reader_js)
+        self.assertIn("formatLocationForExport", reader_js)
 
     def test_library_view_toggle(self) -> None:
         html = INDEX.read_text()
