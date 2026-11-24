@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.74
+
+- **Fix:** **Kennel** toolbar wraps inside the page column instead of spilling past the quota card on the right.
+
 ## 1.3.73
 
 - **Fix:** Scheduled sniff **?** tooltip describes BookPup DMs, not household ntfy.
