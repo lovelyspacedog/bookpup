@@ -502,7 +502,7 @@
     if (bodyEl) {
       bodyEl.textContent =
         st.id === "fetch" && fetchError
-          ? fetchError + " Tap Retry fetch, or try the practice row again."
+          ? fetchError + (fetchError.endsWith(".") ? " " : ". ") + "Tap Retry fetch, or try the practice row again."
           : st.body;
     }
     tip.classList.remove("hidden");

@@ -92,6 +92,30 @@ class WalkTrailTests(unittest.TestCase):
         ids = {it.get("id") for it in items}
         self.assertIn(body["library_item_id"], ids)
 
+    def test_walk_trail_fetch_reuses_fixture_copy(self) -> None:
+        _, login = self._request(
+            "POST",
+            "/api/login",
+            {"username": "book", "password": "secret"},
+        )
+        token = login["token"]
+        headers = {"Authorization": f"Bearer {token}", "X-Bookpup": "1"}
+        code, first = self._request(
+            "POST",
+            "/api/walk-trail/fetch",
+            {"query": "Alpha", "title": "Alpha.mobi"},
+            headers=headers,
+        )
+        self.assertEqual(code, 200)
+        code, second = self._request(
+            "POST",
+            "/api/walk-trail/fetch",
+            {"query": "Beta", "title": "Beta.mobi"},
+            headers=headers,
+        )
+        self.assertEqual(code, 200)
+        self.assertEqual(first.get("library_item_id"), second.get("library_item_id"))
+
 
 if __name__ == "__main__":
     unittest.main()

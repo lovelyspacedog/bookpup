@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.94
+
+- **Fix:** **Walk the Trail** practice **Fetch** reuses your existing tutorial MOBI when the fixture bytes are already in the kennel (repeat tours or a new practice title).
+
 ## 1.3.93
 
 - **Fix:** **Walk the Trail** — entering **Den chatter** no longer scrolls down to the results table and back; the coach card sits above the panel so chat lines stay visible.

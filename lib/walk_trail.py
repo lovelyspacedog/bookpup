@@ -28,8 +28,17 @@ def _sanitize_query(query: str) -> str:
     return cleaned
 
 
+def _fixture_fingerprint() -> str | None:
+    from . import file_digest
+
+    try:
+        return file_digest.partial_md5(_FIXTURE).lower()
+    except OSError:
+        return None
+
+
 def _find_staged_practice_item(display_title: str) -> dict | None:
-    """Reuse an existing Fresh catch when fixture fingerprint matches a prior tutorial fetch."""
+    """Reuse an existing Fresh catch when the display title matches a prior tutorial fetch."""
     want = display_title.strip().lower()
     for row in library.list_items():
         if not library.is_staged(row):
@@ -40,6 +49,31 @@ def _find_staged_practice_item(display_title: str) -> dict | None:
         base = want.removesuffix(".mobi")
         if base and got == base + ".mobi":
             return row
+    return None
+
+
+def _find_existing_tutorial_item(display_title: str) -> dict | None:
+    """Reuse any kennel row that is the same tutorial fixture (repeat tours, retitled practice)."""
+    by_title = _find_staged_practice_item(display_title)
+    if by_title:
+        return by_title
+    fp = _fixture_fingerprint()
+    if not fp:
+        return None
+    for row in library.list_items():
+        if str(row.get("partial_md5") or "").lower() == fp:
+            return row
+        fn = str(row.get("filename") or "").strip()
+        if not fn:
+            continue
+        path = user_paths.library_dir() / fn
+        try:
+            from . import file_digest
+
+            if file_digest.partial_md5(path).lower() == fp:
+                return row
+        except OSError:
+            continue
     return None
 
 
@@ -87,7 +121,7 @@ def complete_tutorial_fetch(owner: str, query: str, title: str | None = None) ->
     jobs.save_job(job)
     item = library.auto_stash_from_job(job)
     if not item:
-        item = _find_staged_practice_item(display_title)
+        item = _find_existing_tutorial_item(display_title)
     if not item:
         raise RuntimeError("Could not stash tutorial book")
     return {
