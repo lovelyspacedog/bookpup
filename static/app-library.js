@@ -12,6 +12,8 @@
   let libraryBrowseMode = null;
   let librarySharesData = { incoming: [], outgoing: [], browsing: [] };
   let ownLibraryQuota = { used_bytes: 0, quota_bytes: 1 };
+  let offlineIdSet = new Set();
+  let libOfflineOnly = false;
   const LIBRARY_READABLE_FALLBACK = new Set([
     "epub",
     "pdf",
@@ -243,8 +245,50 @@
   }
 
   function filterLibraryItems(items) {
+    let out = items;
+    if (libOfflineOnly) out = out.filter((item) => offlineIdSet.has(item.id));
     const q = libFilterInput ? libFilterInput.value : "";
-    return items.filter((item) => libraryItemMatchesFilter(item, q));
+    return out.filter((item) => libraryItemMatchesFilter(item, q));
+  }
+
+  function offlineActionButton(item, shared) {
+    if (shared || !BP.offlineBooks?.canKeepOffline(item)) return "";
+    if (offlineIdSet.has(item.id)) {
+      return '<button type="button" class="bp-btn remove-offline">Remove offline copy</button> ';
+    }
+    return '<button type="button" class="bp-btn keep-offline">Keep offline</button> ';
+  }
+
+  async function keepOfflineCopy(item) {
+    if (!BP.offlineBooks) return;
+    try {
+      BP.showAppToast("Offline", "Downloading for this device…", "info");
+      await BP.offlineBooks.downloadBook(item, BP.state.authHeader);
+      await refreshOfflineIds();
+      renderLibrary();
+      BP.showAppToast("Offline", "Kept on this device — readable without the server.", "ok");
+    } catch (err) {
+      BP.showAppToast("Offline", err.message || "Could not keep offline", "err");
+    }
+  }
+
+  async function removeOfflineCopy(item) {
+    if (!BP.offlineBooks) return;
+    const label = item.title || item.filename || "this book";
+    if (!window.confirm('Remove the offline copy of "' + label + '" from this device?')) return;
+    try {
+      await BP.offlineBooks.removeBook(item.id);
+      await refreshOfflineIds();
+      renderLibrary();
+      BP.showAppToast("Offline", "Offline copy removed.", "ok");
+    } catch (err) {
+      BP.showAppToast("Offline", err.message || "Could not remove offline copy", "err");
+    }
+  }
+
+  function wireOfflineActions(root, item) {
+    root.querySelector(".keep-offline")?.addEventListener("click", () => void keepOfflineCopy(item));
+    root.querySelector(".remove-offline")?.addEventListener("click", () => void removeOfflineCopy(item));
   }
 
   function clearCoverUrls() {
@@ -449,7 +493,23 @@
     URL.revokeObjectURL(url);
   }
 
+  async function refreshOfflineIds() {
+    if (!BP.offlineBooks) {
+      offlineIdSet = new Set();
+      return;
+    }
+    try {
+      const metas = await BP.offlineBooks.listMeta();
+      offlineIdSet = new Set(metas.map((m) => m.item_id));
+    } catch {
+      offlineIdSet = new Set();
+    }
+  }
+
   async function coverUrlForItem(item) {
+    if (item?.offline_only && item.id && BP.offlineBooks) {
+      return BP.offlineBooks.coverBlobUrlFor(item.id);
+    }
     if (!item.has_cover) return null;
     if (coverBlobUrls.has(item.id)) return coverBlobUrls.get(item.id);
     const res = await fetch("/api/library/" + encodeURIComponent(item.id) + "/cover" + libOwnerQuery(), {
@@ -572,7 +632,8 @@
     }
     const read = card.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
-  if (!shared) {
+    wireOfflineActions(card, item);
+    if (!shared) {
     card.querySelector(".del")?.addEventListener("click", async () => {
       if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
       await BP.tossLibraryItem(item.id);
@@ -636,6 +697,7 @@
       BP.escapeHtml(BP.bytes(item.bytes || 0)) +
       "</p>" +
       '<div class="bp-lib-card-actions">' +
+      offlineActionButton(item, shared) +
       (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
       ownerActions +
       takeBtn +
@@ -650,6 +712,7 @@
     const shared = isSharedBrowse();
     const read = tr.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
+    wireOfflineActions(tr, item);
     const dl = tr.querySelector("a.dl");
     if (dl) {
       dl.href = "#";
@@ -738,6 +801,7 @@
         BP.escapeHtml(BP.bytes(item.bytes || 0)) +
         "</td>" +
         "<td class='bp-lib-td-actions'>" +
+        offlineActionButton(item, shared) +
         (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
         ownerCells +
         takeBtn +
@@ -849,6 +913,7 @@
 
   function renderLibrary() {
     const filterActive = !!(libFilterInput && libFilterInput.value.trim());
+    document.getElementById("lib-section-downloads")?.classList.toggle("hidden", !!BP.state.offlineOnly);
     updateSharedBrowseChrome();
     document.getElementById("lib-usage").textContent =
       libraryUsageText || "Library";
@@ -979,11 +1044,46 @@
   }
 
   async function loadLibrary() {
-    await refreshLibraryShares();
+    if (BP.state.offlineOnly && BP.offlineBooks) {
+      await refreshOfflineIds();
+      libraryItemsCache = await BP.offlineBooks.pseudoLibraryItems();
+      const used = await BP.offlineBooks.totalBytes();
+      libraryUsageText = "Offline · " + BP.bytes(used) + " on this device";
+      libraryReadableFormats = new Set(["epub", "pdf"]);
+      updateLibraryBadge();
+      renderLibrary();
+      return;
+    }
+    try {
+      await refreshLibraryShares();
+    } catch (err) {
+      if (!navigator.onLine && BP.offlineBooks) {
+        const metas = await BP.offlineBooks.listMeta();
+        if (metas.length) {
+          BP.state.offlineOnly = true;
+          return loadLibrary();
+        }
+      }
+      throw err;
+    }
     const path = libraryBrowseOwner
       ? "/api/library/shares/" + encodeURIComponent(libraryBrowseOwner) + "/catalog"
       : "/api/library";
-    const lib = await BP.api(path);
+    let lib;
+    try {
+      lib = await BP.api(path);
+    } catch (err) {
+      if (!navigator.onLine && BP.offlineBooks && !libraryBrowseOwner) {
+        const metas = await BP.offlineBooks.listMeta();
+        if (metas.length) {
+          BP.state.offlineOnly = true;
+          BP.showAppToast("Offline", "Server unreachable — showing books on this device.", "info");
+          return loadLibrary();
+        }
+      }
+      throw err;
+    }
+    await refreshOfflineIds();
     if (!libraryBrowseOwner && lib.pruned_ghosts > 0) {
       BP.showAppToast?.(
         "Kennel",
@@ -1012,6 +1112,16 @@
 
   async function openLibraryReader(item) {
     try {
+      if (BP.offlineBooks && (BP.state.offlineOnly || !navigator.onLine)) {
+        if (await BP.offlineBooks.has(item.id)) {
+          const meta = await BP.offlineBooks.viewMeta(item.id);
+          if (meta && window.BookPupReader) {
+            await window.BookPupReader.open(meta, BP.state.authHeader);
+            return;
+          }
+        }
+        throw new Error("No offline copy — use Keep offline while connected");
+      }
       const body = libraryBrowseOwner
         ? JSON.stringify({ owner: libraryBrowseOwner })
         : "{}";
@@ -1528,6 +1638,14 @@
   function updateLibFilterClearBtn() {
     const btn = document.getElementById("lib-filter-clear");
     if (btn) btn.disabled = !(libFilterInput?.value || "").trim();
+  }
+
+  const libOfflineOnlyInput = document.getElementById("lib-offline-only");
+  if (libOfflineOnlyInput) {
+    libOfflineOnlyInput.addEventListener("change", () => {
+      libOfflineOnly = !!libOfflineOnlyInput.checked;
+      renderLibrary();
+    });
   }
 
   if (libFilterInput) {

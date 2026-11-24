@@ -71,6 +71,7 @@ class ServerPublicTests(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             text = resp.read().decode()
         self.assertIn(core.VERSION, text)
+        self.assertIn("reader.js", text)
         self.assertEqual(resp.headers.get("Service-Worker-Allowed"), "/")
 
 if __name__ == "__main__":

@@ -107,5 +107,6 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 
 - On a phone, use the browser menu **Add to Home Screen** / **Install app** (wording varies), or tap **Install BookPup** on the sign-in page or under **Your tag** when the browser offers a one-tap install.
 - Installed BookPup opens full screen like an app and keeps your sign-in in this browser profile.
-- **Offline:** you can still open BookPup, read the **Pup guide**, and read **What's new** from cache.
-- **Online only:** sniffing, fetching, **Kennel**, the in-browser **Reader**, **Pack chat**, and OPDS still need a live connection to the BookPup server.
+- **Offline (no server):** sign-in shell, **Pup guide**, and **What's new** from cache. If you used **Keep offline** on catalogued **EPUB** or **PDF**, reopen from your home screen — **Kennel** lists those books and **Read** works on this device.
+- **Keep offline:** on a catalogued bone, tap **Keep offline** while online (2 GiB cap per device). **Remove offline copy** frees space. Filter **On this device** shows only downloaded titles. Reading position syncs when you are back online.
+- **Online only:** sniffing, fetching, full **Kennel**, **Pack chat**, and OPDS need a live connection (except books you kept offline).

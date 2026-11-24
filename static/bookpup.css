@@ -1132,6 +1132,15 @@ td {
   margin-bottom: 0.75rem;
 }
 
+.bp-lib-offline-only {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 .bp-lib-filter-label {
   display: block;
   font-size: 0.85rem;

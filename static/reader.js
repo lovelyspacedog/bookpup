@@ -190,7 +190,13 @@
     return activeSharedOwner ? "?owner=" + encodeURIComponent(activeSharedOwner) : "";
   }
 
+  let activeOffline = false;
+
   async function fetchReading(itemId, authHeader) {
+    const offline = window.BookPup?.offlineBooks;
+    if (activeOffline && offline) {
+      return offline.getReadingState(itemId);
+    }
     const res = await fetch(
       "/api/library/" + encodeURIComponent(itemId) + "/reading" + catalogOwnerQuery(),
       {
@@ -233,6 +239,16 @@
     if (!activeItemId) return;
     const loc = currentLocationSnapshot();
     if (!loc) return;
+    const offline = window.BookPup?.offlineBooks;
+    if ((activeOffline || !navigator.onLine) && offline) {
+      try {
+        await offline.setReadingState(activeItemId, { location: loc });
+        await offline.enqueueReadingSync(activeItemId, loc);
+      } catch {
+        /* best effort */
+      }
+      return;
+    }
     try {
       await fetch("/api/library/" + encodeURIComponent(activeItemId) + "/reading", {
         method: "POST",
@@ -416,6 +432,7 @@
     clearTimeout(saveTimer);
     activeItemId = null;
     activeFormat = null;
+    activeOffline = false;
     activeAuthHeader = null;
     activeSharedOwner = null;
     readingState = null;
@@ -855,6 +872,7 @@
 
   async function openReader(meta, authHeader) {
     cleanup();
+    activeOffline = !!meta.offline;
     activeAuthHeader = authHeader;
     activeItemId = meta.id || null;
     activeSharedOwner = meta.owner || null;

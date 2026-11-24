@@ -66,7 +66,8 @@
         >
           <h2 id="pwa-install-login-title" class="bp-pwa-install__title">Add to home screen</h2>
           <p class="muted bp-pwa-install__copy">
-            Install BookPup like an app. Offline: this sign-in page, <strong>Pup guide</strong>, and
+            Install BookPup like an app. Offline: sign-in, <strong>Pup guide</strong>, books you
+            <strong>Keep offline</strong>, and
             <strong>What&apos;s new</strong>. Sniff, kennel, and reader need the server.
           </p>
           <p class="bp-msg muted hidden" data-pwa-install-status aria-live="polite"></p>
@@ -561,6 +562,10 @@
               Clear
             </button>
           </div>
+          <label class="bp-lib-offline-only muted" for="lib-offline-only">
+            <input type="checkbox" id="lib-offline-only" />
+            On this device
+          </label>
         </div>
         <section class="bp-lib-section" id="lib-section-downloads">
           <header class="bp-lib-section-head">
@@ -647,8 +652,8 @@
           >
             <h3 id="pwa-install-account-title" class="bp-pwa-install__title">Add to home screen</h3>
             <p class="muted bp-pwa-install__copy">
-              Install BookPup like an app for quick reopen. Offline: sign-in page, <strong>Pup guide</strong>,
-              and <strong>What&apos;s new</strong>. Online: sniff, fetch, kennel, reader, and pack chat need the server.
+              Install BookPup like an app for quick reopen. Offline: sign-in, <strong>Pup guide</strong>,
+              and catalogued books you <strong>Keep offline</strong>. Online: sniff, fetch, full kennel, and pack chat need the server.
             </p>
             <p class="bp-msg muted hidden" data-pwa-install-status aria-live="polite"></p>
             <p class="bp-lib-actions bp-pwa-install__actions">
@@ -985,6 +990,7 @@
     <script src="/static/app-walk-trail.js?v=__VERSION__" defer></script>
     <script src="/static/app-search.js?v=__VERSION__" defer></script>
     <script src="/static/app-queue.js?v=__VERSION__" defer></script>
+    <script src="/static/app-offline-store.js?v=__VERSION__" defer></script>
     <script src="/static/app-library.js?v=__VERSION__" defer></script>
     <script src="/static/app-ux.js?v=__VERSION__" defer></script>
     <script src="/static/app-pwa.js?v=__VERSION__" defer></script>

@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.8
+
+- **Reader:** **Keep offline** on catalogued **EPUB** and **PDF** — device storage, **On this device** filter, and read when the server is down (position syncs when you are back online).
+- **UX:** PWA shell precaches reader assets; offline reopen shows your downloaded titles in **Kennel**.
+
 ## 1.4.7
 
 - **UX:** **Add to home screen** install box — thicker cyan border so it stands out on sign-in and **Your tag**.
