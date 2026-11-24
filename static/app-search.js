@@ -1516,8 +1516,41 @@
   });
 
 
+  function ingestWalkTrailResults(rows, query) {
+    resultRows = rows;
+    BP.state.activeSearchJob = "walk-trail-practice";
+    if (resultsWrap) resultsWrap.classList.remove("hidden");
+    renderResults(rows);
+    if (searchMsg) {
+      searchMsg.textContent = rows.length + ' practice match(es) for "' + query + '".';
+      searchMsg.className = "bp-msg muted";
+    }
+  }
+
   searchForm.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    if (BP.walkTrailActive) {
+      const queryEl = document.getElementById("query");
+      const channelElWalk = document.getElementById("channel");
+      const body = {
+        query: queryEl?.value.trim() || "",
+        channel: channelElWalk?.value || "",
+      };
+      if (!body.query) return;
+      if (body.channel !== "irchighway:ebooks") {
+        if (searchMsg) {
+          searchMsg.textContent = "Walk the Trail uses Main trail only.";
+          searchMsg.className = "bp-msg err";
+        }
+        return;
+      }
+      if (filterInput) filterInput.value = "";
+      resultRows = [];
+      renderResults([]);
+      if (resultsWrap) resultsWrap.classList.remove("hidden");
+      await BP.walkTrailOnSearch?.(body);
+      return;
+    }
     const channelEl = document.getElementById("channel");
     const channelVal = channelEl?.value || "";
     if (channelVal === "xdcc:index") {
@@ -1624,6 +1657,14 @@
   }
 
   async function startDownload(row, tr) {
+    if (BP.walkTrailActive) {
+      if (row.walk_trail) {
+        await BP.walkTrailOnFetch?.(row, tr);
+        return;
+      }
+      BP.showAppToast("Walk the Trail", "Fetch the practice .mobi row for your query.", "info");
+      return;
+    }
     if (!BP.state.activeSearchJob) return;
     if (tr) setFetchRowState(tr, "loading");
     searchMsg.textContent = "Unleashing the fetch…";
@@ -1688,6 +1729,7 @@
   BP.channelDisplayLabel = channelDisplayLabel;
   BP.clearSniffQueryInput = clearSniffQueryInput;
   BP.confirmToss = confirmToss;
+  BP.ingestWalkTrailResults = ingestWalkTrailResults;
   BP.humanizeIrcFeedText = humanizeIrcFeedText;
   BP.humanizeSearchBotNotice = humanizeSearchBotNotice;
   BP.libraryHitForSniffTitle = libraryHitForSniffTitle;

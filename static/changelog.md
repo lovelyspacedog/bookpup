@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.83
+
+- **UX:** **Walk the Trail** — bold onboard link; step-by-step coach marks with practice sniff, mock Den chatter, tutorial MOBI fetch, tag step, optional cleanup, then Pup guide page 2. Restart from Pup guide page 1.
+
 ## 1.3.82
 
 - **UX:** **Pup guide** rewritten for lay readers — defines sniff, fetch, catalog, and read up front; less jargon; Calibre, KOReader, and library sharing moved to later pages.

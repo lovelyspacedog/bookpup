@@ -28,6 +28,7 @@
     const dismissed = localStorage.getItem(ONBOARD_KEY) === "1";
     if (banner) banner.classList.toggle("hidden", dismissed);
     if (checklist) checklist.classList.toggle("hidden", dismissed && completedFetches() > 2);
+    BP.syncWalkTrailEntry?.();
   }
 
   function syncIrcPanelDefault() {
@@ -50,6 +51,8 @@
       syncOnboardUi();
     });
     document.getElementById("onboard-guide")?.addEventListener("click", () => openGuidePage(1));
+    document.getElementById("onboard-walk-trail")?.addEventListener("click", () => BP.startWalkTrail?.());
+    document.getElementById("sniff-walk-trail")?.addEventListener("click", () => BP.startWalkTrail?.());
     const panel = document.getElementById("irc-panel");
     panel?.addEventListener("toggle", () => {
       if (panel.open) localStorage.setItem(IRC_PANEL_KEY, "1");
@@ -243,6 +246,7 @@
   BP.stagingExpiryLabel = stagingExpiryLabel;
   BP.openTossModal = openTossModal;
   BP.syncOnboardUi = syncOnboardUi;
+  BP.openGuidePage = openGuidePage;
   BP.SNIFF_HIDE_KENNEL_KEY = SNIFF_HIDE_KENNEL_KEY;
   BP.initUx = initUx;
 

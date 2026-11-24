@@ -199,10 +199,15 @@
             <strong>New here?</strong> The <strong>Pup guide</strong> walks through Sniff, Kennel, and fetch—about two minutes.
           </p>
           <div class="bp-onboard-actions">
+            <button type="button" class="bp-link-btn bp-walk-trail-link" id="onboard-walk-trail">Walk the Trail</button>
             <button type="button" class="bp-link-btn" id="onboard-guide">Open Pup guide</button>
             <button type="button" id="onboard-dismiss" class="bp-btn bp-btn--ghost">Dismiss</button>
           </div>
         </div>
+        <p id="sniff-walk-trail-wrap" class="bp-sniff-walk-trail hidden">
+          <button type="button" class="bp-link-btn bp-walk-trail-link" id="sniff-walk-trail">Walk the Trail</button>
+          <span class="muted"> — interactive practice sniff</span>
+        </p>
         <ol id="sniff-checklist" class="bp-sniff-checklist hidden" aria-label="Sniff workflow">
           <li id="sniff-step-sniff" class="bp-sniff-checklist__item">Sniff on IRC</li>
           <li id="sniff-step-fetch" class="bp-sniff-checklist__item">Fetch a row</li>
@@ -673,6 +678,18 @@
         </article>
       </section>
     </main>
+    <div id="walk-trail-root" class="bp-walk-trail hidden" role="dialog" aria-modal="true" aria-labelledby="walk-trail-tip-title">
+      <div id="walk-trail-spot" class="bp-walk-trail-spot hidden" aria-hidden="true"></div>
+      <div id="walk-trail-tip" class="bp-walk-trail-tip" data-placement="bottom">
+        <h2 id="walk-trail-tip-title" class="bp-walk-trail-tip__title" data-wt-title>Walk the Trail</h2>
+        <p class="bp-walk-trail-tip__body" data-wt-body></p>
+        <div class="bp-walk-trail-tip__actions">
+          <button type="button" class="bp-btn" data-wt-next>Next</button>
+          <button type="button" class="bp-btn bp-btn--ghost" data-wt-cleanup-skip>Skip</button>
+          <button type="button" class="bp-btn bp-btn--ghost" data-wt-exit>Exit tour</button>
+        </div>
+      </div>
+    </div>
     <div id="bp-toast-stack" class="bp-toast-stack" aria-live="polite" aria-relevant="additions"></div>
     <div id="bp-toast-stack-assertive" class="bp-toast-stack bp-toast-stack--assertive" aria-live="assertive" aria-relevant="additions"></div>
     <div id="wipe-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="wipe-modal-title">
@@ -888,6 +905,7 @@
     <script src="/static/app-pack-chat.js?v=__VERSION__" defer></script>
     <script src="/static/app-account.js?v=__VERSION__" defer></script>
     <script src="/static/sniff-file-types.js?v=__VERSION__" defer></script>
+    <script src="/static/app-walk-trail.js?v=__VERSION__" defer></script>
     <script src="/static/app-search.js?v=__VERSION__" defer></script>
     <script src="/static/app-queue.js?v=__VERSION__" defer></script>
     <script src="/static/app-library.js?v=__VERSION__" defer></script>

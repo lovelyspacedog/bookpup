@@ -1263,6 +1263,7 @@
     fillRegisterForm(item);
     if (registerModal) registerModal.classList.remove("hidden");
     document.body.classList.add("bp-reader-open");
+    BP.walkTrailOnRegisterOpen?.(item);
   }
 
   function openEditMetadataModal(item) {
@@ -1372,6 +1373,7 @@
         if (pendingFile) await uploadCoverFile(itemId, pendingFile);
         closeRegisterModal();
         document.body.classList.remove("bp-reader-open");
+        BP.walkTrailOnRegisterSaved?.(itemId);
         loadLibrary();
       } catch (err) {
         if (registerMsg) {

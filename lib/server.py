@@ -32,6 +32,7 @@ from .routes import (
     session_routes,
     staging as staging_routes,
     static_files,
+    walk_trail as walk_trail_routes,
 )
 
 # Re-export for compatibility
@@ -255,6 +256,7 @@ class Handler(BaseHTTPRequestHandler):
             staging_routes,
             admin,
             reader_ai_routes,
+            walk_trail_routes,
         ):
             if mod.handle_post(self, path, body):
                 return

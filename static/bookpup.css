@@ -3103,3 +3103,77 @@ tr.bp-sniff-pick td {
     grid-template-columns: 1fr;
   }
 }
+
+.bp-walk-trail-link {
+  font-weight: 700;
+}
+
+.bp-sniff-walk-trail {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+}
+
+.bp-walk-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+}
+
+.bp-walk-trail:not(.hidden) {
+  display: block;
+}
+
+.bp-walk-trail-spot {
+  position: absolute;
+  pointer-events: none;
+  border: 2px solid var(--link, #8af);
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+  transition: top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.bp-walk-trail-tip {
+  position: absolute;
+  pointer-events: auto;
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--border, #555);
+  background: var(--card, #1a1a1e);
+  color: var(--text, #eee);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.bp-walk-trail-tip__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.bp-walk-trail-tip__body {
+  margin: 0 0 0.65rem;
+  line-height: 1.45;
+  font-size: 0.92rem;
+}
+
+.bp-walk-trail-tip__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  justify-content: flex-end;
+}
+
+.bp-walk-trail-tip__actions .bp-btn {
+  width: auto;
+  margin: 0;
+}
+
+.bp-guide-walk-trail {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #444);
+}
+
+body.bp-walk-trail-active .bp-register-modal {
+  z-index: 1300;
+}

@@ -358,6 +358,7 @@
   }
 
   async function pollIrcFeed(force) {
+    if (BP.walkTrailActive) return;
     if (!BP.state.authHeader && !force) return;
     try {
       const data = await BP.api("/api/irc/feed?after=" + encodeURIComponent(BP.state.ircAfterId));
