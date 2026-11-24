@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.6.2
+
+- **Pack:** Reaction chips sized to message text — fixed full-width **.bp-card** button rule stretching in-chat controls.
+
 ## 1.6.1
 
 - **Pack:** Tighter in-chat layout — reactions as compact pills on one row; **Reply** / **Remove** as footer links (no tall side stack).
