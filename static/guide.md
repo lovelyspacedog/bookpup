@@ -8,7 +8,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 - This site is **not** your Whatbox control panel. Sign in here with the **username** and **password** an admin gave you.
 - You stay signed in in this browser until you choose **Head out** or the server restarts.
 - Admins add accounts under **Pack roster**. Everyone can change their own password under **Your tag**.
-- Finished **Walk the Trail** once? On this page you can start the interactive practice again (see the link at the bottom after the guide loads).
+- Finished **Walk the Trail** once? Use **Walk the Trail again** on **Sniff**, this page (link at the bottom), or **Page 2** below.
 
 ## Page 2 — Sniff, fetch, catalog, read
 

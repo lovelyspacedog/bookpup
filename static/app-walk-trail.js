@@ -14,6 +14,7 @@
   let registerSnapshot = null;
   let fetchDone = false;
   let fetchError = "";
+  let tagStepArmed = false;
   let focusTargetEl = null;
   const autoAdvanceFired = new Set();
 
@@ -513,6 +514,7 @@
     BP.state.walkTrailExpectTag = false;
     fetchDone = false;
     fetchError = "";
+    tagStepArmed = false;
     tutorialItemId = "";
     registerSnapshot = null;
     autoAdvanceFired.clear();
@@ -583,6 +585,12 @@
     }, 350);
   }
 
+  function restartWalkTrail() {
+    if (active) return;
+    resetComplete();
+    startWalkTrail();
+  }
+
   function startWalkTrail() {
     if (active) return;
     if (isComplete()) return;
@@ -592,6 +600,7 @@
     stepIndex = 0;
     fetchDone = false;
     fetchError = "";
+    tagStepArmed = false;
     tutorialQuery = "";
     tutorialTitle = "";
     tutorialItemId = "";
@@ -768,14 +777,32 @@
   function syncWalkTrailEntry() {
     const complete = isComplete();
     const onboardDismissed = localStorage.getItem("bookpupOnboardDismissed") === "1";
-    document.getElementById("onboard-walk-trail")?.classList.toggle("hidden", complete);
+    const again = "Walk the Trail again";
+    const label = complete ? again : "Walk the Trail";
+    const onboardBtn = document.getElementById("onboard-walk-trail");
+    const sniffBtn = document.getElementById("sniff-walk-trail");
+    if (onboardBtn) onboardBtn.textContent = label;
+    if (sniffBtn) sniffBtn.textContent = label;
     const sniffWrap = document.getElementById("sniff-walk-trail-wrap");
     if (sniffWrap) {
-      sniffWrap.classList.toggle("hidden", complete || !onboardDismissed);
+      const showSniffLink = complete || onboardDismissed;
+      sniffWrap.classList.toggle("hidden", !showSniffLink);
+      const hint = sniffWrap.querySelector(".muted");
+      if (hint) {
+        hint.textContent = complete
+          ? " — run the practice tour again"
+          : " — step-by-step tutorial mode";
+      }
     }
   }
 
   function armTagStep() {
+    if (tagStepArmed) return;
+    tagStepArmed = true;
+    if (currentStep()?.id === "kennel") {
+      const tagIdx = steps.findIndex((s) => s.id === "tag");
+      if (tagIdx >= 0) stepIndex = tagIdx;
+    }
     BP.state.walkTrailExpectTag = true;
     const items = (typeof BP.getLibraryItems === "function" ? BP.getLibraryItems() : []) || [];
     const item = items.find((it) => it.id === tutorialItemId);
@@ -785,6 +812,7 @@
       if (authorsEl && !authorsEl.value) authorsEl.value = "Your name";
       onRegisterOpen(item);
     }
+    updateTipChrome();
   }
 
   function watchStepHooks() {
@@ -803,6 +831,7 @@
 
   BP.walkTrailActive = false;
   BP.startWalkTrail = startWalkTrail;
+  BP.restartWalkTrail = restartWalkTrail;
   BP.exitWalkTrail = exitWalkTrail;
   BP.resetWalkTrailComplete = resetComplete;
   BP.walkTrailOnSearch = handleSearchSubmit;

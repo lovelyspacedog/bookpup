@@ -1533,6 +1533,7 @@
       searchMsg.textContent = rows.length + ' practice match(es) for "' + query + '".';
       searchMsg.className = "bp-msg muted";
     }
+    updateDraftMeta(query, "irchighway:ebooks", rows.length);
   }
 
   searchForm.addEventListener("submit", async (ev) => {

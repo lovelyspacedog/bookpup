@@ -51,8 +51,8 @@
       syncOnboardUi();
     });
     document.getElementById("onboard-guide")?.addEventListener("click", () => openGuidePage(1));
-    document.getElementById("onboard-walk-trail")?.addEventListener("click", () => BP.startWalkTrail?.());
-    document.getElementById("sniff-walk-trail")?.addEventListener("click", () => BP.startWalkTrail?.());
+    document.getElementById("onboard-walk-trail")?.addEventListener("click", () => BP.restartWalkTrail?.());
+    document.getElementById("sniff-walk-trail")?.addEventListener("click", () => BP.restartWalkTrail?.());
     const panel = document.getElementById("irc-panel");
     panel?.addEventListener("toggle", () => {
       if (panel.open) localStorage.setItem(IRC_PANEL_KEY, "1");

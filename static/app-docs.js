@@ -237,7 +237,8 @@
   }
 
   function bindWalkTrailRestart() {
-    if (guidePageIndex !== 0 || guideShowAll) return;
+    if (guideShowAll || !BP.walkTrailIsComplete?.()) return;
+    if (guidePageIndex > 1) return;
     const body = document.getElementById("guide-body");
     if (!body || body.querySelector("#guide-walk-trail-restart")) return;
     const box = document.createElement("p");
@@ -246,10 +247,7 @@
     box.innerHTML =
       '<button type="button" class="bp-link-btn bp-walk-trail-link" id="guide-walk-trail-btn">Walk the Trail again</button>';
     body.appendChild(box);
-    document.getElementById("guide-walk-trail-btn")?.addEventListener("click", () => {
-      BP.resetWalkTrailComplete?.();
-      BP.startWalkTrail?.();
-    });
+    document.getElementById("guide-walk-trail-btn")?.addEventListener("click", () => BP.restartWalkTrail?.());
   }
 
   function pageIndexLabel(n, total) {

@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.3.92
+
+- **UX:** **Walk the Trail again** on Sniff (after first completion), onboard banner, and Pup guide pages 1–2.
+- **UX:** Open results draft line matches practice sniff during the tour; Tag coach aligns when the register modal opens.
+
 ## 1.3.91
 
 - **Fix:** **Walk the Trail** tutorial MOBI ships with the app (`lib/fixtures/`) so practice **Fetch** works on production.
