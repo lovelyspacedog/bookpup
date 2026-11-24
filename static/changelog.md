@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.104
+
+- **Fix:** **Walk the Trail** Pack chat mobile scroll — no coach scroll fighting the one slow showcase (flicker at step entry).
+
 ## 1.3.103
 
 - **UI:** **Kennel** toolbar on mobile — one logical row each for browse/sharing, export, grid/list, group, and sort; filter stays on its own line.

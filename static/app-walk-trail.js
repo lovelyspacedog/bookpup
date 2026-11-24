@@ -21,6 +21,7 @@
   let fetchIntroScrolled = false;
   let catalogIntroScrolled = false;
   let packScrollTourFrame = null;
+  let packScrollTourStarted = false;
   let trailConfettiStarted = false;
   const CONFETTI_EMOJI = ["🐕", "🐶", "🦮", "🐾", "🦴", "🎉", "🎊", "✨", "🐾", "🌭", "💫", "🐕‍🦺", "🎉", "🐾"];
 
@@ -220,6 +221,12 @@
       }
       return document.getElementById("lib-section-downloads");
     }
+    if (st.id === "pack") {
+      if (MOBILE_TIP_MQ.matches) {
+        return document.getElementById("panel-pack") || document.querySelector(".bp-pack-chat");
+      }
+      return document.querySelector("#tab-pack");
+    }
     if (st.id === "pack-bots") {
       const list = document.getElementById("pack-presence-list");
       return (
@@ -291,6 +298,7 @@
       cancelAnimationFrame(packScrollTourFrame);
       packScrollTourFrame = null;
     }
+    packScrollTourStarted = false;
   }
 
   function packChatScrollMax() {
@@ -308,8 +316,9 @@
   }
 
   function startPackChatMobileScrollTour() {
-    stopPackScrollTour();
+    if (packScrollTourStarted || packScrollTourFrame) return;
     if (!MOBILE_TIP_MQ.matches || !active || currentStep()?.id !== "pack" || prefersReducedMotion()) return;
+    packScrollTourStarted = true;
     try {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     } catch {
@@ -515,6 +524,9 @@
     const dockTopCoach = usesTopCoachDock(st);
     if (dockTopCoach) {
       scheduleWalkTrailLayout(target, st?.placement);
+      const skipMobileScroll =
+        MOBILE_TIP_MQ.matches && (st?.id === "pack" || st?.id === "pack-house" || st?.id === "pack-bots");
+      if (skipMobileScroll) return;
       requestAnimationFrame(() => {
         if (!active || target !== resolveStepTarget(currentStep())) return;
         if (st?.id !== "kennel") scrollRevealBelowTopCoach(target);
@@ -970,14 +982,17 @@
       const packBtn = BP.tabButton("pack");
       if (packBtn) BP.activateTab(packBtn);
     }
-    if (next?.id === "pack") {
-      requestAnimationFrame(() => startPackChatMobileScrollTour());
-    }
     if (next?.id === "cleanup") {
       const libBtn = BP.tabButton("library");
       if (libBtn) BP.activateTab(libBtn);
     }
     updateTipChrome();
+    if (next?.id === "pack") {
+      packScrollTourStarted = false;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => startPackChatMobileScrollTour());
+      });
+    }
   }
 
   function autoWatchAdvance() {
