@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="static/pwa/icon-brand-login.png" alt="BookPup logo — hound and book in a neon kennel mark" width="140" />
+</div>
+
 # BookPup
 
 [![test](https://github.com/lovelyspacedog/bookpup/actions/workflows/test.yml/badge.svg)](https://github.com/lovelyspacedog/bookpup/actions/workflows/test.yml)
