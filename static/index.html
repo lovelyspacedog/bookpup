@@ -53,10 +53,12 @@
     </section>
     <div id="app-shell" class="hidden bp-page">
     <header class="bp-header">
-      <h1><button type="button" class="bp-title-btn" id="about-open-app" aria-haspopup="dialog">BookPup</button></h1>
+      <div class="bp-header-title">
+        <h1><button type="button" class="bp-title-btn" id="about-open-app" aria-haspopup="dialog">BookPup</button></h1>
+        <span id="bp-header-ver" class="bp-header-ver muted">v__VERSION__</span>
+      </div>
       <div class="bp-header-mid">
         <p class="muted bp-header-version" id="bp-header-version">
-          <span id="bp-header-ver" class="bp-header-ver">v__VERSION__</span>
           <span class="bp-header-zip-block">
             <span id="bp-header-zip-prompt">ZIP:</span>
             <input
