@@ -1,7 +1,7 @@
 # BookPup
 
 [![test](https://github.com/lovelyspacedog/bookpup/actions/workflows/test.yml/badge.svg)](https://github.com/lovelyspacedog/bookpup/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 Household web portal for **[Whatbox Expedition](https://whatbox.ca/)** (or any VPS): search ebook IRC channels via `@search`, optional **[XDCC index](https://xdccsearch.com)** metasearch, DCC downloads, per-user libraries with quotas, in-browser reader, OPDS, Calibre import, and KOReader progress sync.
 
@@ -98,4 +98,8 @@ IRC bots are community-operated. Use BookPup only for material you are entitled 
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Copyright © 2025 Tony Pup.
+
+BookPup is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License v3.0](LICENSE) (or, at your option, any later version).
+
+Bundled third-party code under `vendor/` and `static/vendor/` keeps its original licenses (see those trees).
