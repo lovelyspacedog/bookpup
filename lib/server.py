@@ -14,6 +14,7 @@ from . import accounts, auth, jobs, kosync
 from . import irc_targets
 from .core import CSRF_HEADER, VERSION, ensure_dirs, load_config
 from .irc_worker import worker
+from .scheduled_sniff import start_scheduler
 from .staging import cleanup_staging
 from .routes import (
     admin,
@@ -285,6 +286,7 @@ def main() -> None:
     config = load_config()
     Handler.config = config
     worker.start()
+    start_scheduler()
     host = str(config.get("host", "127.0.0.1"))
     port = int(config["port"])
     ThreadingHTTPServer.allow_reuse_address = True

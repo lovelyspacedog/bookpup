@@ -143,6 +143,40 @@
     });
   }
 
+  const SCHEDULE_INTERVALS = [
+    { hours: 6, label: "Every 6 hours" },
+    { hours: 12, label: "Every 12 hours" },
+    { hours: 24, label: "Daily" },
+    { hours: 168, label: "Weekly" },
+  ];
+
+  function formatScheduleWhen(ts) {
+    if (!ts || ts <= 0) return "";
+    const d = new Date(ts * 1000);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+
+  async function patchSavedSchedule(id, body) {
+    try {
+      const data = await BP.api("/api/search/saved/" + encodeURIComponent(id) + "/schedule", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      renderSavedSearchList(data.workspace?.saved);
+      if (savedSearchMsg) {
+        savedSearchMsg.textContent = body.enabled ? "Scheduled sniff enabled." : "Scheduled sniff off.";
+        savedSearchMsg.className = "bp-msg muted";
+      }
+    } catch (err) {
+      if (savedSearchMsg) {
+        savedSearchMsg.textContent = err.message;
+        savedSearchMsg.className = "bp-msg err";
+      }
+      void loadSearchWorkspace();
+    }
+  }
+
   function renderSavedSearchList(saved) {
     workspaceSaved = Array.isArray(saved) ? saved.slice() : [];
     if (!savedSearchList) return;
@@ -183,7 +217,57 @@
       downBtn.disabled = idx === workspaceSaved.length - 1;
       downBtn.addEventListener("click", () => moveSavedSearch(item.id, 1));
       actions.append(loadBtn, delBtn, upBtn, downBtn);
-      li.append(title, actions);
+
+      const sched = item.schedule || {};
+      const schedRow = document.createElement("div");
+      schedRow.className = "bp-saved-schedule";
+      const schedLabel = document.createElement("label");
+      schedLabel.className = "bp-check bp-saved-schedule-check";
+      const schedToggle = document.createElement("input");
+      schedToggle.type = "checkbox";
+      schedToggle.checked = !!sched.enabled;
+      schedToggle.setAttribute("aria-label", "Schedule sniff for " + (item.name || "bookmark"));
+      const intervalSel = document.createElement("select");
+      intervalSel.className = "bp-saved-schedule-interval";
+      intervalSel.disabled = !sched.enabled;
+      SCHEDULE_INTERVALS.forEach((opt) => {
+        const o = document.createElement("option");
+        o.value = String(opt.hours);
+        o.textContent = opt.label;
+        intervalSel.appendChild(o);
+      });
+      const wantH = sched.interval_hours || 24;
+      intervalSel.value = String(
+        SCHEDULE_INTERVALS.some((o) => o.hours === wantH) ? wantH : 24
+      );
+      schedToggle.addEventListener("change", () => {
+        intervalSel.disabled = !schedToggle.checked;
+        void patchSavedSchedule(item.id, {
+          enabled: schedToggle.checked,
+          interval_hours: parseInt(intervalSel.value, 10) || 24,
+        });
+      });
+      intervalSel.addEventListener("change", () => {
+        if (!schedToggle.checked) return;
+        void patchSavedSchedule(item.id, {
+          enabled: true,
+          interval_hours: parseInt(intervalSel.value, 10) || 24,
+        });
+      });
+      schedLabel.append(schedToggle, document.createTextNode(" Schedule sniff"));
+      const status = document.createElement("p");
+      status.className = "bp-msg muted bp-saved-schedule-status";
+      const parts = [];
+      if (sched.enabled) {
+        if (sched.running) parts.push("Running…");
+        else if (sched.next_run_at) parts.push("Next ~" + formatScheduleWhen(sched.next_run_at));
+        if (sched.last_run_at) parts.push("Last " + formatScheduleWhen(sched.last_run_at));
+      }
+      if (sched.last_error) parts.push(sched.last_error);
+      status.textContent = parts.join(" · ");
+      schedRow.append(schedLabel, intervalSel, status);
+
+      li.append(title, actions, schedRow);
       savedSearchList.appendChild(li);
     });
     updateResultsPanelVisibility();

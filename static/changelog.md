@@ -2,7 +2,12 @@
 
 ## 1.3
 
-Patch line **1.3.0**–**1.3.57** (live patch on **What’s new** and `GET /api/health`).
+Patch line **1.3.0**–**1.3.58** (live patch on **What’s new** and `GET /api/health`).
+
+## 1.3.58
+
+- **Sniff:** **Schedule sniff** on bookmarks — household server re-runs the bookmark query on an interval, ntfy when new rows appear (respects IRC idle queue; Soulseek caps).
+- **Sniff:** optional config `sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`.
 
 - **UX:** signed-in header shows **vX.Y.Z · Enter ZIP:** with a borderless field; **Enter** fetches a one-line [wttr.in](https://wttr.in) forecast for a US ZIP (`GET /api/weather`).
 - **UX:** header version sits smaller and lower beside **ZIP:** (spaced entry); forecast keeps the version visible.

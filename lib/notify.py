@@ -50,3 +50,45 @@ def maybe_job_done(job: dict[str, Any]) -> None:
             pass
 
     threading.Thread(target=run, daemon=True).start()
+
+
+def maybe_sniff_watch_new(
+    *,
+    owner: str,
+    watch_name: str,
+    query: str,
+    new_rows: list[dict],
+) -> None:
+    if not new_rows:
+        return
+    cfg = load_config()
+    topic = str(cfg.get("ntfy_topic") or "").strip()
+    if not topic:
+        return
+    try:
+        server = assert_ntfy_server_url(str(cfg.get("ntfy_server") or "https://ntfy.sh"))
+    except ValueError:
+        return
+    count = len(new_rows)
+    label = watch_name[:60]
+    title = f"BookPup: {count} new for “{label}”"
+    lines = [f"Sniff: {query[:120]}"]
+    if owner:
+        lines.insert(0, f"For {owner}")
+    for row in new_rows[:5]:
+        t = str(row.get("title") or row.get("display") or "").strip()
+        if t:
+            lines.append(f"• {t[:100]}")
+    if count > 5:
+        lines.append(f"…and {count - 5} more")
+    base = public_base_url(cfg)
+    lines.append(f"Open BookPup: {base}")
+    message = "\n".join(lines)[:900]
+
+    def run() -> None:
+        try:
+            _post_ntfy(server, topic, title[:80], message)
+        except OSError:
+            pass
+
+    threading.Thread(target=run, daemon=True).start()

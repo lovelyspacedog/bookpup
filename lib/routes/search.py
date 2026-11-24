@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from .. import irc_targets, jobs, search_workspace, soulseek_limits, soulseek_search, xdcc_search
-from ..irc_worker import worker
+from .. import irc_targets, jobs, search_run, search_workspace
 from ..soulseek_limits import SoulseekLimitError
 from ._types import RequestHandler
 
@@ -23,6 +22,17 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     if path == "/api/search/saved":
         out = search_workspace.save_draft_as(str(body.get("name") or ""))
         handler.send_json(201, out)
+        return True
+    if path.startswith("/api/search/saved/") and path.endswith("/schedule"):
+        saved_id = path[len("/api/search/saved/") : -len("/schedule")]
+        if not saved_id or "/" in saved_id:
+            raise ValueError("Invalid saved id")
+        try:
+            ws = search_workspace.update_saved_schedule(saved_id, body)
+        except KeyError:
+            handler.send_json(404, {"error": "Saved search not found"})
+            return True
+        handler.send_json(200, {"ok": True, "workspace": ws})
         return True
     if path.startswith("/api/search/saved/") and path.endswith("/load"):
         saved_id = path[len("/api/search/saved/") : -len("/load")]
@@ -44,42 +54,23 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         if not query:
             raise ValueError("query required")
         channel = handler._validated_irc_channel(body.get("channel"))
-        if channel == irc_targets.SOULSEEK_INDEX_ID:
-            try:
-                soulseek_limits.assert_search_allowed(handler._current_user)
-            except SoulseekLimitError as exc:
-                payload = {"error": str(exc)}
-                if exc.limits:
-                    payload["soulseek_limits"] = exc.limits
-                handler.send_json(429, payload)
-                return True
-            soulseek_limits.record_search(handler._current_user)
-        job = jobs.create_job(
-            "search",
-            query=query,
-            channel=channel,
-            owner=handler._current_user,
-        )
-        if channel == irc_targets.XDCC_INDEX_ID:
-            xdcc_search.run_search_job(job, owner=handler._current_user)
-            full = jobs.load_job(str(job["id"]))
+        try:
+            full = search_run.start_search(handler._current_user, query, channel)
+        except SoulseekLimitError as exc:
+            payload = {"error": str(exc)}
+            if exc.limits:
+                payload["soulseek_limits"] = exc.limits
+            handler.send_json(429, payload)
+            return True
+        ch = irc_targets.normalize_channel_id(channel)
+        if ch in (irc_targets.XDCC_INDEX_ID, irc_targets.SOULSEEK_INDEX_ID):
             payload = jobs.job_summary(full)
             if full.get("state") == "done":
                 payload["results"] = full.get("results")
                 payload["result_count"] = full.get("result_count", 0)
             handler.send_json(201, {"job": payload})
             return True
-        if channel == irc_targets.SOULSEEK_INDEX_ID:
-            soulseek_search.run_search_job(job, owner=handler._current_user)
-            full = jobs.load_job(str(job["id"]))
-            payload = jobs.job_summary(full)
-            if full.get("state") == "done":
-                payload["results"] = full.get("results")
-                payload["result_count"] = full.get("result_count", 0)
-            handler.send_json(201, {"job": payload})
-            return True
-        worker.enqueue(job["id"])
-        handler.send_json(201, {"job": job})
+        handler.send_json(201, {"job": jobs.job_summary(full)})
         return True
     return False
 

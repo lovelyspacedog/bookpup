@@ -44,7 +44,7 @@ Runtime config and libraries live under `~/.config/bookpup/`:
 
 | Path | Purpose |
 |------|---------|
-| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy |
+| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy, optional scheduled-sniff tuning (`sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`) |
 | `accounts.json` | Household users (admin creates accounts in UI) |
 | `users/<name>/` | Per-user library files, covers, indexes |
 | `sessions.json` | Bearer sessions (7-day TTL) |

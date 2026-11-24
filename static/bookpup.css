@@ -412,6 +412,36 @@ body {
   font-size: 0.82rem;
 }
 
+.bp-saved-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bp-saved-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding-left: 0.15rem;
+}
+
+.bp-saved-schedule-check {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.bp-saved-schedule-interval {
+  font-size: 0.85rem;
+  max-width: 11rem;
+}
+
+.bp-saved-schedule-status {
+  margin: 0;
+  flex: 1 1 100%;
+  font-size: 0.8rem;
+}
+
 .bp-saved-search-actions {
   display: flex;
   flex-wrap: wrap;

@@ -27,6 +27,7 @@ class SearchWorkspaceTest(unittest.TestCase):
         base = Path(self.tmp.name)
         core.CONFIG_DIR = base / "cfg"
         core.JOBS_DIR = core.CONFIG_DIR / "jobs"
+        core._config = {"username": "book", "password": "x", "port": 1}
         core.ensure_dirs()
         user_paths.set_user("pup")
         user_paths.ensure_user_dirs("pup")
@@ -34,6 +35,7 @@ class SearchWorkspaceTest(unittest.TestCase):
     def tearDown(self) -> None:
         user_paths.set_user(None)
         self.tmp.cleanup()
+        core._config = None
 
     def test_draft_save_load_reorder_delete(self) -> None:
         rows = [_row("A"), _row("B")]
@@ -60,6 +62,15 @@ class SearchWorkspaceTest(unittest.TestCase):
         search_workspace.reorder_saved(order)
         search_workspace.delete_saved(saved_id)
         self.assertEqual(search_workspace.get_workspace()["saved"], [])
+
+    def test_schedule_fields_in_workspace(self) -> None:
+        rows = [_row()]
+        search_workspace.update_draft({"query": "q", "channel": "irchighway:ebooks", "results": rows})
+        out = search_workspace.save_draft_as("sched")
+        ws = search_workspace.update_saved_schedule(out["id"], {"enabled": True, "interval_hours": 12})
+        item = ws["saved"][0]
+        self.assertTrue(item["schedule"]["enabled"])
+        self.assertEqual(item["schedule"]["interval_hours"], 12)
 
     def test_max_saved(self) -> None:
         rows = [_row()]
