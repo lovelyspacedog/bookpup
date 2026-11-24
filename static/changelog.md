@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.7
+
+- **UX:** **Add to home screen** install box — thicker cyan border so it stands out on sign-in and **Your tag**.
+
 ## 1.4.6
 
 - **UX:** **Install BookPup** on the sign-in page when your browser supports add-to-home-screen (still under **Your tag** too).

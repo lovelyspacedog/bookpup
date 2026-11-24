@@ -3390,8 +3390,15 @@ tr.bp-sniff-pick td {
 
 .bp-pwa-install {
   margin: 1rem 0 0.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--line, #2c2c44);
+  padding: 0.85rem 1rem;
+  border: 3px solid var(--accent, #2ee6ff);
+  border-radius: 0.45rem;
+  background: var(--raised, #1b1b2a);
+}
+
+.bp-pwa-install.bp-card {
+  border-width: 3px;
+  border-color: var(--accent, #2ee6ff);
 }
 
 .bp-login-card .bp-pwa-install {
