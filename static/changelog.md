@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.90
+
+- **Fix:** **Walk the Trail** explain steps (Den chatter, filter, queue) use a top coach card on mobile so the highlighted control stays visible below.
+
 ## 1.3.89
 
 - **Fix:** **Walk the Trail** coach card stays readable on **Den chatter** (highlight no longer stacks over the tip on mobile).

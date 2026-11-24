@@ -3179,6 +3179,16 @@ tr.bp-sniff-pick td {
   max-height: min(46vh, 22rem);
 }
 
+.bp-walk-trail-tip--dock-top {
+  left: 0.65rem !important;
+  right: 0.65rem !important;
+  top: calc(env(safe-area-inset-top, 0px) + 3.1rem) !important;
+  bottom: auto !important;
+  max-width: none;
+  width: auto;
+  max-height: min(38vh, 16rem);
+}
+
 .bp-walk-trail-tip__title {
   margin: 0 0 0.35rem;
   font-size: 1.05rem;

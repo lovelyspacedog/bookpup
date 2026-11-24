@@ -232,24 +232,45 @@
       layoutSpotRing(null);
       return;
     }
-    try {
-      target.scrollIntoView({
-        block: MOBILE_TIP_MQ.matches ? "nearest" : "center",
-        inline: "nearest",
-      });
-    } catch {
-      /* ignore */
+    const st = currentStep();
+    const skipScroll = MOBILE_TIP_MQ.matches && st?.mobileTip === "top";
+    if (!skipScroll) {
+      try {
+        target.scrollIntoView({
+          block: MOBILE_TIP_MQ.matches ? "nearest" : "center",
+          inline: "nearest",
+        });
+      } catch {
+        /* ignore */
+      }
     }
-    scheduleWalkTrailLayout(target, currentStep()?.placement);
+    scheduleWalkTrailLayout(target, st?.placement);
+  }
+
+  function ensureDenPanelOpen() {
+    const panel = document.getElementById("irc-panel");
+    if (!panel) return;
+    panel.classList.remove("hidden");
+    panel.open = true;
+  }
+
+  function ensureDenMockVisible() {
+    const feed = document.getElementById("irc-feed");
+    if (!feed) return;
+    if (feed.children.length >= 2) return;
+    runMockIrcScript(tutorialQuery || "practice");
   }
 
   function positionTip(target, placement) {
     const tip = tipEl();
     if (!tip) return;
     const margin = 12;
+    const st = currentStep();
     tip.dataset.placement = placement || "bottom";
     const dockMobile = MOBILE_TIP_MQ.matches;
-    tip.classList.toggle("bp-walk-trail-tip--dock", dockMobile);
+    const dockTop = dockMobile && st?.mobileTip === "top";
+    tip.classList.toggle("bp-walk-trail-tip--dock", dockMobile && !dockTop);
+    tip.classList.toggle("bp-walk-trail-tip--dock-top", dockTop);
     if (dockMobile) {
       tip.style.top = "";
       tip.style.left = "";
@@ -332,9 +353,10 @@
     {
       id: "den",
       title: "Den chatter",
-      body: "Live IRC logs appear here during real sniffs. For practice, we scripted the lines above. Tap Next when you are ready.",
+      body: "During real sniffs, bot lines stream here. For practice we added fake @search status in the box below. Tap Next when you have read them.",
       selector: "#irc-feed",
-      placement: "top",
+      placement: "bottom",
+      mobileTip: "top",
       advance: "manual",
     },
     {
@@ -343,6 +365,7 @@
       body: "Optional: narrow the table (EPUB only, hide bots, etc.). Filters only change what you see.",
       selector: "#filter",
       placement: "bottom",
+      mobileTip: "top",
       advance: "manual",
     },
     {
@@ -359,6 +382,7 @@
       body: "Real fetches show progress here. Practice uses a shortcut — still peek at the tab.",
       selector: "#tab-queue",
       placement: "bottom",
+      mobileTip: "top",
       advance: "manual",
     },
     {
@@ -448,6 +472,10 @@
     }
     if (skipBtn) {
       skipBtn.classList.toggle("hidden", st.advance !== "cleanup");
+    }
+    if (st.id === "den") {
+      ensureDenPanelOpen();
+      ensureDenMockVisible();
     }
     const target = resolveStepTarget(st);
     markFocusTarget(target);
@@ -593,7 +621,7 @@
       if (autoAdvanceFired.has(key)) return;
       autoAdvanceFired.add(key);
       void goNext();
-    }, 1600);
+    }, 2600);
   }
 
   function onDocumentFetchClick(ev) {
