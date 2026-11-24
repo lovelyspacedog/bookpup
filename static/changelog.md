@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.93
+
+- **Fix:** **Walk the Trail** — entering **Den chatter** no longer scrolls down to the results table and back; the coach card sits above the panel so chat lines stay visible.
+
 ## 1.3.92
 
 - **UX:** **Walk the Trail again** on Sniff (after first completion), onboard banner, and Pup guide pages 1–2.

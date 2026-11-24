@@ -229,23 +229,59 @@
     [50, 150, 350, 700].forEach((ms) => setTimeout(run, ms));
   }
 
+  function coachTopBandPx() {
+    const tip = tipEl();
+    if (!tip || tip.classList.contains("hidden") || !tip.classList.contains("bp-walk-trail-tip--dock-top")) return 0;
+    return Math.ceil(tip.getBoundingClientRect().bottom) + 12;
+  }
+
+  function scrollRevealBelowTopCoach(target) {
+    if (!target || !MOBILE_TIP_MQ.matches) return;
+    const band = coachTopBandPx();
+    const margin = 12;
+    const rect = target.getBoundingClientRect();
+    if (band > 0) {
+      if (rect.top < band) {
+        window.scrollBy({ top: rect.top - band, behavior: "instant" });
+        return;
+      }
+    }
+    const floor = band > 0 ? band : margin;
+    if (rect.bottom > window.innerHeight - margin) {
+      window.scrollBy({ top: rect.bottom - (window.innerHeight - margin), behavior: "instant" });
+    } else if (rect.top < floor) {
+      window.scrollBy({ top: rect.top - floor, behavior: "instant" });
+    }
+  }
+
+  function defaultScrollTarget(target, st) {
+    if (!target) return;
+    if (st?.id === "sniff" && BP.state.walkTrailSearchDone) return;
+    try {
+      const block = st?.id === "den" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
+      target.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
+    } catch {
+      /* ignore */
+    }
+  }
+
   function placeSpot(target) {
     if (!target) {
       layoutSpotRing(null);
       return;
     }
     const st = currentStep();
-    const skipScroll = MOBILE_TIP_MQ.matches && st?.mobileTip === "top";
-    if (!skipScroll) {
-      try {
-        target.scrollIntoView({
-          block: MOBILE_TIP_MQ.matches ? "nearest" : "center",
-          inline: "nearest",
-        });
-      } catch {
-        /* ignore */
-      }
+    const dockTopCoach = MOBILE_TIP_MQ.matches && st?.mobileTip === "top";
+    if (dockTopCoach) {
+      scheduleWalkTrailLayout(target, st?.placement);
+      requestAnimationFrame(() => {
+        if (!active || target !== resolveStepTarget(currentStep())) return;
+        scrollRevealBelowTopCoach(target);
+        scheduleWalkTrailLayout(target, st?.placement);
+      });
+      return;
     }
+    defaultScrollTarget(target, st);
     scheduleWalkTrailLayout(target, st?.placement);
   }
 
@@ -356,8 +392,8 @@
       id: "den",
       title: "Den chatter",
       body: "During real sniffs, bot lines stream here. For practice we added fake @search status in the box below. Tap Next when you have read them.",
-      selector: "#irc-feed",
-      placement: "bottom",
+      selector: "#irc-panel",
+      placement: "top",
       mobileTip: "top",
       advance: "manual",
     },
@@ -639,7 +675,7 @@
     const rows = buildDecoyRows(tutorialQuery);
     BP.state.walkTrailPracticeRow = rows.find((r) => r.walk_trail) || null;
     BP.ingestWalkTrailResults?.(rows, tutorialQuery);
-    document.getElementById("results-wrap")?.scrollIntoView({ block: "start", behavior: "smooth" });
+    document.getElementById("results-wrap")?.scrollIntoView({ block: "start", behavior: "instant" });
     updateTipChrome();
     setTimeout(() => {
       if (!active || currentStep()?.id !== "sniff" || !BP.state.walkTrailSearchDone) return;
