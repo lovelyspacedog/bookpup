@@ -27,7 +27,19 @@
         action="/api/login"
         autocomplete="on"
       >
-        <h1><button type="button" class="bp-title-btn" id="about-open-login" aria-haspopup="dialog">BookPup</button></h1>
+        <h1>
+          <button type="button" class="bp-title-btn bp-brand-title bp-brand-title--login" id="about-open-login" aria-haspopup="dialog">
+            <img
+              class="bp-brand-logo bp-brand-logo--login"
+              src="/static/pwa/icon-192.png"
+              alt=""
+              width="72"
+              height="72"
+              decoding="async"
+            />
+            <span class="bp-brand-name">BookPup</span>
+          </button>
+        </h1>
         <p id="login-tagline" class="muted bp-login-tagline" aria-live="polite"></p>
         <label for="login-user">Username</label>
         <input
@@ -62,7 +74,19 @@
     <div id="app-shell" class="hidden bp-page">
     <header class="bp-header">
       <div class="bp-header-title">
-        <h1><button type="button" class="bp-title-btn" id="about-open-app" aria-haspopup="dialog">BookPup</button></h1>
+        <h1>
+          <button type="button" class="bp-title-btn bp-brand-title bp-brand-title--header" id="about-open-app" aria-haspopup="dialog">
+            <img
+              class="bp-brand-logo bp-brand-logo--header"
+              src="/static/pwa/favicon-32-flat.png"
+              alt=""
+              width="28"
+              height="28"
+              decoding="async"
+            />
+            <span class="bp-brand-name">BookPup</span>
+          </button>
+        </h1>
         <span id="bp-header-ver" class="bp-header-ver muted">v__VERSION__</span>
       </div>
       <button type="button" id="logout-btn" class="bp-btn bp-header-logout">Head out</button>

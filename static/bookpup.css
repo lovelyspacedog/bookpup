@@ -83,9 +83,42 @@ body {
   color: var(--accent, #2ee6ff);
 }
 
-.bp-login-card h1 .bp-title-btn {
-  display: block;
+.bp-brand-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bp-brand-title--login {
+  flex-direction: column;
+  gap: 0.55rem;
   width: 100%;
+  justify-content: center;
+}
+
+.bp-brand-logo {
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.bp-brand-logo--login {
+  width: 4.25rem;
+  height: 4.25rem;
+}
+
+.bp-brand-logo--header {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.bp-header-title .bp-brand-title--header {
+  gap: 0.4rem;
+}
+
+.bp-login-card h1 {
+  margin-top: 0;
+  text-align: center;
 }
 
 .bp-about-body {
@@ -121,10 +154,6 @@ body {
   margin: 4rem auto 2rem;
   padding-left: max(1.25rem, env(safe-area-inset-left));
   padding-right: max(1.25rem, env(safe-area-inset-right));
-}
-
-.bp-login-card h1 {
-  margin-top: 0;
 }
 
 .bp-login-tagline {

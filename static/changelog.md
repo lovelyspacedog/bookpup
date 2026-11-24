@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.2
+
+- **UX:** BookPup logo on the sign-in card and a small mark beside the header title.
+
 ## 1.4.1
 
 - **UX:** New **Neon Kennel** home-screen icon (hound + book), maskable Android variant, and sharper tab favicon.
