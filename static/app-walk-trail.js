@@ -772,6 +772,7 @@
       selector: "#pack-presence-list",
       placement: "top",
       mobileTip: "top",
+      mobileCoachBottom: true,
       coachDockTop: true,
       advance: "manual",
     },

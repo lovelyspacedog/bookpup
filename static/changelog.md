@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.107
+
+- **Fix:** **Walk the Trail** **BugBot & FeatureCat** — mobile coach docks above the tab bar so bot rows stay tappable.
+
 ## 1.3.106
 
 - **Fix:** **Walk the Trail** — **Pack channel** (and bot sidebar) coach scrolls back to the channel button on mobile after the Pack chat showcase; top-dock “loose” offset only on mobile.
