@@ -841,10 +841,10 @@
     if (calImp) calImp.classList.toggle("hidden", shared);
     if (koImp) koImp.classList.toggle("hidden", shared);
     if (dlHead) dlHead.classList.toggle("hidden", shared);
-    if (calHead && shared) calHead.textContent = "Their catalogued and fresh books — read-only.";
+    if (calHead && shared) calHead.textContent = "Their fresh catches and catalogued bones — read-only.";
     else if (calHead && !shared)
       calHead.textContent =
-        "Registered books — synced to OPDS and KOReader wireless progress.";
+        "Catalogued bones — synced to OPDS and KOReader wireless progress.";
   }
 
   function renderLibrary() {
@@ -1375,7 +1375,7 @@
         loadLibrary();
       } catch (err) {
         if (registerMsg) {
-          registerMsg.textContent = err.message || "Register failed";
+          registerMsg.textContent = err.message || "Tag failed";
           registerMsg.className = "bp-msg err";
         }
       }
@@ -1399,7 +1399,7 @@
         const useCover = document.getElementById("register-use-cover");
         if (useCover) useCover.checked = true;
         if (registerMsg) {
-          registerMsg.textContent = "Selected cover image (will download on Register).";
+          registerMsg.textContent = "Selected cover image (will download when you Tag it).";
           registerMsg.className = "bp-msg muted";
         }
       },
@@ -1415,7 +1415,7 @@
     const v = validateCoverFile(file);
     if (registerCoverFileHint) {
       registerCoverFileHint.classList.remove("hidden");
-      registerCoverFileHint.textContent = v || "Ready to upload on Register: " + file.name;
+      registerCoverFileHint.textContent = v || "Ready to upload when you Tag it: " + file.name;
       registerCoverFileHint.className = v ? "bp-msg err" : "bp-msg muted";
     }
     if (!v) {

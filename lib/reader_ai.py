@@ -78,11 +78,11 @@ def require_ai_enabled() -> None:
     ready = llama_local.ai_ready()
     if not ready["enabled"]:
         raise PermissionError(
-            "Reader AI is disabled. Run ~/bookpup/scripts/install_reader_ai.sh on the server."
+            "Study is disabled on the server (set ai_enabled or run install_reader_ai.sh)."
         )
     if not ready["binary_present"] or not ready["model_loaded"]:
         raise FileNotFoundError(
-            "Reader AI model or llama-server not installed (see README install_reader_ai.sh)"
+            "Study is not installed on the server (run install_reader_ai.sh)."
         )
 
 

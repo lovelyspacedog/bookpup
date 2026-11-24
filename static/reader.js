@@ -832,7 +832,7 @@
     if (studyStatus) {
       studyStatus.textContent = readerAiReady
         ? ""
-        : "Reader AI not installed on server (run install_reader_ai.sh).";
+        : "Study is not available on this server (admin: run install_reader_ai.sh).";
     }
     if (studySummarize) studySummarize.disabled = !readerAiReady;
     if (studyAskBtn) studyAskBtn.disabled = !readerAiReady;

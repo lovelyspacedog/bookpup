@@ -397,7 +397,7 @@
     const lines = [
       head,
       "<ul>",
-      "<li>All books in the kennel (fresh catches and catalogued library)</li>",
+      "<li>All books in the kennel (fresh catches and catalogued bones)</li>",
       "<li>Cover art, KOReader sync data, and reading positions</li>",
       "<li>IRC search drafts, saved searches, and queue history for that account</li>",
     ];

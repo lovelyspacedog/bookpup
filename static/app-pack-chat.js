@@ -246,7 +246,7 @@
     if (modeLabelEl) {
       modeLabelEl.textContent =
         BP.state.packChatMode === "pack"
-          ? "Pack chat — everyone"
+          ? "Pack chat · everyone"
           : "Private message — " + peerLabel;
     }
     if (modeSubEl) {

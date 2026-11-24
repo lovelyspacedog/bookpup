@@ -80,7 +80,7 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         _with_item_catalog(handler, qs, serve_cover)
         return True
     if len(segments) == 5 and segments[3] == "ai" and segments[4] == "status":
-        assert_own_catalog_only(shared, "use Reader Study on")
+        assert_own_catalog_only(shared, "use Study on")
         item_id = segments[2]
 
         def ai_status() -> None:

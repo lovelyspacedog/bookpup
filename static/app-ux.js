@@ -103,11 +103,11 @@
   function stagingExpiryLabel(job) {
     const ttl = BP.STAGING_TTL_SECONDS || 86400;
     const start = job?.updated_at || job?.created_at;
-    if (!start) return "Stash before the catch spoils (~24 hours).";
+    if (!start) return "Tag before the fresh catch spoils (~24 hours).";
     const left = Math.max(0, Math.floor(start + ttl - Date.now() / 1000));
-    if (left < 3600) return `About ${Math.max(1, Math.floor(left / 60))}m left in staging.`;
+    if (left < 3600) return `About ${Math.max(1, Math.floor(left / 60))}m left as a fresh catch.`;
     const h = Math.floor(left / 3600);
-    return `About ${h}h left in staging (~24h total).`;
+    return `About ${h}h left as a fresh catch (~24h total).`;
   }
 
   function revealDownloadFromJob(_job) {
@@ -151,7 +151,7 @@
             ? `Remove “${title}” from Fresh catches? The file leaves your kennel.`
             : "Remove this fresh catch from your kennel?"
           : title
-            ? `Toss “${title}” from your catalogued library?`
+            ? `Toss “${title}” from your catalogued bones?`
             : "Toss this from your kennel?";
       }
       if (phraseBlock) phraseBlock.classList.toggle("hidden", light);

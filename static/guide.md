@@ -31,12 +31,12 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 - Filter checkboxes: **EPUB only**, **Hide risky foreign bots** (IRC), **Hide in-kennel matches**, **Highlight best pick** per title cluster.
 - **Fetch selected** and **Queue highlighted picks** batch-fetch (small caps per batch).
 
-## Page 4 — Fetch & stash
+## Page 4 — Fetch to Fresh catches
 
 - **Fetch** on a row starts a download for that row’s backend:
   - **IRC** — DCC from the bot named in the command (`!Bot …` or Undernet `!get ####`).
   - **XDCC** — `xdcc send` to the bot on the row’s network.
-  - **Soulseek** — slskd queues a peer transfer into the seedbox download folder, then BookPup copies it into your staging area.
+  - **Soulseek** — slskd queues a peer transfer into the seedbox download folder, then BookPup copies it into **Fresh catches**.
 - On Undernet, prefer **`!get ####`** rows when shown; BookPup can match foreign `!Bsk` / `!Horla` lines to a home-network row when possible.
 - If **!get** refuses (for example “no EPUB available”), BookPup tries **Project Gutenberg** next — EPUB first, otherwise the best format PG offers (often plain text).
 - When the file lands, BookPup adds it to **Fresh catches** automatically and shows a short toast. Open **Kennel** → **Tag** when you want metadata and cover.
@@ -46,7 +46,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 - **Open results** is your working copy: the full last sniff (query, channel, filter). It syncs to your account.
 - **Bookmark** saves that full list (25 max, 2500 rows each). **Load** / **Remove** / **↑↓** on each bookmark.
-- **Scheduled sniff** on the main sniff card (collapsed **▸** row; or on a bookmark) re-runs the saved query and channel on an interval while BookPup is running. Enabling on the card matches an existing bookmark or bookmarks open results for you. New rows (not seen on that watch before) appear as a **BookPup** private message to whoever owns that bookmark (open **Pack chat** → click **BookPup** under Pack). Download-finished alerts still use optional household **ntfy** when `ntfy_topic` is set. The server defers scheduled sniffs when the fetch queue is busy; IRC still idles out between jobs.
+- **Scheduled sniff** on the main sniff card (collapsed **▸** row; or on a bookmark) re-runs the saved query and channel on an interval while BookPup is running. Enabling on the card matches an existing bookmark or bookmarks open results for you. New rows (not seen on that watch before) appear as a **BookPup** private message to whoever owns that bookmark (open **Pack chat** → under **Private message**, click **BookPup**). Download-finished alerts still use optional household **ntfy** when `ntfy_topic` is set. The server defers scheduled sniffs when the fetch queue is busy; IRC still idles out between jobs.
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.
 - Recent sniff queries autocomplete in the superbar (focus, typing, or **↓**); picking one fills the box — submit **Sniff** yourself when ready.
 
@@ -60,7 +60,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 ## Page 7 — Fetch queue
 
 - Lists search and download jobs: queued, running, done, failed, cancelled.
-- **Call off** cancels when possible. **Clear** removes finished error/cancelled rows from view.
+- **Cancel** stops a job when possible. **Dismiss** removes finished error/cancelled rows from view.
 - One worker runs jobs **one at a time** — a long Soulseek or IRC fetch blocks the next job until it finishes.
 - IRC idles out after ~4 minutes with an empty queue; the next IRC job reconnects.
 
@@ -68,21 +68,21 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 - **Sharing** — ask another pup to browse your whole kennel (or approve their request). **Lend** = they can read and download; **give** = they can also **Add to my kennel** (copies, your quota unchanged). Use **Browsing** to switch between your kennel and pups who shared with you. Pack chat gets a **BookPup** note when someone requests access.
 
-- **Fresh catches** — downloads waiting to be **Tag this book** (metadata + cover).
-- **Fresh catches** — **Toss** uses a simple confirm. **Catalogued bones** — **Read**, **Cover**, **Pass to pup…**, **Toss** (type the random phrase in the dialog).
+- **Fresh catches** — downloads waiting for **Tag** (opens **Tag this book** for metadata + cover).
+- **Fresh catches** — **Toss** uses a simple confirm. **Catalogued bones** — **Read**, **Cover**, **Edit tags**, **Pass to pup…**, **Toss** (type the random phrase in the dialog).
 - **Import Calibre** and **Import KOReader** for bulk bring-over. Grid/list view is remembered in the browser.
 
 ## Page 9 — KOReader sync
 
-- Catalogued books only. On the device: KOReader **Progress sync** → custom server.
+- **Catalogued bones** only (not Fresh catches). On the device: KOReader **Progress sync** → custom server.
 - Server URL: your BookPup site (e.g. `https://bookpup.tonypup.box.ca`). Same username/password as the website.
-- BookPup matches by file fingerprint — tag and stash before syncing.
+- BookPup matches by file fingerprint — **Tag** into catalogued bones before syncing.
 
 ## Page 10 — Your tag & pack roster
 
-- **Pack chat** (main tab): opening the tab always lands on **Pack chat · everyone** (main household channel); pick a pup again if you need a PM. Under **Private message**, click a pup — **Open PM →** — for a one-to-one thread; a red count beside a name means new PMs from that pup (clears when you open the thread). **BookPup** — **Open alerts →** — is where scheduled-sniff notices land (same badge). **BugBot** — **Report bugs →** — explains itself the first time you open it; send one message per issue and the household admin sees it on **Pack roster** → **Bug inbox**. **FeatureCat** — **Request features →** — same pattern for feature ideas → **Feature inbox**. Type **clear** in either bot thread to wipe the chat and bring the intro back. BugBot and FeatureCat always show an online dot. Green dot on pups = online. Remove your own lines (or alerts sent to you); admins can remove any line or clear **Pack** only (PMs stay). This is not **Den chatter** (IRC/Soulseek logs on Sniff).
+- **Pack chat** (main tab): opening the tab always lands on **Pack chat · everyone** (main household channel); pick a pup again if you need a PM. Under **Private message**, click a pup — **Open PM →** — for a one-to-one thread; a red count beside a name means new PMs from that pup (clears when you open the thread). **BookPup** — **Open alerts →** — is where scheduled-sniff notices land (same badge). **BugBot** — **Report bugs →** — explains itself the first time you open it; send one message per issue and the household admin sees it on **Pack roster** → **Bug inbox**. **FeatureCat** — **Request features →** — same pattern for feature ideas → **Feature inbox**. Type **clear** in either bot thread to wipe the chat and bring the intro back. BugBot and FeatureCat always show an online dot. Green dot on pups = online. Remove your own lines (or alerts sent to you); admins can remove any line or use **Clear pack chat** on the group channel only (PMs stay). This is not **Den chatter** (IRC/Soulseek logs on Sniff).
 - **Your tag:** rename yourself or rotate password (current password required).
-- **Pack roster** (admins): create pups, **Set quota**, **Set login**, **Remove**. Passwords are reset only, never shown.
+- **Pack roster** (admins): create pups with **Add pup**, **Quota** / **Set login** / **Wipe** / **Remove** on each row. Passwords are reset only, never shown.
 - Admins may set per-pup **Soulseek caps** (`soulseek_limits` on the account) if someone needs tighter sniff/fetch limits than the household default.
 - Each pup has a private folder and storage quota (files + covers).
 
@@ -94,7 +94,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 ## Page 12 — Good habits
 
-- Quota applies when books are **stashed**, not while sniffing.
+- Quota applies when books sit in **catalogued bones**, not while they are only in **Fresh catches** or still sniffing.
 - IRC is flaky by nature — retry another network or row if a fetch fails. Soulseek peers go offline; try another row or sniff again later.
 - Soulseek uses one household identity on the network — be kind to ratio and caps so the pack stays in good standing.
 - Only fetch what you may legally keep. **What's new** is the version changelog; this guide is the walkthrough.

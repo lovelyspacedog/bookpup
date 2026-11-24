@@ -11,16 +11,17 @@ Household web portal for **[Whatbox Expedition](https://whatbox.ca/)** (or any V
 
 - **Sniff** — IRCHighway `#ebooks`, Undernet `#bookz`, Rizon `#ebookz`, XDCC index, optional Soulseek via [slskd](https://github.com/slskd/slskd)
 - **Fetch queue** — DCC staging, batch fetch, Project Gutenberg fallback for some Undernet refusals
-- **Kennel** — library catalog, covers, reader (PDF/EPUB/TXT/comics + Calibre conversion path), OPDS, KOReader wireless sync
-- **Pack** — multi-user accounts, per-user quotas, admin roster, send-to-household-member, **Pack chat** (household group messages)
+- **Kennel** — **Fresh catches**, **Tag** → **Catalogued bones**, covers, reader (PDF/EPUB/TXT/comics + Calibre conversion path), **Pass to pup…**, OPDS, KOReader wireless sync
+- **Your tag** / **Pack roster** — household accounts and per-pup kennel quotas (admins manage pups on **Pack roster**)
+- **Pack chat** — household group messages, PMs, BugBot, FeatureCat
 
-In-app help: **Guide** and **What's new** tabs after you sign in.
+In-app help: **Pup guide** and **What's new** tabs after you sign in.
 
 ## Requirements
 
 - Python **3.10+** (3.12+ tested in CI)
 - For live IRC: outbound IRC (6667) and working DCC from the host
-- Optional on server: `ebook-convert` (Calibre), `7z` / `unrar` (CBR/CB7), [llama.cpp](https://github.com/ggerganov/llama.cpp) for optional Reader Study
+- Optional on server: `ebook-convert` (Calibre), `7z` / `unrar` (CBR/CB7), [llama.cpp](https://github.com/ggerganov/llama.cpp) for optional in-reader **Study** (`scripts/install_reader_ai.sh`)
 
 ## Quick start (local)
 
@@ -66,7 +67,7 @@ Post-deploy smoke on the box:
 python3 ~/bookpup/scripts/smoke_expedition.py
 ```
 
-Optional Calibre bundle: `scripts/install_calibre.sh`. Optional reader AI: `scripts/install_reader_ai.sh`.
+Optional Calibre bundle: `scripts/install_calibre.sh`. Optional **Study**: `scripts/install_reader_ai.sh`.
 
 ## HTTP API (summary)
 

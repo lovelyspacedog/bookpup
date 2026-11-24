@@ -360,7 +360,7 @@
       const schedToggle = document.createElement("input");
       schedToggle.type = "checkbox";
       schedToggle.checked = !!sched.enabled;
-      schedToggle.setAttribute("aria-label", "Schedule sniff for " + (item.name || "bookmark"));
+      schedToggle.setAttribute("aria-label", "Scheduled sniff for " + (item.name || "bookmark"));
       const intervalSel = document.createElement("select");
       intervalSel.className = "bp-saved-schedule-interval";
       intervalSel.disabled = !sched.enabled;
@@ -388,7 +388,7 @@
           interval_hours: parseInt(intervalSel.value, 10) || 24,
         });
       });
-      schedLabel.append(schedToggle, document.createTextNode(" Schedule sniff"));
+      schedLabel.append(schedToggle, document.createTextNode(" Scheduled sniff"));
       const status = document.createElement("p");
       status.className = "bp-msg muted bp-saved-schedule-status";
       const parts = [];

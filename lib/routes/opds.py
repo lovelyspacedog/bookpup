@@ -56,7 +56,7 @@ def route_opds_get(handler: RequestHandler, path: str) -> None:
             return
         row = library.get_item_row(item_id)
         if not library.is_registered(row):
-            handler.send_json(403, {"error": "Registered books only"})
+            handler.send_json(403, {"error": "Catalogued bones only"})
             return
         file_path = library.item_path(item_id)
         ctype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"

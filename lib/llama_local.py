@@ -149,7 +149,7 @@ def _port_open(port: int) -> bool:
 def ensure_server() -> None:
     st = ai_settings()
     if not st["enabled"]:
-        raise RuntimeError("Reader AI is disabled (set ai_enabled in config)")
+        raise RuntimeError("Study is disabled (set ai_enabled in config)")
     model = _expand(st["model_path"])
     binary = _expand(st["llama_bin"])
     if not model.is_file():

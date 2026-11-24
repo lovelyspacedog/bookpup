@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.81
+
+- **UX:** Align labels and help with the UI — **Fresh catches** → **Tag** → **Catalogued bones**, **Scheduled sniff**, lend (read and download), **Study** (not Reader AI), **Pup guide** + **README** / **About** refreshed.
+
 ## 1.3.80
 
 - **Pack:** **BugBot** / **FeatureCat** intros are instant; only confirmations wait 2–5 s. Type **clear** in either bot thread to wipe the chat and show the intro again (tip on each confirmation).
