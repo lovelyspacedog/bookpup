@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "bot_id": "botaaa111",
+      "slot": 42,
+      "gets": 3,
+      "size_bytes": 52428800,
+      "filename": "Batman_Year_One.cbz",
+      "channel": "#elitewarez",
+      "network": "rizon",
+      "botname": "[EW]TestBot"
+    },
+    {
+      "id": 2,
+      "bot_id": "botbbb222",
+      "slot": 7,
+      "gets": 1,
+      "size_bytes": 1048576,
+      "filename": "Sample.Epub",
+      "channel": "#beast-xdcc",
+      "network": "abjects",
+      "botname": "beast-x-mock"
+    }
+  ]
+}

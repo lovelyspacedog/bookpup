@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>BookPup</title>
+    <link rel="stylesheet" href="/static/kennel/theme.css?v=__VERSION__" />
+    <link rel="stylesheet" href="/static/bookpup.css?v=__VERSION__" />
+  </head>
+  <body>
+    <section id="login-screen" class="bp-login">
+      <form
+        id="login-form"
+        class="bp-card bp-login-card"
+        method="post"
+        action="/api/login"
+        autocomplete="on"
+      >
+        <h1><button type="button" class="bp-title-btn" id="about-open-login" aria-haspopup="dialog">BookPup</button></h1>
+        <p id="login-tagline" class="muted bp-login-tagline" aria-live="polite"></p>
+        <label for="login-user">Username</label>
+        <input
+          id="login-user"
+          name="username"
+          type="text"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          required
+        />
+        <label for="login-pass">Password</label>
+        <input
+          id="login-pass"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+        <button
+          type="submit"
+          class="bp-btn primary"
+          id="login-submit"
+          aria-label="Sign in"
+        >
+          <span aria-hidden="true">Come inside</span>
+          <span class="visually-hidden">Sign in</span>
+        </button>
+        <p id="login-msg" class="bp-msg muted"></p>
+      </form>
+    </section>
+    <div id="app-shell" class="hidden bp-page">
+    <header class="bp-header">
+      <h1><button type="button" class="bp-title-btn" id="about-open-app" aria-haspopup="dialog">BookPup</button></h1>
+      <p class="muted bp-header-version">Household ebook hound · v__VERSION__</p>
+      <button type="button" id="logout-btn" class="bp-btn bp-header-logout">Head out</button>
+    </header>
+    <div class="bp-tabbar-shell">
+    <nav class="bp-tabs" role="tablist" aria-label="BookPup sections">
+      <button type="button" class="bp-tab active" role="tab" id="tab-search" aria-selected="true" aria-controls="panel-search" data-tab="search">Sniff</button>
+      <button type="button" class="bp-tab bp-tab--badged" role="tab" id="tab-library" aria-selected="false" aria-controls="panel-library" data-tab="library">
+        Kennel
+        <span id="library-tab-badge" class="bp-tab-badge hidden" aria-label="Fresh catches"></span>
+      </button>
+      <button type="button" class="bp-tab bp-tab--badged" role="tab" id="tab-queue" aria-selected="false" aria-controls="panel-queue" data-tab="queue">
+        <span class="bp-tab-label bp-tab-label--long">Fetch queue</span>
+        <span class="bp-tab-label bp-tab-label--short">Queue</span>
+        <span id="queue-tab-badge" class="bp-tab-badge hidden" aria-label="Jobs in queue"></span>
+      </button>
+      <button type="button" class="bp-tab hidden bp-tab--overflow" role="tab" id="accounts-tab" aria-selected="false" aria-controls="panel-accounts" data-tab="accounts">Your tag</button>
+      <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-guide" aria-selected="false" aria-controls="panel-guide" data-tab="guide">Pup guide</button>
+      <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-changelog" aria-selected="false" aria-controls="panel-changelog" data-tab="changelog">What&apos;s new</button>
+    </nav>
+    <button
+      type="button"
+      id="tab-more"
+      class="bp-tab bp-tab-more"
+      aria-haspopup="menu"
+      aria-expanded="false"
+      aria-controls="tab-more-menu"
+    >
+      More
+    </button>
+    <div id="tab-more-menu" class="bp-tab-more-menu hidden" role="menu" aria-label="More sections">
+      <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="accounts" id="tab-more-accounts">Your tag</button>
+      <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="guide">Pup guide</button>
+      <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="changelog">What&apos;s new</button>
+    </div>
+    <button type="button" id="logout-btn-mobile" class="bp-btn bp-tabbar-exit" aria-label="Sign out"><span class="bp-tabbar-exit-long">Head out</span><span class="bp-tabbar-exit-short">Out</span></button>
+    </div>
+    <main>
+      <section id="panel-search" class="bp-panel active" role="tabpanel" aria-labelledby="tab-search" tabindex="0">
+        <form id="search-form" class="bp-card">
+          <label for="query">What to sniff for</label>
+          <div class="bp-query-superbar-wrap">
+            <div class="bp-query-superbar" id="query-superbar">
+              <input
+                id="query"
+                name="query"
+                required
+                placeholder="Author, title, or keywords"
+                autocomplete="off"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="query-suggestions"
+                aria-expanded="false"
+              />
+              <button
+                type="button"
+                id="query-history-toggle"
+                class="bp-query-superbar__toggle hidden"
+                aria-label="Show recent sniffs"
+                aria-expanded="false"
+                aria-controls="query-suggestions"
+              >
+                ▾
+              </button>
+              <ul
+                id="query-suggestions"
+                class="bp-query-suggestions hidden"
+                role="listbox"
+                aria-label="Recent sniff queries"
+              ></ul>
+            </div>
+            <button
+              type="button"
+              id="search-history-clear"
+              class="bp-btn bp-btn--ghost bp-query-history-clear hidden"
+              aria-label="Clear recent sniff queries"
+            >
+              Clear
+            </button>
+          </div>
+          <label for="channel">Sniff source</label>
+          <select id="channel" name="channel" aria-describedby="channel-hint">
+            <option value="irchighway:ebooks" selected>Main trail · IRCHighway #ebooks (recommended)</option>
+            <option value="all">Every ebook net · all IRC @search channels</option>
+            <option value="xdcc:index">Warez yard · XDCC index (xdccsearch)</option>
+            <option value="undernet:bookz">Backup trail · Undernet #bookz</option>
+            <option value="rizon:ebookz">Side trail · Rizon #ebookz</option>
+          </select>
+          <p class="bp-msg muted bp-channel-hint" id="channel-hint">Sends @search on IRCHighway #ebooks for novels and mainstream EPUB/MOBI. Best first pick for most book sniffing.</p>
+          <button type="submit" id="search-submit-btn">Sniff on IRC</button>
+          <p id="search-msg" class="bp-msg muted"></p>
+        </form>
+        <div id="onboard-banner" class="bp-card bp-onboard hidden">
+          <p class="bp-onboard-lead">
+            <strong>New here?</strong> The <strong>Pup guide</strong> walks through Sniff, Kennel, and fetch—about two minutes.
+          </p>
+          <div class="bp-onboard-actions">
+            <button type="button" class="bp-link-btn" id="onboard-guide">Open Pup guide</button>
+            <button type="button" id="onboard-dismiss" class="bp-btn bp-btn--ghost">Dismiss</button>
+          </div>
+        </div>
+        <ol id="sniff-checklist" class="bp-sniff-checklist hidden" aria-label="Sniff workflow">
+          <li id="sniff-step-sniff" class="bp-sniff-checklist__item">Sniff on IRC</li>
+          <li id="sniff-step-fetch" class="bp-sniff-checklist__item">Fetch a row</li>
+          <li id="sniff-step-stash" class="bp-sniff-checklist__item">Fresh catch</li>
+        </ol>
+        <p class="bp-sniff-status-bar">
+          <span id="irc-status-pill" class="bp-irc-pill" role="status" aria-live="polite">IRC · …</span>
+          <span id="queue-status" class="bp-queue muted" role="status" aria-live="polite"></span>
+        </p>
+        <div id="results-wrap" class="bp-card hidden">
+          <div class="bp-sniff-filter-row">
+            <label for="filter">Filter results</label>
+            <div class="bp-sniff-filter-input-row">
+              <input id="filter" type="search" placeholder="Filter…" autocomplete="off" />
+              <button
+                type="button"
+                id="sniff-results-wipe"
+                class="bp-btn bp-btn--ghost"
+                disabled
+                aria-label="Remove rows matching the current filter from this sniff"
+                title="Drop the rows currently shown (filter text and quality checkboxes)"
+              >
+                Wipe matches
+              </button>
+            </div>
+          </div>
+          <p id="sniff-filter-note" class="bp-msg muted hidden" role="status"></p>
+          <div class="bp-sniff-results-block">
+            <div class="bp-sniff-toolbar" id="sniff-toolbar">
+              <div class="bp-sniff-fetch-bar" id="sniff-fetch-bar">
+                <button type="button" id="fetch-picks-btn" class="bp-btn" disabled title="Queue highlighted best picks (up to 5)">
+                  Queue highlighted picks
+                </button>
+                <button type="button" id="fetch-selected-btn" class="bp-btn" disabled title="Queue up to 5 selected rows">
+                  Fetch selected
+                </button>
+                <span id="fetch-selected-msg" class="bp-msg muted"></span>
+              </div>
+              <div class="bp-sniff-filters" id="sniff-filters">
+                <label class="bp-check">
+                  <input type="checkbox" id="sniff-epub-only" />
+                  EPUB only
+                </label>
+                <label class="bp-check">
+                  <input type="checkbox" id="sniff-hide-foreign" />
+                  Hide risky foreign bots
+                </label>
+                <label class="bp-check">
+                  <input type="checkbox" id="sniff-highlight-pick" checked />
+                  Show best pick per title
+                </label>
+                <label class="bp-check">
+                  <input type="checkbox" id="sniff-hide-kennel" />
+                  Hide in-kennel matches
+                </label>
+              </div>
+            </div>
+            <div class="bp-table-wrap">
+              <table id="results-table">
+                <thead>
+                  <tr>
+                    <th class="bp-col-select" scope="col">
+                      <input type="checkbox" id="sniff-select-all" aria-label="Select all visible rows" />
+                    </th>
+                    <th class="bp-col-net" scope="col">Net</th>
+                    <th class="bp-col-bot" scope="col">Bot</th>
+                    <th>Title</th>
+                    <th class="bp-col-size" scope="col">Size</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="bp-sniff-pager hidden" id="sniff-pager" aria-live="polite">
+              <button type="button" id="sniff-page-prev" class="bp-btn bp-btn--ghost">Prev</button>
+              <span id="sniff-page-status" class="bp-msg muted"></span>
+              <button type="button" id="sniff-page-next" class="bp-btn bp-btn--ghost">Next</button>
+              <label class="bp-sniff-page-size muted" for="sniff-page-size">Per page</label>
+              <select id="sniff-page-size" class="bp-sniff-page-size-select" aria-label="Rows per page">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+              </select>
+            </div>
+          </div>
+          <details class="bp-saved-panel" id="saved-search-panel">
+            <summary>Open results &amp; bookmarks</summary>
+            <div class="bp-saved-search-toolbar">
+              <p class="bp-saved-search-lede muted">
+                <strong>Open results</strong> — full list on your account (not the filter box). Updates after each sniff.
+              </p>
+              <dl class="bp-draft-status">
+                <div>
+                  <dt>Query</dt>
+                  <dd id="draft-query">No sniff yet</dd>
+                </div>
+                <div>
+                  <dt>Sniffed from</dt>
+                  <dd id="draft-channel">—</dd>
+                </div>
+                <div>
+                  <dt>Rows</dt>
+                  <dd id="draft-rows">0</dd>
+                </div>
+              </dl>
+              <p id="saved-search-empty" class="bp-saved-empty muted">No bookmarks yet.</p>
+              <ol id="saved-search-list" class="bp-saved-list" aria-label="Bookmarked search lists"></ol>
+              <label class="bp-saved-save-label" for="saved-search-name">Name open results</label>
+              <div class="bp-saved-search-actions">
+                <input
+                  id="saved-search-name"
+                  type="text"
+                  maxlength="80"
+                  placeholder="e.g. Glen Duncan — all nets"
+                  autocomplete="off"
+                />
+                <button type="button" id="saved-search-save" class="bp-btn">Bookmark</button>
+              </div>
+              <p class="bp-saved-limits muted">Up to 25 bookmarks · 2500 rows each.</p>
+              <p id="saved-search-msg" class="bp-msg muted" role="status"></p>
+            </div>
+          </details>
+        </div>
+        <details class="bp-card bp-irc-panel" id="irc-panel">
+          <summary>Den chatter</summary>
+          <div class="bp-irc-toolbar">
+            <div class="bp-irc-toolbar-checks">
+              <label class="bp-check">
+                <input type="checkbox" id="irc-autoscroll" checked />
+                Auto-scroll
+              </label>
+              <label class="bp-check">
+                <input type="checkbox" id="irc-hide-raw" />
+                Hide raw
+              </label>
+              <label class="bp-check">
+                <input type="checkbox" id="irc-hide-others" checked />
+                Hide other pups
+              </label>
+              <label class="bp-check">
+                <input type="checkbox" id="irc-bark-enable" />
+                Enable Bark
+              </label>
+            </div>
+            <div class="bp-irc-toolbar-actions">
+              <button type="button" id="irc-clear-chat" class="bp-btn">Clear chat</button>
+              <button type="button" id="irc-copy-log" class="bp-btn">Copy</button>
+              <button type="button" id="irc-disconnect" class="bp-btn">Drop link</button>
+            </div>
+          </div>
+          <div id="irc-feed" class="bp-irc-feed bp-irc-feed--compact" aria-live="polite"></div>
+          <div class="bp-irc-compose" id="irc-compose">
+            <input
+              id="irc-chat-input"
+              type="text"
+              maxlength="400"
+              placeholder="Bark at the channel…"
+              autocomplete="off"
+            />
+            <button type="button" id="irc-chat-send" class="bp-btn">Bark</button>
+          </div>
+          <p id="irc-chat-msg" class="bp-msg muted"></p>
+        </details>
+      </section>
+      <section id="panel-queue" class="bp-panel">
+        <div id="queue-segments" class="bp-queue-segments" aria-label="Queue filters">
+          <button type="button" class="bp-btn bp-queue-seg active" data-queue-seg="active">Active</button>
+          <button type="button" class="bp-btn bp-queue-seg" data-queue-seg="attention">Needs attention</button>
+          <button type="button" class="bp-btn bp-queue-seg" data-queue-seg="all">All</button>
+        </div>
+        <p id="queue-tab-msg" class="bp-msg muted"></p>
+        <div class="bp-table-wrap">
+          <table id="queue-table">
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Type</th>
+                <th>Detail</th>
+                <th>Age</th>
+                <th>Status</th>
+                <th>Reason</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="panel-library" class="bp-panel">
+        <div class="bp-lib-quota bp-card">
+          <div class="bp-lib-quota-head">
+            <span id="lib-usage">Kennel space</span>
+            <span id="lib-usage-pct" class="muted"></span>
+          </div>
+          <div class="bp-progress bp-lib-quota-bar" aria-hidden="true">
+            <div class="bp-progress-track">
+              <div id="lib-usage-fill" class="bp-progress-fill"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bp-lib-toolbar">
+          <button type="button" id="lib-export-btn" class="bp-btn">Export catalog</button>
+          <span class="bp-lib-toolbar-label muted">View</span>
+          <button type="button" id="lib-view-grid" class="bp-btn" aria-pressed="true">Grid</button>
+          <button type="button" id="lib-view-list" class="bp-btn" aria-pressed="false">List</button>
+          <label class="bp-lib-toolbar-label muted" for="lib-group-by">Group by</label>
+          <select id="lib-group-by" class="bp-lib-select">
+            <option value="none">None</option>
+            <option value="series">Series</option>
+            <option value="author">Author</option>
+          </select>
+          <label class="bp-lib-toolbar-label muted" for="lib-sort-by">Sort by</label>
+          <select id="lib-sort-by" class="bp-lib-select">
+            <option value="saved_desc">Recently added</option>
+            <option value="title_asc">Title (A–Z)</option>
+            <option value="title_desc">Title (Z–A)</option>
+            <option value="author_asc">Author (A–Z)</option>
+            <option value="series_asc">Series</option>
+            <option value="size_desc">Size (largest)</option>
+          </select>
+        </div>
+        <div class="bp-lib-filter-row">
+          <label class="bp-lib-filter-label" for="lib-filter">Filter</label>
+          <div class="bp-lib-filter-input-row">
+            <input
+              type="search"
+              id="lib-filter"
+              class="bp-lib-filter"
+              placeholder="Title, author, series, tags…"
+              autocomplete="off"
+            />
+            <button
+              type="button"
+              id="lib-filter-clear"
+              class="bp-btn bp-btn--ghost"
+              disabled
+              aria-label="Clear kennel filter"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+        <section class="bp-lib-section" id="lib-section-downloads">
+          <header class="bp-lib-section-head">
+            <h3>Fresh catches</h3>
+            <p class="bp-msg muted">IRC fetches and your own uploads — tag them to join the catalog.</p>
+          </header>
+          <p class="bp-lib-actions">
+            <button type="button" id="fresh-upload-btn" class="bp-btn">Upload file</button>
+            <input
+              type="file"
+              id="fresh-upload-input"
+              class="hidden"
+              accept=".epub,.pdf,.mobi,.azw3,.azw,.prc,.cbz,.cbr,.cb7,.txt,.md,.html,.htm,.djvu,.fb2,.lit,.chm,.rtf,.zip,.rar,.7z"
+            />
+            <span id="fresh-upload-status" class="bp-msg muted"></span>
+          </p>
+          <p id="fresh-empty" class="bp-fresh-empty hidden bp-msg muted">
+            No fresh catches.
+            <button type="button" class="bp-link-btn" id="fresh-empty-sniff">Sniff for books</button>
+            or
+            <button type="button" class="bp-link-btn" id="fresh-empty-upload">upload a file</button>.
+          </p>
+          <div id="lib-items-downloads" class="bp-lib-items bp-lib-items--grid" aria-label="Staged files"></div>
+        </section>
+        <section class="bp-lib-section" id="lib-section-calibre">
+          <header class="bp-lib-section-head">
+            <h3>Catalogued bones</h3>
+            <p class="bp-msg muted">Registered books — synced to OPDS and KOReader wireless progress.</p>
+          </header>
+          <p class="bp-lib-actions">
+            <button type="button" id="calibre-import-btn" class="bp-btn">Import Calibre</button>
+            <button type="button" id="koreader-import-btn" class="bp-btn">Import KOReader</button>
+            <input
+              type="file"
+              id="koreader-import-input"
+              class="hidden"
+              multiple
+              accept=".lua,.zip,application/zip"
+            />
+            <span id="koreader-import-status" class="bp-msg muted"></span>
+            <input
+              type="file"
+              id="calibre-import-input"
+              class="hidden"
+              multiple
+              accept=".calibre-data"
+            />
+            <span id="calibre-import-status" class="bp-msg muted"></span>
+          </p>
+          <div id="lib-import-progress" class="bp-progress hidden" aria-live="polite">
+            <div class="bp-progress-track">
+              <div id="lib-import-progress-fill" class="bp-progress-fill"></div>
+            </div>
+            <span id="lib-import-progress-label" class="bp-progress-label">0%</span>
+          </div>
+          <div id="lib-items-calibre" class="bp-lib-items bp-lib-items--grid" aria-label="Catalogued bones"></div>
+        </section>
+      </section>
+      <section id="panel-accounts" class="bp-panel">
+        <form id="account-form" class="bp-card">
+          <h3>Your tag</h3>
+          <p class="muted">Passwords stay secret — you can only set new ones.</p>
+          <label for="account-current-user">Username</label>
+          <input id="account-current-user" readonly autocomplete="username" />
+          <label for="account-new-username">New username (optional)</label>
+          <input id="account-new-username" autocomplete="off" />
+          <label for="account-current-password">Current password</label>
+          <input id="account-current-password" type="password" required autocomplete="current-password" />
+          <label for="account-new-password">New password (optional)</label>
+          <input id="account-new-password" type="password" autocomplete="new-password" />
+          <p id="account-opds" class="bp-msg muted hidden"></p>
+          <label class="bp-check">
+            <input type="checkbox" id="notify-dl-enable" />
+            Desktop alert when a fetch finishes
+          </label>
+          <p id="notify-dl-help" class="bp-msg muted bp-notify-help">
+            In-app toasts always show when this tab is open. Desktop alerts need browser permission.
+            Optional server push: set <code>ntfy_topic</code> in server config.
+          </p>
+          <details class="bp-koreader-setup" id="koreader-setup-panel">
+            <summary>KOReader setup (wireless + USB)</summary>
+            <p class="bp-msg muted">
+              Wireless: KOReader <strong>Progress sync</strong> → custom server — same URL, username, and password as this site (OPDS URL above).
+              USB: zip <code>Title.epub.sdr</code> from Kindle <code>documents/</code> (or <code>koreader/docsettings/</code>) and use <strong>Import KOReader</strong> in Kennel.
+            </p>
+          </details>
+          <p id="account-tab-msg" class="bp-msg muted"></p>
+          <button type="submit" class="bp-btn primary">Save changes</button>
+        </form>
+        <section class="bp-card bp-danger-zone" id="account-wipe-card" aria-labelledby="account-wipe-title">
+          <h3 id="account-wipe-title">Wipe account</h3>
+          <p class="muted">
+            Erase your kennel, reading state, search workspace, and saved preferences on this browser.
+            Your username and password stay the same.
+          </p>
+          <p class="bp-lib-actions">
+            <button type="button" id="account-wipe-open" class="bp-btn bp-btn--danger">Wipe account</button>
+          </p>
+        </section>
+        <div id="accounts-admin-block" class="hidden">
+        <section class="bp-card" id="admin-digest-card">
+          <h3>Pack digest</h3>
+          <p id="admin-digest-summary" class="bp-msg muted">Loading…</p>
+          <ul id="admin-digest-list" class="bp-digest-list"></ul>
+          <p class="bp-lib-actions">
+            <button type="button" id="admin-backup-btn" class="bp-btn">Download household backup</button>
+          </p>
+        </section>
+        <p id="accounts-tab-msg" class="bp-msg muted"></p>
+        <form id="accounts-create-form" class="bp-card">
+          <h3>New pup</h3>
+          <label for="acct-user">Username</label>
+          <input id="acct-user" required autocomplete="off" />
+          <label for="acct-pass">Password</label>
+          <input id="acct-pass" type="password" required autocomplete="new-password" />
+          <label for="acct-quota-gb">Kennel quota (GB)</label>
+          <input id="acct-quota-gb" type="number" min="0" step="0.1" value="2" required />
+          <label class="bp-check">
+            <input type="checkbox" id="acct-admin" />
+            Admin
+          </label>
+          <button type="submit" class="bp-btn primary">Add pup</button>
+        </form>
+        <section class="bp-card bp-danger-zone" id="admin-wipe-card" aria-labelledby="admin-wipe-title">
+          <h3 id="admin-wipe-title">Wipe a pup&rsquo;s kennel</h3>
+          <p class="muted">
+            Reset a pack member&rsquo;s library, reading data, and search workspace on the server.
+            Usernames, passwords, roles, and quotas stay the same. Use <strong>Wipe</strong> on a row below
+            (your admin password is required).
+          </p>
+        </section>
+        <div class="bp-table-wrap">
+          <table id="accounts-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Used</th>
+                <th>Quota</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        </div>
+      </section>
+      <section id="panel-guide" class="bp-panel">
+        <nav class="bp-guide-pager" id="guide-pager" aria-label="Pup guide pages">
+          <button type="button" id="guide-prev" class="bp-btn" disabled>← Previous</button>
+          <span id="guide-page-label" class="bp-guide-page-label">—</span>
+          <button type="button" id="guide-next" class="bp-btn">Next →</button>
+          <button type="button" id="guide-show-all" class="bp-btn">Show all</button>
+        </nav>
+        <article id="guide-body" class="bp-card bp-changelog bp-guide" aria-live="polite">
+          <p class="muted">Loading pup guide…</p>
+        </article>
+      </section>
+      <section id="panel-changelog" class="bp-panel">
+        <article id="changelog-body" class="bp-card bp-changelog" aria-live="polite">
+          <p class="muted">Loading changelog…</p>
+        </article>
+      </section>
+    </main>
+    <div id="bp-toast-stack" class="bp-toast-stack" aria-live="polite" aria-relevant="additions"></div>
+    <div id="bp-toast-stack-assertive" class="bp-toast-stack bp-toast-stack--assertive" aria-live="assertive" aria-relevant="additions"></div>
+    <div id="wipe-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="wipe-modal-title">
+      <header class="bp-register-head">
+        <h2 id="wipe-modal-title">Wipe account</h2>
+        <button type="button" id="wipe-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="wipe-form" class="bp-card">
+        <div id="wipe-disclaimer" class="bp-wipe-disclaimer muted"></div>
+        <p class="bp-msg bp-wipe-phrase-lede">Type this 12-word phrase exactly (spaces matter):</p>
+        <p class="bp-wipe-phrase" id="wipe-phrase-display" aria-live="polite"></p>
+        <label for="wipe-phrase-input">Confirmation phrase</label>
+        <input id="wipe-phrase-input" type="text" autocomplete="off" spellcheck="false" required />
+        <label for="wipe-password" id="wipe-password-label">Current password</label>
+        <input id="wipe-password" type="password" required autocomplete="current-password" />
+        <p id="wipe-modal-msg" class="bp-msg muted"></p>
+        <p class="bp-toss-actions">
+          <button type="button" id="wipe-cancel-btn" class="bp-btn">Keep everything</button>
+          <button type="submit" id="wipe-submit-btn" class="bp-btn bp-btn--danger">Wipe my account</button>
+        </p>
+      </form>
+    </div>
+    <div id="toss-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="toss-modal-title">
+      <header class="bp-register-head">
+        <h2 id="toss-modal-title">Toss from kennel</h2>
+        <button type="button" id="toss-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="toss-form" class="bp-card">
+        <p id="toss-modal-lede" class="muted"></p>
+        <div id="toss-phrase-block">
+          <p class="bp-msg">Type exactly: <strong id="toss-phrase-display"></strong></p>
+          <label for="toss-phrase-input">Confirmation phrase</label>
+          <input id="toss-phrase-input" type="text" autocomplete="off" />
+        </div>
+        <p id="toss-modal-msg" class="bp-msg muted"></p>
+        <p class="bp-toss-actions">
+          <button type="button" id="toss-cancel-btn" class="bp-btn">Keep it</button>
+          <button type="submit" id="toss-submit-btn" class="bp-btn">Toss</button>
+        </p>
+      </form>
+    </div>
+    </div>
+    <div id="about-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+      <header class="bp-register-head">
+        <h2 id="about-modal-title">About BookPup</h2>
+        <button type="button" id="about-modal-close" class="bp-btn">Close</button>
+      </header>
+      <article id="about-body" class="bp-card bp-about-body">
+        <p class="muted">Loading…</p>
+      </article>
+    </div>
+    <div id="register-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2 id="register-modal-title">Tag this book</h2>
+        <button type="button" id="register-close" class="bp-btn">Close</button>
+      </header>
+      <form id="register-form" class="bp-card bp-register-form">
+        <input type="hidden" id="reg-cover-url" name="cover_url" value="" />
+        <label for="reg-title">Title</label>
+        <input id="reg-title" name="title" required />
+        <label for="reg-authors">Authors</label>
+        <input id="reg-authors" name="authors" />
+        <label for="reg-isbn">ISBN</label>
+        <input id="reg-isbn" name="isbn" inputmode="numeric" autocomplete="off" />
+        <label for="reg-series">Series</label>
+        <input id="reg-series" name="series" />
+        <label for="reg-series-index">Series #</label>
+        <input id="reg-series-index" name="series_index" type="number" step="any" />
+        <label for="reg-publisher">Publisher</label>
+        <input id="reg-publisher" name="publisher" />
+        <label for="reg-pubdate">Published</label>
+        <input id="reg-pubdate" name="pubdate" />
+        <label for="reg-tags">Tags</label>
+        <input id="reg-tags" name="tags" />
+        <label for="reg-comments">Description</label>
+        <textarea id="reg-comments" name="comments" rows="4"></textarea>
+        <p class="bp-register-actions">
+          <button type="button" id="register-search-btn" class="bp-btn">Search Online</button>
+        </p>
+        <div id="register-results" class="bp-register-results hidden" aria-live="polite"></div>
+        <fieldset class="bp-cover-fieldset">
+          <legend>Cover art</legend>
+          <p class="bp-register-actions">
+            <label class="bp-btn" for="reg-cover-file">Upload image</label>
+            <input
+              type="file"
+              id="reg-cover-file"
+              class="hidden"
+              accept="image/jpeg,image/png,image/webp"
+            />
+            <button type="button" id="register-cover-images-btn" class="bp-btn">
+              Search cover images
+            </button>
+          </p>
+          <p id="register-cover-file-hint" class="bp-msg muted hidden"></p>
+          <div id="register-cover-images" class="bp-cover-images hidden" aria-live="polite"></div>
+        </fieldset>
+        <label class="bp-check">
+          <input type="checkbox" id="register-use-cover" />
+          Use cover from selected match
+        </label>
+        <p id="register-msg" class="bp-msg muted"></p>
+        <p class="bp-register-actions">
+          <button type="submit" id="register-submit" class="bp-btn primary">Tag it</button>
+          <button type="button" id="register-cancel" class="bp-btn">Cancel</button>
+        </p>
+      </form>
+    </div>
+    <div id="send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2 id="send-modal-title">Pass to a pup</h2>
+        <button type="button" id="send-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="send-form" class="bp-card bp-register-form">
+        <p id="send-item-label" class="muted"></p>
+        <label for="send-to-user">Recipient</label>
+        <select id="send-to-user" name="to" required></select>
+        <p id="send-msg" class="bp-msg muted"></p>
+        <p class="bp-register-actions">
+          <button type="submit" id="send-submit" class="bp-btn primary">Pass copy</button>
+          <button type="button" id="send-cancel" class="bp-btn">Cancel</button>
+        </p>
+      </form>
+    </div>
+    <div id="cover-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2 id="cover-modal-title">Cover art</h2>
+        <button type="button" id="cover-modal-close" class="bp-btn">Close</button>
+      </header>
+      <div class="bp-card bp-register-form">
+        <p class="bp-register-actions">
+          <label class="bp-btn" for="cover-modal-file">Upload image</label>
+          <input
+            type="file"
+            id="cover-modal-file"
+            class="hidden"
+            accept="image/jpeg,image/png,image/webp"
+          />
+          <button type="button" id="cover-modal-images-btn" class="bp-btn">Search cover images</button>
+        </p>
+        <p id="cover-modal-msg" class="bp-msg muted"></p>
+        <div id="cover-modal-images" class="bp-cover-images hidden" aria-live="polite"></div>
+      </div>
+    </div>
+    <div id="reader-modal" class="bp-reader-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-reader-head">
+        <div class="bp-reader-title-wrap">
+          <h2 id="reader-title">Curl up &amp; read</h2>
+          <button type="button" id="reader-bookmark" class="bp-btn">Bookmark</button>
+          <button type="button" id="reader-study-toggle" class="bp-btn" aria-expanded="false">Study</button>
+        </div>
+        <button type="button" id="reader-close" class="bp-btn">Close</button>
+      </header>
+      <div id="reader-study" class="bp-reader-study hidden" aria-live="polite">
+        <p id="reader-study-status" class="bp-msg muted"></p>
+        <button type="button" id="reader-study-summarize" class="bp-btn">Summarize section</button>
+        <pre id="reader-study-summary" class="bp-reader-study-out hidden"></pre>
+        <div class="bp-reader-study-ask">
+          <input type="text" id="reader-study-question" class="bp-input" placeholder="Ask about this section…" autocomplete="off" />
+          <button type="button" id="reader-study-ask" class="bp-btn">Ask</button>
+        </div>
+        <pre id="reader-study-answer" class="bp-reader-study-out hidden"></pre>
+        <p class="bp-reader-study-actions">
+          <button type="button" id="reader-study-export" class="bp-btn">Copy study notes</button>
+        </p>
+        <p class="bp-msg muted bp-reader-study-hint">CPU inference may take up to a minute on first use.</p>
+      </div>
+      <div id="reader-bookmarks" class="bp-reader-bookmarks hidden"></div>
+      <div id="reader-body" class="bp-reader-body"></div>
+      <div id="reader-epub-nav" class="bp-reader-epub-nav hidden">
+        <button type="button" id="reader-prev" class="bp-btn" aria-label="Previous page">Prev</button>
+        <button type="button" id="reader-dual-page" class="bp-btn" aria-pressed="false">Dual page</button>
+        <button type="button" id="reader-next" class="bp-btn" aria-label="Next page">Next</button>
+        <div class="bp-reader-progress" aria-label="Reading progress">
+          <div class="bp-reader-progress-track">
+            <div id="reader-progress-fill" class="bp-reader-progress-fill"></div>
+          </div>
+          <span id="reader-progress-label" class="bp-reader-progress-label">0%</span>
+        </div>
+      </div>
+      <p id="reader-msg" class="bp-msg muted"></p>
+    </div>
+    <script src="/static/vendor/jszip.min.js" defer></script>
+    <script src="/static/vendor/epub.min.js" defer></script>
+    <script src="/static/reader.js?v=__VERSION__" defer></script>
+    <script src="/static/app-core.js?v=__VERSION__" defer></script>
+    <script src="/static/app-docs.js?v=__VERSION__" defer></script>
+    <script src="/static/app-irc.js?v=__VERSION__" defer></script>
+    <script src="/static/app-account.js?v=__VERSION__" defer></script>
+    <script src="/static/sniff-file-types.js?v=__VERSION__" defer></script>
+    <script src="/static/app-search.js?v=__VERSION__" defer></script>
+    <script src="/static/app-queue.js?v=__VERSION__" defer></script>
+    <script src="/static/app-library.js?v=__VERSION__" defer></script>
+    <script src="/static/app-ux.js?v=__VERSION__" defer></script>
+    <script src="/static/app-boot.js?v=__VERSION__" defer></script>
+  </body>
+</html>

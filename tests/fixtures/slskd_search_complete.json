@@ -1,0 +1,29 @@
+{
+  "id": "00000000-0000-0000-0000-000000000099",
+  "searchText": "mock query",
+  "isComplete": true,
+  "responses": [
+    {
+      "username": "peerone",
+      "files": [
+        {
+          "filename": "Books/Author/Title.epub",
+          "size": 1048576
+        },
+        {
+          "filename": "Music/album.flac",
+          "size": 32000000
+        }
+      ]
+    },
+    {
+      "username": "peertwo",
+      "files": [
+        {
+          "filename": "shared/Another Book.mobi",
+          "size": 512000
+        }
+      ]
+    }
+  ]
+}

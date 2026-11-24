@@ -1,0 +1,30 @@
+#!/bin/bash
+# Start BookPup (localhost TCP port for Whatbox custom app)
+set -euo pipefail
+APP_DIR="${BOOKPUP_APP_DIR:-$HOME/bookpup}"
+CONFIG_DIR="$HOME/.config/bookpup"
+PIDFILE="$CONFIG_DIR/bookpup.pid"
+LOG="$CONFIG_DIR/bookpup.log"
+
+mkdir -p "$CONFIG_DIR"
+
+if [[ -f "$PIDFILE" ]]; then
+  old_pid="$(cat "$PIDFILE" 2>/dev/null || true)"
+  if [[ -n "$old_pid" ]] && kill -0 "$old_pid" 2>/dev/null; then
+    exit 0
+  fi
+  rm -f "$PIDFILE"
+fi
+
+if pgrep -f "$APP_DIR/bookpup.py" >/dev/null 2>&1; then
+  pkill -f "$APP_DIR/bookpup.py" 2>/dev/null || true
+  sleep 1
+fi
+sleep 1
+
+if [[ -f "$LOG" ]] && (( $(stat -c %s "$LOG") > 10 * 1024 * 1024 )); then
+  mv -f "$LOG" "$LOG.1"
+fi
+
+nohup python3 "$APP_DIR/bookpup.py" >>"$LOG" 2>&1 &
+echo $! >"$PIDFILE"

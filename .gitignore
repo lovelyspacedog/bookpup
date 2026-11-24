@@ -1,0 +1,38 @@
+# Private operator notes (checklists, roadmaps, production matrices)
+markdown/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Local secrets & env
+.env
+.env.*
+*.local
+expedition_secret
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+.cursor/
+
+# Runtime on a dev machine (if ever created in-tree)
+.config/
+
+# Calibre bundle path sometimes symlinked during dev
+calibre-bundle/
