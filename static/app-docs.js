@@ -156,6 +156,46 @@
     return { intro, pages };
   }
 
+  function parseTableRow(line) {
+    const t = line.trim();
+    if (!t.startsWith("|")) return null;
+    const cells = t
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((c) => c.trim());
+    return cells.length ? cells : null;
+  }
+
+  function isTableSeparatorLine(line) {
+    return /^\|[\s\-:|]+\|$/.test(line.trim());
+  }
+
+  function renderGuideTable(tableLines) {
+    const rows = tableLines
+      .filter((line) => !isTableSeparatorLine(line))
+      .map(parseTableRow)
+      .filter(Boolean);
+    if (!rows.length) return "";
+    const [head, ...body] = rows;
+    const ths = head.map((c) => "<th scope=\"col\">" + formatInlineMd(c) + "</th>").join("");
+    const trs = body
+      .map((cells) => {
+        const tds = cells.map((c) => "<td>" + formatInlineMd(c) + "</td>").join("");
+        return "<tr>" + tds + "</tr>";
+      })
+      .join("");
+    return (
+      '<div class="bp-prose-table-wrap">' +
+      '<table class="bp-prose-table">' +
+      "<thead><tr>" +
+      ths +
+      "</tr></thead>" +
+      (trs ? "<tbody>" + trs + "</tbody>" : "") +
+      "</table></div>"
+    );
+  }
+
   function renderGuidePageBody(lines) {
     const parts = [];
     let inList = false;
@@ -165,11 +205,25 @@
         inList = false;
       }
     };
-    lines.forEach((line) => {
-      const t = line.trimEnd();
+    let i = 0;
+    while (i < lines.length) {
+      const t = lines[i].trimEnd();
       if (!t) {
         closeList();
-        return;
+        i += 1;
+        continue;
+      }
+      if (t.startsWith("|") && t.indexOf("|", 1) > 0) {
+        closeList();
+        const tableLines = [];
+        while (i < lines.length) {
+          const row = lines[i].trimEnd();
+          if (!row || !row.startsWith("|")) break;
+          tableLines.push(row);
+          i += 1;
+        }
+        parts.push(renderGuideTable(tableLines));
+        continue;
       }
       if (t.startsWith("- ")) {
         if (!inList) {
@@ -177,11 +231,13 @@
           inList = true;
         }
         parts.push("<li>" + formatInlineMd(t.slice(2)) + "</li>");
-        return;
+        i += 1;
+        continue;
       }
       closeList();
       parts.push("<p>" + formatInlineMd(t) + "</p>");
-    });
+      i += 1;
+    }
     closeList();
     return parts.join("");
   }

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.5.3
+
+- **UX:** **Pup guide** renders markdown tables (Page 2 loop) instead of raw pipe text.
+
 ## 1.5.2
 
 - **UX:** **Pup guide** pages use the same readable prose typography as **About** (Inter rhythm, links, lists).

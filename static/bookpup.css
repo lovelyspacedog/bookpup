@@ -194,6 +194,47 @@ body {
   font-weight: 600;
 }
 
+.bp-prose-table-wrap {
+  margin: 0.65rem 0 0.85rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bp-prose-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  letter-spacing: 0.008em;
+}
+
+.bp-prose-table th,
+.bp-prose-table td {
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid var(--line, rgb(255 255 255 / 0.14));
+}
+
+.bp-prose-table th {
+  font-family: var(--font-display, inherit);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg, inherit);
+  background: var(--raised, rgb(255 255 255 / 0.04));
+}
+
+.bp-prose-table td {
+  color: var(--fg-muted, inherit);
+}
+
+.bp-prose-table td:first-child {
+  width: 6.5rem;
+  font-weight: 600;
+  color: var(--fg, inherit);
+  white-space: nowrap;
+}
+
 .bp-about-body {
   max-width: 38rem;
   margin: 0 auto 1rem;
