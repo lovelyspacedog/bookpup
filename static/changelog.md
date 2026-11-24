@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.3.91
+
+- **Fix:** **Walk the Trail** tutorial MOBI ships with the app (`lib/fixtures/`) so practice **Fetch** works on production.
+- **UX:** **Walk the Trail** shows fetch errors in the coach card with **Retry**; stale sniff messages clear when you restart the tour.
+
 ## 1.3.90
 
 - **Fix:** **Walk the Trail** explain steps (Den chatter, filter, queue) use a top coach card on mobile so the highlighted control stays visible below.

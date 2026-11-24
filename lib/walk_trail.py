@@ -10,7 +10,7 @@ from pathlib import Path
 from . import jobs, library, user_paths
 from .staging import create_staging
 
-_FIXTURE = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "tutorial_minimal.mobi"
+_FIXTURE = Path(__file__).resolve().parent / "fixtures" / "tutorial_minimal.mobi"
 _QUERY_RE = re.compile(r"[^\w\s@+.,'\"()-]", re.UNICODE)
 _MAX_QUERY_LEN = 120
 _MAX_TITLE_LEN = 200

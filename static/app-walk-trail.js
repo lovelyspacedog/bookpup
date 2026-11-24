@@ -13,6 +13,7 @@
   let stepAdvanceTimer = null;
   let registerSnapshot = null;
   let fetchDone = false;
+  let fetchError = "";
   let focusTargetEl = null;
   const autoAdvanceFired = new Set();
 
@@ -461,14 +462,23 @@
     const titleEl = document.getElementById("walk-trail-tip-title");
     const bodyEl = tip.querySelector("[data-wt-body]");
     if (titleEl) titleEl.textContent = st.title;
-    if (bodyEl) bodyEl.textContent = st.body;
+    if (bodyEl) {
+      bodyEl.textContent =
+        st.id === "fetch" && fetchError
+          ? fetchError + " Tap Retry fetch, or try the practice row again."
+          : st.body;
+    }
     tip.classList.remove("hidden");
     const nextBtn = tip.querySelector("[data-wt-next]");
+    const retryBtn = tip.querySelector("[data-wt-retry]");
     const skipBtn = tip.querySelector("[data-wt-cleanup-skip]");
     const canNext = canAdvanceManual();
     if (nextBtn) {
       nextBtn.disabled = !canNext && st.advance !== "cleanup" && st.advance !== "finish";
       nextBtn.classList.toggle("hidden", st.advance === "search-done" || st.advance === "fetch-done" || st.advance === "tag-saved");
+    }
+    if (retryBtn) {
+      retryBtn.classList.toggle("hidden", st.id !== "fetch" || !fetchError);
     }
     if (skipBtn) {
       skipBtn.classList.toggle("hidden", st.advance !== "cleanup");
@@ -502,6 +512,7 @@
     BP.state.walkTrailTagged = false;
     BP.state.walkTrailExpectTag = false;
     fetchDone = false;
+    fetchError = "";
     tutorialItemId = "";
     registerSnapshot = null;
     autoAdvanceFired.clear();
@@ -580,6 +591,7 @@
     BP.walkTrailActive = true;
     stepIndex = 0;
     fetchDone = false;
+    fetchError = "";
     tutorialQuery = "";
     tutorialTitle = "";
     tutorialItemId = "";
@@ -589,6 +601,11 @@
     if (btn) BP.activateTab(btn);
     const ch = document.getElementById("channel");
     if (ch) ch.value = "irchighway:ebooks";
+    const searchMsg = document.getElementById("search-msg");
+    if (searchMsg) {
+      searchMsg.textContent = "";
+      searchMsg.className = "bp-msg";
+    }
     BP.syncChannelHint?.();
     showOverlay();
     autoWatchAdvance();
@@ -646,6 +663,7 @@
     if (tr && BP.setFetchRowState) BP.setFetchRowState(tr, "loading");
     const searchMsg = document.getElementById("search-msg");
     if (searchMsg) searchMsg.textContent = "Practice fetch…";
+    fetchError = "";
     try {
       pushMockIrcLine("!TrailBot " + tutorialTitle, "out");
       setTimeout(() => pushMockIrcLine("TrailBot: sending " + tutorialTitle + " (practice)", "in"), 500);
@@ -674,8 +692,18 @@
         searchMsg.textContent = msg;
         searchMsg.className = "bp-msg err";
       }
+      fetchError = msg;
+      updateTipChrome();
       BP.showAppToast("Walk the Trail", msg, "info");
     }
+  }
+
+  function retryFetch() {
+    fetchError = "";
+    updateTipChrome();
+    const row = practiceRow();
+    const tr = document.querySelector("tr[data-walk-trail-row]");
+    if (row) void handleFetch(row, tr);
   }
 
   function onRegisterOpen(item) {
@@ -717,6 +745,7 @@
   function bindShell() {
     const r = root();
     if (!r) return;
+    r.querySelector("[data-wt-retry]")?.addEventListener("click", () => retryFetch());
     r.querySelector("[data-wt-next]")?.addEventListener("click", () => void goNext());
     r.querySelector("[data-wt-exit]")?.addEventListener("click", () => exitWalkTrail());
     r.querySelector("[data-wt-cleanup-skip]")?.addEventListener("click", () => void goNext(true));
