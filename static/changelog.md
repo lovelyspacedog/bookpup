@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.5.2
+
+- **UX:** **Pup guide** pages use the same readable prose typography as **About** (Inter rhythm, links, lists).
+
 ## 1.5.1
 
 - **UX:** **About** dialog typography (Inter body rhythm, section headings, links) and readable markdown links.

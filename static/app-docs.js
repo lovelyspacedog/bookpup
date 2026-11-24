@@ -224,7 +224,7 @@
     guidePages.forEach((page) => {
       parts.push('<section class="bp-guide-all-section">');
       parts.push('<h2 class="bp-guide-page-title">' + BP.escapeHtml(page.title) + "</h2>");
-      parts.push('<div class="bp-guide-section-body">' + renderGuidePageBody(page.lines) + "</div>");
+      parts.push('<div class="bp-guide-section-body bp-prose">' + renderGuidePageBody(page.lines) + "</div>");
       parts.push("</section>");
     });
     el.innerHTML = parts.join("");
@@ -244,7 +244,7 @@
       '<h2 class="bp-guide-page-title">' +
       BP.escapeHtml(page.title) +
       "</h2>" +
-      '<div class="bp-guide-section-body">' +
+      '<div class="bp-guide-section-body bp-prose">' +
       renderGuidePageBody(page.lines) +
       "</div>";
     setGuidePagerChrome();

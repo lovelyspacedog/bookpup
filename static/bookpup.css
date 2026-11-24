@@ -128,10 +128,7 @@ body {
   font-size: 1.35em;
 }
 
-.bp-about-body {
-  max-width: 38rem;
-  margin: 0 auto 1rem;
-  padding: 1.1rem 1.25rem 1.35rem;
+.bp-prose {
   font-family: var(--font-body, system-ui, sans-serif);
   font-size: 0.9375rem;
   line-height: 1.65;
@@ -140,7 +137,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-.bp-about-body h3 {
+.bp-prose h3 {
   font-family: var(--font-display, inherit);
   font-size: 1.02rem;
   font-weight: 600;
@@ -150,31 +147,31 @@ body {
   color: var(--fg, inherit);
 }
 
-.bp-about-body h3:first-child {
+.bp-prose h3:first-child {
   margin-top: 0;
 }
 
-.bp-about-body p {
+.bp-prose p {
   margin: 0 0 0.65rem;
   color: var(--fg-muted, inherit);
 }
 
-.bp-about-body p:last-child {
+.bp-prose p:last-child {
   margin-bottom: 0;
 }
 
-.bp-about-body .bp-changelog-list {
+.bp-prose .bp-changelog-list {
   margin: 0.35rem 0 0.75rem;
   padding-left: 1.15rem;
 }
 
-.bp-about-body .bp-changelog-list li {
+.bp-prose .bp-changelog-list li {
   margin: 0.35rem 0;
   line-height: 1.6;
   letter-spacing: 0.008em;
 }
 
-.bp-about-body a {
+.bp-prose a {
   color: var(--accent, #2ee6ff);
   text-decoration: underline;
   text-decoration-thickness: 1px;
@@ -182,14 +179,25 @@ body {
   letter-spacing: normal;
 }
 
-.bp-about-body a:hover {
+.bp-prose a:hover {
   text-decoration-thickness: 2px;
 }
 
-.bp-about-body code {
+.bp-prose code {
   font-family: var(--font-mono, ui-monospace, monospace);
   font-size: 0.88em;
   letter-spacing: 0;
+}
+
+.bp-prose strong {
+  color: var(--fg, inherit);
+  font-weight: 600;
+}
+
+.bp-about-body {
+  max-width: 38rem;
+  margin: 0 auto 1rem;
+  padding: 1.1rem 1.25rem 1.35rem;
 }
 
 .bp-about-run {
@@ -1080,7 +1088,7 @@ td {
 }
 
 .bp-guide-section-body {
-  padding: 0 0.65rem 0.65rem;
+  padding: 0;
 }
 
 .bp-changelog h2 {
@@ -1597,9 +1605,28 @@ td {
   text-align: center;
 }
 
+#guide-body.bp-guide {
+  max-width: 40rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.1rem 1.25rem 1.35rem;
+}
+
+#guide-body.bp-guide > p.muted {
+  margin: 0 0 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  letter-spacing: 0.012em;
+}
+
 .bp-guide-page-title {
-  margin: 0 0 0.75rem;
-  font-size: 1.15rem;
+  font-family: var(--font-display, inherit);
+  margin: 0 0 0.85rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--fg, inherit);
 }
 
 #guide-body.bp-guide-page-view .bp-guide-section-body {
@@ -1607,9 +1634,13 @@ td {
 }
 
 .bp-guide-all-section {
-  margin: 0 0 1.5rem;
-  padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border, #444);
+  margin: 0 0 1.65rem;
+  padding-bottom: 1.35rem;
+  border-bottom: 1px solid var(--line, rgb(255 255 255 / 0.12));
+}
+
+.bp-guide-all-section .bp-guide-section-body.bp-prose {
+  padding-left: 0.15rem;
 }
 
 .bp-guide-all-section:last-child {
