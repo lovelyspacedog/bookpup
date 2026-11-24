@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.6.3
+
+- **Pack:** Compose row layout (Attach · message · Send); pending attachment chip with **Remove**; **Attach** becomes **Unattach** while something is queued.
+
 ## 1.6.2
 
 - **Pack:** Reaction chips sized to message text — fixed full-width **.bp-card** button rule stretching in-chat controls.

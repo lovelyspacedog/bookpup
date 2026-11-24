@@ -3491,16 +3491,87 @@ tr.bp-sniff-pick td {
   background: rgba(46, 230, 255, 0.04);
 }
 
-.bp-pack-chat-compose {
+.bp-pack-pending-attach {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
   align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0.35rem 0 0;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  border-radius: 0.3rem;
+  background: rgba(46, 230, 255, 0.08);
+  border: 1px solid rgba(46, 230, 255, 0.2);
+}
+
+.bp-pack-chat .bp-pack-pending-attach button.bp-pack-pending-clear {
+  width: auto;
+  max-width: none;
+  margin: 0 0 0 auto;
+  min-height: unset;
+  padding: 0.1rem 0.4rem;
+  border: none;
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--bp-accent, #2ee6ff);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.bp-pack-pending-attach button.bp-pack-pending-clear:hover {
+  background: rgba(46, 230, 255, 0.15);
+  text-decoration: underline;
+}
+
+.bp-pack-attach-btn--active {
+  border-color: var(--bp-accent, #2ee6ff);
+  color: var(--bp-accent, #2ee6ff);
+}
+
+.bp-pack-chat-compose {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0.4rem;
+  align-items: stretch;
+  margin-top: 0.35rem;
+}
+
+.bp-pack-chat .bp-pack-chat-compose button.bp-btn,
+.bp-pack-chat .bp-pack-chat-toolbar button.bp-btn {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  min-height: unset;
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.bp-pack-chat-compose #pack-chat-attach-btn {
+  padding: 0.35rem 0.55rem;
 }
 
 .bp-pack-chat-compose input[type="text"] {
-  flex: 1 1 12rem;
+  flex: 1 1 auto;
   min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.88rem;
+}
+
+.bp-pack-chat-toolbar {
+  margin-top: 0.5rem;
+}
+
+.bp-pack-chat-toolbar .bp-btn {
+  font-size: 0.78rem;
+  padding: 0.28rem 0.55rem;
+  opacity: 0.9;
 }
 
 .bp-pack-chat-feed .bp-pack-chat-delete {

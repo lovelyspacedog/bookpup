@@ -65,26 +65,53 @@
     const p = BP.state.packChatPendingAttach;
     if (!p) {
       pendingAttachEl.classList.add("hidden");
-      pendingAttachEl.textContent = "";
+      pendingAttachEl.replaceChildren();
+      syncAttachButtonState();
       return;
     }
     pendingAttachEl.classList.remove("hidden");
-  if (p.type === "library_book") {
-      pendingAttachEl.textContent =
+    pendingAttachEl.replaceChildren();
+    const label = document.createElement("span");
+    if (p.type === "library_book") {
+      label.textContent =
         "Attached: " +
         (p.title || "book") +
-        (p.intent === "offer_copy" ? " (send copy)" : " (recommend)") +
-        ' — <button type="button" class="bp-link-btn" id="pack-pending-clear">Clear</button>';
+        (p.intent === "offer_copy" ? " (send copy)" : " (recommend)");
     } else if (p.type === "kennel_invite") {
-      pendingAttachEl.textContent =
-        "Attached: Kennel invite for " +
-        (p.requester || "?") +
-        ' — <button type="button" class="bp-link-btn" id="pack-pending-clear">Clear</button>';
+      label.textContent = "Attached: Kennel invite for " + (p.requester || "?");
     }
-    document.getElementById("pack-pending-clear")?.addEventListener("click", () => {
-      BP.state.packChatPendingAttach = null;
-      updatePendingAttachUi();
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "bp-pack-pending-clear";
+    clear.setAttribute("aria-label", "Remove attachment");
+    clear.textContent = "Remove";
+    clear.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      clearPendingAttach();
     });
+    pendingAttachEl.append(label, clear);
+    syncAttachButtonState();
+  }
+
+  function clearPendingAttach() {
+    BP.state.packChatPendingAttach = null;
+    updatePendingAttachUi();
+    syncAttachButtonState();
+    attachMenu?.classList.add("hidden");
+  }
+
+  function syncAttachButtonState() {
+    if (!attachBtn) return;
+    const on = !!BP.state.packChatPendingAttach;
+    attachBtn.textContent = on ? "Unattach" : "Attach…";
+    attachBtn.classList.toggle("bp-pack-attach-btn--active", on);
+    attachBtn.setAttribute("aria-pressed", on ? "true" : "false");
+    if (on) {
+      attachBtn.title = "Remove pending attachment";
+    } else {
+      attachBtn.title = "Attach catalogued book or kennel invite";
+    }
   }
 
   function attachmentCardHtml(att, msgId, idx) {
@@ -285,8 +312,7 @@
   };
 
   BP.packChatAfterSend = function () {
-    BP.state.packChatPendingAttach = null;
-    updatePendingAttachUi();
+    clearPendingAttach();
     cancelReply();
   };
 
@@ -334,6 +360,7 @@
           raw: { type: "library_book", item_id: it.id, intent },
         };
         updatePendingAttachUi();
+        syncAttachButtonState();
         bookModal.classList.add("hidden");
       });
       list.appendChild(btn);
@@ -360,6 +387,10 @@
   }
 
   attachBtn?.addEventListener("click", () => {
+    if (BP.state.packChatPendingAttach) {
+      clearPendingAttach();
+      return;
+    }
     attachMenu?.classList.toggle("hidden");
   });
   document.getElementById("pack-attach-book")?.addEventListener("click", () => {
@@ -385,6 +416,7 @@
       raw,
     };
     updatePendingAttachUi();
+    syncAttachButtonState();
     inviteModal?.classList.add("hidden");
   });
   document.getElementById("pack-attach-invite-close")?.addEventListener("click", () => {
