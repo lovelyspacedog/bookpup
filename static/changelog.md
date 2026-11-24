@@ -1,5 +1,15 @@
 # BookPup changelog
 
+## 1.4.0 — take your kennel beyond the browser
+
+Household **1.4** milestone (shipped incrementally through **v1.4.18** on Expedition):
+
+- **UX:** Install BookPup on your phone (**Add to Home Screen**); offline **Pup guide** / **What's new**; **Keep offline** for EPUB/PDF on the device.
+- **Kennel:** **Send to e-reader…** — one-time HTTPS link or **Email to my Kindle** when the household SMTP is set.
+- **Pack:** **Walk the Trail** onboard tour (practice sniff → fetch → tag → **Pack chat**); admins see who has not finished in **Pack digest**.
+- **Reader:** Mobile reader polish, keyboard shortcuts, Study notes with reading position.
+- **Ops:** **Health** vs **readiness**, sample packaging for a generic VPS.
+
 ## 1.4.18
 
 - **Ops:** `GET /api/ready` for readiness (IRC worker, Soulseek when enabled, optional Calibre/7z/unrar); `GET /api/health` stays liveness-only (`ok` = config dir writable).
