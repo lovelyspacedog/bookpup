@@ -25,6 +25,7 @@ window.BookPup = window.BookPup || {};
     packChatDelAfter: 0,
     packChatById: {},
     packChatUnread: 0,
+    packChatUnreadByPeer: {},
     packChatTabActive: false,
     packChatBootstrapped: false,
     packChatPollTimer: null,

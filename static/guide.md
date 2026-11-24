@@ -80,7 +80,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 ## Page 10 — Your tag & pack roster
 
-- **Pack chat** (main tab): start on **Pack chat · everyone** (main household channel). Under **Private message**, click a pup — **Open PM →** — for a one-to-one thread. **BookPup** — **Open alerts →** — is where scheduled-sniff notices land. Green dot = online. Remove your own lines (or alerts sent to you); admins can remove any line or clear **Pack** only (PMs stay). This is not **Den chatter** (IRC/Soulseek logs on Sniff).
+- **Pack chat** (main tab): start on **Pack chat · everyone** (main household channel). Under **Private message**, click a pup — **Open PM →** — for a one-to-one thread; a red count beside a name means new PMs from that pup (clears when you open the thread). **BookPup** — **Open alerts →** — is where scheduled-sniff notices land (same badge). Green dot = online. Remove your own lines (or alerts sent to you); admins can remove any line or clear **Pack** only (PMs stay). This is not **Den chatter** (IRC/Soulseek logs on Sniff).
 - **Your tag:** rename yourself or rotate password (current password required).
 - **Pack roster** (admins): create pups, **Set quota**, **Set login**, **Remove**. Passwords are reset only, never shown.
 - Admins may set per-pup **Soulseek caps** (`soulseek_limits` on the account) if someone needs tighter sniff/fetch limits than the household default.

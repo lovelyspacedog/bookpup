@@ -2949,6 +2949,23 @@ tr.bp-sniff-pick td {
   font-weight: 500;
 }
 
+.bp-pack-peer-badge {
+  display: inline-block;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.28rem;
+  margin-left: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.1rem;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 999px;
+  background: #f55;
+  color: #fff;
+  box-sizing: border-box;
+}
+
 .bp-pack-presence-action {
   font-size: 0.72rem;
   white-space: nowrap;

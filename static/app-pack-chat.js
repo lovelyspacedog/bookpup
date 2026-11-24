@@ -18,6 +18,7 @@
   if (!BP.state.packChatDelAfter) BP.state.packChatDelAfter = 0;
   if (!BP.state.packChatById) BP.state.packChatById = {};
   if (BP.state.packChatUnread == null) BP.state.packChatUnread = 0;
+  if (!BP.state.packChatUnreadByPeer) BP.state.packChatUnreadByPeer = {};
   if (BP.state.packChatTabActive == null) BP.state.packChatTabActive = false;
   if (BP.state.packChatBootstrapped == null) BP.state.packChatBootstrapped = false;
   if (BP.state.packChatMode == null) BP.state.packChatMode = "pack";
@@ -46,6 +47,52 @@
     const n = BP.state.packChatUnread || 0;
     badgeEl.classList.toggle("hidden", n < 1);
     badgeEl.textContent = n > 9 ? "9+" : String(n);
+  }
+
+  function peerFromIncoming(msg) {
+    if (!msg || !dmPeer(msg)) return "";
+    const me = BP.state.sessionUsername || "";
+    const from = String(msg.username);
+    if (from === me) return "";
+    if (from === SYSTEM_USER) return SYSTEM_USER;
+    if (String(msg.to || "") === me) return from;
+    return "";
+  }
+
+  function applyPeerBadge(li, peer) {
+    if (!li || !peer) return;
+    const n = BP.state.packChatUnreadByPeer[peer] || 0;
+    let badge = li.querySelector(".bp-pack-peer-badge");
+    if (n < 1) {
+      badge?.remove();
+      return;
+    }
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "bp-pack-peer-badge";
+      const nameEl = li.querySelector(".bp-pack-presence-name");
+      if (nameEl) nameEl.after(badge);
+      else li.appendChild(badge);
+    }
+    badge.textContent = n > 9 ? "9+" : String(n);
+    badge.setAttribute("aria-label", n + " unread private message" + (n === 1 ? "" : "s"));
+  }
+
+  function syncAllPeerBadges() {
+    presenceEl?.querySelectorAll("[data-pack-dm-peer]").forEach((li) => {
+      applyPeerBadge(li, li.getAttribute("data-pack-dm-peer"));
+    });
+  }
+
+  function clearPeerUnread(peer) {
+    const key = String(peer || "").trim();
+    if (!key) return;
+    const n = BP.state.packChatUnreadByPeer[key] || 0;
+    if (n < 1) return;
+    delete BP.state.packChatUnreadByPeer[key];
+    BP.state.packChatUnread = Math.max(0, (BP.state.packChatUnread || 0) - n);
+    syncPackBadge();
+    syncAllPeerBadges();
   }
 
   function canDeleteMessage(msg) {
@@ -190,6 +237,7 @@
     if (!dest || dest === me) return;
     BP.state.packChatMode = "dm";
     BP.state.packChatDmPeer = dest;
+    clearPeerUnread(dest);
     syncModeUi();
   }
 
@@ -217,6 +265,7 @@
       li.appendChild(dot);
       li.appendChild(nameEl);
       li.appendChild(stat);
+      if (name && name !== me) applyPeerBadge(li, name);
       presenceEl.appendChild(li);
     });
     (BP.state.packChatPeers || []).forEach((peerRow) => {
@@ -238,6 +287,7 @@
       li.appendChild(dot);
       li.appendChild(label);
       li.appendChild(stat);
+      applyPeerBadge(li, name);
       presenceEl.appendChild(li);
     });
     const bookpupPeer = (BP.state.packChatPeers || []).some((p) => p.username === SYSTEM_USER);
@@ -260,6 +310,7 @@
       li.appendChild(dot);
       li.appendChild(label);
       li.appendChild(stat);
+      applyPeerBadge(li, SYSTEM_USER);
       presenceEl.appendChild(li);
     }
     syncSidebarSelection();
@@ -271,6 +322,11 @@
     if (fromMsg && String(fromMsg.username) === me) return;
     BP.state.packChatUnread = (BP.state.packChatUnread || 0) + 1;
     syncPackBadge();
+    const peer = peerFromIncoming(fromMsg);
+    if (peer) {
+      BP.state.packChatUnreadByPeer[peer] = (BP.state.packChatUnreadByPeer[peer] || 0) + 1;
+      syncAllPeerBadges();
+    }
   }
 
   async function pollPackChat(force) {
@@ -392,6 +448,7 @@
     BP.state.packChatDelAfter = 0;
     BP.state.packChatById = {};
     BP.state.packChatUnread = 0;
+    BP.state.packChatUnreadByPeer = {};
     BP.state.packChatTabActive = false;
     BP.state.packChatBootstrapped = false;
     BP.state.packChatMode = "pack";
