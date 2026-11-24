@@ -16,6 +16,7 @@
   let fetchError = "";
   let focusTargetEl = null;
   const autoAdvanceFired = new Set();
+  let kennelIntroScrolled = false;
 
   function fetchStepIndex() {
     return steps.findIndex((s) => s.id === "fetch");
@@ -228,8 +229,19 @@
 
   function usesTopCoachDock(st) {
     if (!st) return false;
+    if (st.coachDockBottom) return false;
     if (st.coachDockTop) return true;
     return MOBILE_TIP_MQ.matches && st.mobileTip === "top";
+  }
+
+  function usesBottomCoachDock(st) {
+    return !!st?.coachDockBottom;
+  }
+
+  function primeKennelScrollOnce() {
+    if (kennelIntroScrolled) return;
+    kennelIntroScrolled = true;
+    scrollKennelPanelToTop();
   }
 
   function packBotSidebarRect() {
@@ -341,7 +353,7 @@
     if (!target) return;
     if (st?.id === "sniff" && BP.state.walkTrailSearchDone) return;
     try {
-      if (st?.id === "kennel") return;
+      if (st?.id === "kennel" || st?.id === "cleanup") return;
       const block = st?.id === "den" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
       target.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
     } catch {
@@ -360,8 +372,7 @@
       scheduleWalkTrailLayout(target, st?.placement);
       requestAnimationFrame(() => {
         if (!active || target !== resolveStepTarget(currentStep())) return;
-        if (st?.id === "kennel") scrollKennelPanelToTop();
-        else scrollRevealBelowTopCoach(target);
+        if (st?.id !== "kennel") scrollRevealBelowTopCoach(target);
         scheduleWalkTrailLayout(target, st?.placement);
       });
       return;
@@ -392,9 +403,10 @@
     tip.dataset.placement = placement || "bottom";
     const dockMobile = MOBILE_TIP_MQ.matches;
     const dockTop = usesTopCoachDock(st);
-    tip.classList.toggle("bp-walk-trail-tip--dock", dockMobile && !dockTop);
+    const dockBottom = usesBottomCoachDock(st);
+    tip.classList.toggle("bp-walk-trail-tip--dock", (dockMobile && !dockTop && !dockBottom) || dockBottom);
     tip.classList.toggle("bp-walk-trail-tip--dock-top", dockTop);
-    if (dockMobile || st?.coachDockTop) {
+    if (dockBottom || dockMobile || st?.coachDockTop) {
       tip.style.top = "";
       tip.style.left = "";
       tip.style.right = "";
@@ -572,7 +584,7 @@
       selector: "#lib-section-downloads",
       placement: "top",
       mobileTip: "top",
-      coachDockTop: true,
+      coachDockBottom: true,
       advance: "cleanup",
     },
     {
@@ -657,6 +669,17 @@
     if (st.id === "tag") {
       BP.state.walkTrailExpectTag = true;
     }
+    const tossModal = document.getElementById("toss-modal");
+    const tossOpen = !!(tossModal && !tossModal.classList.contains("hidden"));
+    document.body.classList.toggle("bp-walk-trail-toss-modal", active && tossOpen);
+    if (active && tossOpen) {
+      document.body.classList.remove("bp-walk-trail-tag-modal");
+      clearFocusTarget();
+      layoutSpotRing(null);
+      tip.classList.add("hidden");
+      return;
+    }
+
     const tagModal =
       st.id === "tag" && document.getElementById("register-modal") && !document.getElementById("register-modal").classList.contains("hidden");
     document.body.classList.toggle("bp-walk-trail-tag-modal", !!tagModal);
@@ -710,6 +733,7 @@
     fetchError = "";
     tutorialItemId = "";
     registerSnapshot = null;
+    kennelIntroScrolled = false;
     autoAdvanceFired.clear();
     clearMockIrcTimer();
     if (stepAdvanceTimer) {
@@ -717,6 +741,7 @@
       stepAdvanceTimer = null;
     }
     document.body.classList.remove("bp-walk-trail-tag-modal");
+    document.body.classList.remove("bp-walk-trail-toss-modal");
     hideOverlay();
     if (!partial) {
       BP.state.activeSearchJob = BP.state.activeSearchJob === ACTIVE_JOB ? null : BP.state.activeSearchJob;
@@ -757,8 +782,10 @@
       if (qbtn) BP.activateTab(qbtn);
     }
     if (next?.id === "kennel") {
+      kennelIntroScrolled = false;
       const libBtn = BP.tabButton("library");
       if (libBtn) BP.activateTab(libBtn);
+      requestAnimationFrame(() => primeKennelScrollOnce());
     }
     if (next?.id === "pack" || next?.id === "pack-house" || next?.id === "pack-bots") {
       const packBtn = BP.tabButton("pack");

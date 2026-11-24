@@ -3237,6 +3237,19 @@ body.bp-walk-trail-active.bp-walk-trail-tag-modal .bp-walk-trail-tip {
   z-index: 3;
 }
 
+body.bp-walk-trail-active.bp-walk-trail-toss-modal #toss-modal:not(.hidden) {
+  z-index: 4500;
+}
+
+body.bp-walk-trail-active.bp-walk-trail-toss-modal .bp-walk-trail-backdrop {
+  background: transparent;
+}
+
+body.bp-walk-trail-active.bp-walk-trail-toss-modal .bp-walk-trail {
+  z-index: 4000;
+  pointer-events: none;
+}
+
 /* Tutorial tag step: only the fields the coach asks for. */
 body.bp-walk-trail-tag-modal #register-modal label[for="reg-isbn"],
 body.bp-walk-trail-tag-modal #register-modal #reg-isbn,

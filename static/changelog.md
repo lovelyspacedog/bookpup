@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.100
+
+- **Fix:** **Walk the Trail** Fresh catches no longer snaps back to the top while you scroll; cleanup coach docks at the bottom; **Remove fresh catch** sits above the tour overlay.
+
 ## 1.3.99
 
 - **Fix:** **Walk the Trail** Fresh catches starts at the top of Kennel (you scroll to the practice file); **Remove practice book?** returns to Kennel and highlights **Toss**.
