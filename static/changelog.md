@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.96
+
+- **Fix:** **Walk the Trail** Tag step — form sits above the coach overlay, uses a short tutorial field set, and you can scroll to **Tag it**.
+
 ## 1.3.95
 
 - **Fix:** **Walk the Trail** Kennel → Tag — no auto-open Tag modal; coach spotlights the practice **Tag** button (then the form after you open it).

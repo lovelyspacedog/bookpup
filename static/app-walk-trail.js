@@ -195,7 +195,7 @@
     if (st.id === "tag") {
       const modal = document.getElementById("register-modal");
       if (modal && !modal.classList.contains("hidden")) {
-        return document.getElementById("reg-title") || document.getElementById("register-form");
+        return document.getElementById("register-submit") || document.getElementById("reg-title");
       }
       if (tutorialItemId) {
         const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
@@ -447,6 +447,7 @@
       body: "Tap Tag on your practice catch. Change at least one field (title, author, or tags), then save.",
       selector: "#lib-items-downloads",
       placement: "top",
+      mobileTip: "top",
       advance: "tag-saved",
     },
     {
@@ -544,6 +545,27 @@
     if (st.id === "tag") {
       BP.state.walkTrailExpectTag = true;
     }
+    const tagModal =
+      st.id === "tag" && document.getElementById("register-modal") && !document.getElementById("register-modal").classList.contains("hidden");
+    document.body.classList.toggle("bp-walk-trail-tag-modal", !!tagModal);
+    if (tagModal) {
+      clearFocusTarget();
+      layoutSpotRing(null);
+      const submit = document.getElementById("register-submit");
+      try {
+        submit?.scrollIntoView({ block: "end", behavior: "instant", inline: "nearest" });
+      } catch {
+        /* ignore */
+      }
+      const tip = tipEl();
+      if (tip) {
+        tip.classList.remove("bp-walk-trail-tip--dock");
+        tip.classList.add("bp-walk-trail-tip--dock-top");
+      }
+      scheduleWalkTrailLayout(null, "top");
+      return;
+    }
+    document.body.classList.remove("bp-walk-trail-tag-modal");
     const target = resolveStepTarget(st);
     markFocusTarget(target);
     placeSpot(target);
@@ -578,6 +600,7 @@
       clearInterval(stepAdvanceTimer);
       stepAdvanceTimer = null;
     }
+    document.body.classList.remove("bp-walk-trail-tag-modal");
     hideOverlay();
     if (!partial) {
       BP.state.activeSearchJob = BP.state.activeSearchJob === ACTIVE_JOB ? null : BP.state.activeSearchJob;

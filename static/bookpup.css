@@ -3219,6 +3219,40 @@ tr.bp-sniff-pick td {
   border-top: 1px solid var(--border, #444);
 }
 
-body.bp-walk-trail-active .bp-register-modal {
-  z-index: 1300;
+/* Tag modal must sit above the walk-trail layer so the form scrolls and accepts taps. */
+body.bp-walk-trail-active.bp-walk-trail-tag-modal #register-modal:not(.hidden) {
+  z-index: 4100;
+}
+
+body.bp-walk-trail-active.bp-walk-trail-tag-modal .bp-walk-trail-backdrop {
+  background: transparent;
+}
+
+body.bp-walk-trail-active.bp-walk-trail-tag-modal .bp-walk-trail {
+  z-index: 4200;
+  pointer-events: none;
+}
+
+body.bp-walk-trail-active.bp-walk-trail-tag-modal .bp-walk-trail-tip {
+  z-index: 3;
+}
+
+/* Tutorial tag step: only the fields the coach asks for. */
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-isbn"],
+body.bp-walk-trail-tag-modal #register-modal #reg-isbn,
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-series"],
+body.bp-walk-trail-tag-modal #register-modal #reg-series,
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-series-index"],
+body.bp-walk-trail-tag-modal #register-modal #reg-series-index,
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-publisher"],
+body.bp-walk-trail-tag-modal #register-modal #reg-publisher,
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-pubdate"],
+body.bp-walk-trail-tag-modal #register-modal #reg-pubdate,
+body.bp-walk-trail-tag-modal #register-modal label[for="reg-comments"],
+body.bp-walk-trail-tag-modal #register-modal #reg-comments,
+body.bp-walk-trail-tag-modal #register-modal #register-search-btn,
+body.bp-walk-trail-tag-modal #register-modal #register-results,
+body.bp-walk-trail-tag-modal #register-modal .bp-cover-fieldset,
+body.bp-walk-trail-tag-modal #register-modal label.bp-check {
+  display: none !important;
 }
