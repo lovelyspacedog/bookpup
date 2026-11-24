@@ -210,6 +210,7 @@
     });
     el.innerHTML = parts.join("");
     setGuidePagerChrome();
+    bindWalkTrailGuideLink();
   }
 
   function renderGuidePageView() {
@@ -233,21 +234,42 @@
     } catch {
       /* ignore */
     }
-    bindWalkTrailRestart();
+    bindWalkTrailGuideLink();
   }
 
-  function bindWalkTrailRestart() {
-    if (guideShowAll || !BP.walkTrailIsComplete?.()) return;
-    if (guidePageIndex !== 0) return;
-    const body = document.getElementById("guide-body");
-    if (!body || body.querySelector("#guide-walk-trail-restart")) return;
+  function walkTrailGuideLabel() {
+    return BP.walkTrailIsComplete?.() ? "Walk the Trail again" : "Walk the Trail";
+  }
+
+  function mountWalkTrailGuideLink(container) {
+    if (!container || container.querySelector("#guide-walk-trail-entry")) return;
+    const complete = !!BP.walkTrailIsComplete?.();
     const box = document.createElement("p");
     box.className = "bp-guide-walk-trail";
-    box.id = "guide-walk-trail-restart";
-    box.innerHTML =
-      '<button type="button" class="bp-link-btn bp-walk-trail-link" id="guide-walk-trail-btn">Walk the Trail again</button>';
-    body.appendChild(box);
-    document.getElementById("guide-walk-trail-btn")?.addEventListener("click", () => BP.restartWalkTrail?.());
+    box.id = "guide-walk-trail-entry";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bp-link-btn bp-walk-trail-link";
+    btn.id = "guide-walk-trail-btn";
+    btn.textContent = walkTrailGuideLabel();
+    btn.addEventListener("click", () => {
+      if (complete) BP.restartWalkTrail?.();
+      else BP.startWalkTrail?.();
+    });
+    box.appendChild(btn);
+    container.appendChild(box);
+  }
+
+  function bindWalkTrailGuideLink() {
+    const body = document.getElementById("guide-body");
+    if (!body) return;
+    if (guideShowAll) {
+      const welcome = body.querySelector(".bp-guide-all-section");
+      mountWalkTrailGuideLink(welcome);
+      return;
+    }
+    if (guidePageIndex !== 0) return;
+    mountWalkTrailGuideLink(body);
   }
 
   function pageIndexLabel(n, total) {

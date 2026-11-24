@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.5
+
+- **Fix:** **Pup guide** page 1 — **Walk the Trail** link at the bottom for new pups (not only after finishing the tour).
+
 ## 1.4.4
 
 - **UX:** Tighter trimmed logos on sign-in and header so the mark isn’t swallowed by empty padding in the icon files.
