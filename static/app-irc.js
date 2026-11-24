@@ -10,6 +10,23 @@
     "irchighway:bookz": "irchighway:ebooks",
   };
   let sniffSourceHints = {};
+  let ircTargetOptions = [];
+
+  const SNIFF_SOURCE_MQ = window.matchMedia("(max-width: 640px)");
+
+  function sniffSourceOptionText(t) {
+    if (SNIFF_SOURCE_MQ.matches && t.short_label) return t.short_label;
+    return t.label;
+  }
+
+  function syncChannelOptionLabels() {
+    const sel = document.getElementById("channel");
+    if (!sel || !ircTargetOptions.length) return;
+    sel.querySelectorAll("option").forEach((opt) => {
+      const t = ircTargetOptions.find((row) => row.id === opt.value);
+      if (t) opt.textContent = sniffSourceOptionText(t);
+    });
+  }
 
   function applyIrcTargetOptions(targets) {
     const sel = document.getElementById("channel");
@@ -17,11 +34,12 @@
     const savedRaw = localStorage.getItem(SEARCH_CHANNEL_KEY);
     const saved = LEGACY_CHANNEL_IDS[savedRaw] || savedRaw;
     sniffSourceHints = {};
+    ircTargetOptions = targets.slice();
     sel.textContent = "";
     targets.forEach((t) => {
       const opt = document.createElement("option");
       opt.value = t.id;
-      opt.textContent = t.label;
+      opt.textContent = sniffSourceOptionText(t);
       if (t.hint) sniffSourceHints[t.id] = t.hint;
       sel.appendChild(opt);
     });
@@ -113,6 +131,12 @@
     syncIrcChatChannel();
     syncChannelHint();
   });
+
+  if (typeof SNIFF_SOURCE_MQ.addEventListener === "function") {
+    SNIFF_SOURCE_MQ.addEventListener("change", syncChannelOptionLabels);
+  } else if (typeof SNIFF_SOURCE_MQ.addListener === "function") {
+    SNIFF_SOURCE_MQ.addListener(syncChannelOptionLabels);
+  }
 
   function restoreSearchChannel() {
     const sel = document.getElementById("channel");

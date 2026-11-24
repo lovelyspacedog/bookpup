@@ -22,37 +22,43 @@ RETIRED_SEARCH_TARGETS: dict[str, str] = {
     "irchighway:bookz": DEFAULT_SEARCH_TARGET,
 }
 
-# Sniff source picker: short dropdown label + plain-text hint (shown under the control).
-SNIFF_SOURCE_COPY: dict[str, tuple[str, str]] = {
+# Sniff source picker: full label, hint (under control), compact label (narrow viewports).
+SNIFF_SOURCE_COPY: dict[str, tuple[str, str, str]] = {
     DEFAULT_SEARCH_TARGET: (
         "Main trail · IRCHighway #ebooks (recommended)",
         "Sends @search on IRCHighway #ebooks for novels and mainstream EPUB/MOBI. "
         "Bots reply with a DCC zip of !commands. Best first pick for most book sniffing.",
+        "Main trail",
     ),
     SEARCH_ALL_ID: (
         "Every ebook net · all IRC @search channels",
         "Runs your query on IRCHighway #ebooks, Undernet #bookz, and Rizon #ebookz, "
         "then merges hits (Network column). Slower; no XDCC. Chat/bark disabled while this is selected.",
+        "Every ebook net",
     ),
     XDCC_INDEX_ID: (
         "Warez yard · XDCC index (xdccsearch)",
         "HTTP metasearch across warez IRC—not @search. Video, comics, archives, packs, and more "
         "(not limited to ebooks). Fetch uses XDCC send to each row's bot.",
+        "Warez yard",
     ),
     SOULSEEK_INDEX_ID: (
         "Peer trail · Soulseek (slskd)",
         "Live search on the Soulseek network via household slskd. Results share one Soulseek login; "
         "per-user sniff and fetch caps apply (admins exempt from personal caps).",
+        "Peer trail",
     ),
     "undernet:bookz": (
         "Backup trail · Undernet #bookz",
         "Undernet ebook bots via @search. Good when IRCHighway is empty; Undernet may be pickier "
         "from a VPS—prefer !get rows when offered.",
+        "Backup trail",
     ),
     "rizon:ebookz": (
         "Side trail · Rizon #ebookz",
         "Rizon #ebookz @search for an extra ebook catalog. Useful for duplicates, gaps, or "
         "titles missing on IRCHighway.",
+        "Side trail",
     ),
 }
 
@@ -197,11 +203,13 @@ def list_targets() -> list[dict[str, str | int | bool]]:
         copy = SNIFF_SOURCE_COPY.get(tid)
         label = copy[0] if copy else tid
         hint = copy[1] if copy else ""
+        short_label = copy[2] if copy else label
         if pseudo:
             network = "All" if tid == SEARCH_ALL_ID else "XDCC"
             return {
                 "id": tid,
                 "label": label,
+                "short_label": short_label,
                 "hint": hint,
                 "network": network,
                 "channel": "",
@@ -217,6 +225,7 @@ def list_targets() -> list[dict[str, str | int | bool]]:
         return {
             "id": tid,
             "label": label,
+            "short_label": short_label,
             "hint": hint,
             "network": str(meta["network"]),
             "channel": str(meta["channel"]),

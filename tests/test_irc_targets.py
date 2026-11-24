@@ -62,6 +62,9 @@ class IrcTargetsTest(unittest.TestCase):
         self.assertIn(irc_targets.SOULSEEK_INDEX_ID, ids)
         self.assertTrue(rows[0].get("recommended"))
         self.assertIn("recommended", str(rows[0].get("label")))
+        self.assertEqual(rows[0].get("short_label"), "Main trail")
+        self.assertEqual(rows[1].get("short_label"), "Every ebook net")
+        self.assertEqual(rows[2].get("short_label"), "Warez yard")
         self.assertIn("rizon:ebookz", ids)
 
     def test_search_all_normalize(self) -> None:

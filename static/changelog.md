@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.67
+
+- **UX:** **Sniff source** dropdown uses short names on mobile (**Main trail**, **Every ebook net**, **Warez yard**, etc.); full labels on wider screens; hints unchanged.
+
 ## 1.3.66
 
 - **UX:** removed header ZIP / weather widget and `GET /api/weather` (wttr.in).
