@@ -12,6 +12,7 @@
   const badgeEl = document.getElementById("pack-tab-badge");
   const modePackBtn = document.getElementById("pack-chat-mode-pack");
   const modeLabelEl = document.getElementById("pack-chat-mode-label");
+  const modeSubEl = document.getElementById("pack-chat-mode-sub");
 
   if (!BP.state.packChatAfterId) BP.state.packChatAfterId = 0;
   if (!BP.state.packChatDelAfter) BP.state.packChatDelAfter = 0;
@@ -82,21 +83,23 @@
     const from = String(msg.username || "?");
     row.className =
       "bp-irc-line bp-pack-chat-line" + (from === SYSTEM_USER ? " bp-pack-chat-line--sys" : "");
+    const whoLabel = from === SYSTEM_USER ? "BookPup" : from;
     const delBtn = canDeleteMessage(msg)
       ? '<button type="button" class="bp-btn bp-btn--ghost bp-pack-chat-delete" data-pack-delete="' +
         id +
         '" aria-label="Delete message">Remove</button>'
       : "";
-    const whoLabel = from === SYSTEM_USER ? "BookPup" : from;
     row.innerHTML =
+      '<p class="bp-pack-chat-line-body">' +
       '<span class="bp-irc-meta">' +
       BP.escapeHtml(formatTs(msg.ts)) +
       "</span> " +
       "<strong>" +
       BP.escapeHtml(whoLabel) +
       "</strong>: " +
+      '<span class="bp-pack-chat-text">' +
       BP.escapeHtml(String(msg.text || "")) +
-      " " +
+      "</span></p>" +
       delBtn;
   }
 
@@ -119,27 +122,60 @@
     });
   }
 
-  function syncModeUi() {
+  function syncSidebarSelection() {
     if (modePackBtn) {
-      modePackBtn.classList.toggle("active", BP.state.packChatMode === "pack");
-      modePackBtn.setAttribute("aria-pressed", BP.state.packChatMode === "pack" ? "true" : "false");
+      const packOn = BP.state.packChatMode === "pack";
+      modePackBtn.classList.toggle("active", packOn);
+      modePackBtn.setAttribute("aria-pressed", packOn ? "true" : "false");
     }
+    presenceEl?.querySelectorAll("[data-pack-dm-peer]").forEach((li) => {
+      const peer = li.getAttribute("data-pack-dm-peer");
+      const on =
+        BP.state.packChatMode === "dm" &&
+        String(BP.state.packChatDmPeer) === String(peer);
+      li.classList.toggle("bp-pack-presence-item--active", on);
+      li.setAttribute("aria-current", on ? "true" : "false");
+    });
+  }
+
+  function syncModeUi() {
+    const peer = BP.state.packChatDmPeer || "";
+    const peerLabel = peer === SYSTEM_USER ? "BookPup" : peer;
     if (modeLabelEl) {
       modeLabelEl.textContent =
         BP.state.packChatMode === "pack"
-          ? "Pack channel"
-          : "PM: " + (BP.state.packChatDmPeer === SYSTEM_USER ? "BookPup" : BP.state.packChatDmPeer);
+          ? "Pack chat — everyone"
+          : "Private message — " + peerLabel;
+    }
+    if (modeSubEl) {
+      if (BP.state.packChatMode === "pack") {
+        modeSubEl.textContent = "Messages here go to the whole household.";
+      } else if (peer === SYSTEM_USER) {
+        modeSubEl.textContent = "Scheduled sniff alerts land here. Only you see this thread.";
+      } else {
+        modeSubEl.textContent = "Only you and " + peerLabel + " see this thread.";
+      }
     }
     if (inputEl) {
       inputEl.placeholder =
         BP.state.packChatMode === "pack"
-          ? "Message the pack…"
-          : "Private message to " + BP.state.packChatDmPeer + "…";
+          ? "Message everyone in the pack…"
+          : "Private message to " + peerLabel + "…";
     }
     if (clearBtn) {
       clearBtn.classList.toggle("hidden", BP.state.packChatMode !== "pack" || !BP.state.sessionAdmin);
     }
+    syncSidebarSelection();
     rerenderPackFeed();
+  }
+
+  function wireDmListItem(li, peer) {
+    li.classList.add("bp-pack-presence-item--clickable");
+    li.setAttribute("role", "button");
+    li.tabIndex = 0;
+    li.setAttribute("data-pack-dm-peer", peer);
+    const label = peer === SYSTEM_USER ? "BookPup" : peer;
+    li.setAttribute("aria-label", "Open private message with " + label);
   }
 
   function setPackMode() {
@@ -164,22 +200,22 @@
     (list || []).forEach((row) => {
       const li = document.createElement("li");
       li.className = "bp-pack-presence-item";
-      if (row.username && row.username !== me) {
-        li.classList.add("bp-pack-presence-item--clickable");
-        li.setAttribute("role", "button");
-        li.tabIndex = 0;
-        li.setAttribute("data-pack-dm-peer", row.username);
+      const name = row.username || "";
+      if (name && name !== me) {
+        wireDmListItem(li, name);
       }
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot" + (row.online ? " bp-pack-presence-dot--on" : "");
       dot.setAttribute("aria-hidden", "true");
-      const name = document.createElement("span");
-      name.textContent = row.username || "";
+      if (row.online) dot.title = "Online";
+      const nameEl = document.createElement("span");
+      nameEl.className = "bp-pack-presence-name";
+      nameEl.textContent = name;
       const stat = document.createElement("span");
-      stat.className = "muted bp-pack-presence-stat";
-      stat.textContent = row.online ? "Online" : "Offline";
+      stat.className = "bp-pack-presence-action muted";
+      stat.textContent = name !== me ? "Open PM →" : row.online ? "Online" : "Offline";
       li.appendChild(dot);
-      li.appendChild(name);
+      li.appendChild(nameEl);
       li.appendChild(stat);
       presenceEl.appendChild(li);
     });
@@ -188,18 +224,17 @@
       if (!name || name === me || name === SYSTEM_USER) return;
       if (presenceEl.querySelector('[data-pack-dm-peer="' + CSS.escape(name) + '"]')) return;
       const li = document.createElement("li");
-      li.className = "bp-pack-presence-item bp-pack-presence-item--clickable";
-      li.setAttribute("role", "button");
-      li.tabIndex = 0;
-      li.setAttribute("data-pack-dm-peer", name);
+      li.className = "bp-pack-presence-item";
+      wireDmListItem(li, name);
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot";
       dot.setAttribute("aria-hidden", "true");
       const label = document.createElement("span");
+      label.className = "bp-pack-presence-name";
       label.textContent = name;
       const stat = document.createElement("span");
-      stat.className = "muted bp-pack-presence-stat";
-      stat.textContent = "PM";
+      stat.className = "bp-pack-presence-action muted";
+      stat.textContent = "Open PM →";
       li.appendChild(dot);
       li.appendChild(label);
       li.appendChild(stat);
@@ -211,23 +246,23 @@
     );
     if ((bookpupPeer || hasBookpupMsg) && !presenceEl.querySelector('[data-pack-dm-peer="bookpup"]')) {
       const li = document.createElement("li");
-      li.className = "bp-pack-presence-item bp-pack-presence-item--clickable";
-      li.setAttribute("role", "button");
-      li.tabIndex = 0;
-      li.setAttribute("data-pack-dm-peer", SYSTEM_USER);
+      li.className = "bp-pack-presence-item";
+      wireDmListItem(li, SYSTEM_USER);
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
       dot.setAttribute("aria-hidden", "true");
       const label = document.createElement("span");
+      label.className = "bp-pack-presence-name";
       label.textContent = "BookPup";
       const stat = document.createElement("span");
-      stat.className = "muted bp-pack-presence-stat";
-      stat.textContent = "Alerts";
+      stat.className = "bp-pack-presence-action muted";
+      stat.textContent = "Open alerts →";
       li.appendChild(dot);
       li.appendChild(label);
       li.appendChild(stat);
       presenceEl.appendChild(li);
     }
+    syncSidebarSelection();
   }
 
   function bumpUnread(fromMsg) {

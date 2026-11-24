@@ -416,15 +416,28 @@
       <section id="panel-pack" class="bp-panel" role="tabpanel" aria-labelledby="tab-pack" tabindex="0">
         <div class="bp-card bp-pack-chat">
           <div class="bp-pack-chat-layout">
-            <aside class="bp-pack-presence" aria-label="Pack online">
-              <h2 class="bp-pack-presence-title">Pack</h2>
+            <aside class="bp-pack-presence" aria-label="Pack chat channels">
+              <h2 class="bp-pack-presence-title">Chats</h2>
+              <p id="pack-chat-sidebar-hint" class="bp-pack-sidebar-hint muted">
+                <strong>Pack chat</strong> — everyone. Click a pup below for a private message.
+              </p>
+              <button
+                type="button"
+                id="pack-chat-mode-pack"
+                class="bp-btn bp-pack-channel-btn active"
+                aria-pressed="true"
+                aria-label="Main pack chat — everyone in the household"
+              >
+                Pack chat · everyone
+              </button>
+              <p class="bp-pack-presence-sub muted">Private message</p>
               <ul id="pack-presence-list" class="bp-pack-presence-list"></ul>
             </aside>
             <div class="bp-pack-chat-main">
-              <div class="bp-pack-chat-mode" role="group" aria-label="Chat channel">
-                <button type="button" id="pack-chat-mode-pack" class="bp-btn bp-pack-chat-mode-btn active" aria-pressed="true">Pack</button>
-                <span id="pack-chat-mode-label" class="bp-pack-chat-mode-label muted">Pack channel</span>
-              </div>
+              <header class="bp-pack-chat-head">
+                <h3 id="pack-chat-mode-label" class="bp-pack-chat-head-title">Pack chat — everyone</h3>
+                <p id="pack-chat-mode-sub" class="bp-pack-chat-head-sub muted">Messages here go to the whole household.</p>
+              </header>
               <div id="pack-chat-feed" class="bp-irc-feed bp-pack-chat-feed" aria-live="polite"></div>
               <div class="bp-pack-chat-compose">
                 <label for="pack-chat-input" class="visually-hidden">Message the pack</label>
