@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.105
+
+- **UX:** After you dismiss **New here?**, **Walk the Trail again** sits at the bottom of **Sniff** (above the tab bar on mobile).
+
 ## 1.3.104
 
 - **Fix:** **Walk the Trail** Pack chat mobile scroll — no coach scroll fighting the one slow showcase (flicker at step entry).

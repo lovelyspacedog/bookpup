@@ -563,6 +563,7 @@ window.BookPup = window.BookPup || {};
     BP.stopQueueTabPoll();
     if (tab === "library") BP.loadLibrary();
     if (tab === "queue") BP.startQueueTabPoll();
+    BP.syncWalkTrailEntry?.();
     if (tab === "guide") BP.loadGuide();
     if (tab === "changelog") BP.loadChangelog();
     if (tab === "accounts") {

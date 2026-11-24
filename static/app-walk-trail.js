@@ -1212,6 +1212,11 @@
     if (sniffWrap) {
       const showSniffLink = complete || onboardDismissed;
       sniffWrap.classList.toggle("hidden", !showSniffLink);
+      const sniffActive = document.getElementById("panel-search")?.classList.contains("active");
+      sniffWrap.classList.toggle(
+        "bp-sniff-walk-trail--docked",
+        showSniffLink && onboardDismissed && !!sniffActive
+      );
       const hint = sniffWrap.querySelector(".muted");
       if (hint) {
         hint.textContent = complete
