@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.69
+
+- **UX:** on mobile, **Head out** moved from the tab bar into **More** (desktop header **Head out** unchanged).
+
 ## 1.3.68
 
 - **UX:** mobile **Sniff source** short labels still show network/channel (e.g. **Main trail · IRCHighway #ebooks**); desktop keeps full text including “recommended” and xdccsearch notes.

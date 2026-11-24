@@ -32,21 +32,14 @@ class MobileLayoutTests(unittest.TestCase):
         html = INDEX.read_text()
         css = CSS.read_text()
         self.assertIn("bp-tabbar-shell", html)
-        self.assertIn("logout-btn-mobile", html)
+        self.assertIn("tab-more-logout", html)
         self.assertIn("tab-more", html)
         self.assertIn(".bp-tabbar-shell", css)
         self.assertIn("max-width: 100vw", css)
 
-    def test_tabbar_exit_hidden_on_desktop(self) -> None:
+    def test_more_menu_logout_styles(self) -> None:
         css = CSS.read_text()
-        idx_btn = css.find(".bp-btn {")
-        idx_exit = css.find(".bp-btn.bp-tabbar-exit")
-        self.assertGreater(idx_exit, 0, "tabbar exit rule should exist")
-        self.assertGreater(
-            idx_exit,
-            idx_btn,
-            "tabbar exit hide must follow generic .bp-btn for cascade",
-        )
+        self.assertIn(".bp-tab-more-item--exit", css)
 
     def test_reader_modal_present(self) -> None:
         html = INDEX.read_text()

@@ -270,7 +270,10 @@ window.BookPup = window.BookPup || {};
   }
 
   if (logoutBtn) logoutBtn.addEventListener("click", () => void doLogout());
-  document.getElementById("logout-btn-mobile")?.addEventListener("click", () => void doLogout());
+  document.getElementById("tab-more-logout")?.addEventListener("click", () => {
+    closeTabMoreMenu();
+    void doLogout();
+  });
 
   function escapeHtml(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

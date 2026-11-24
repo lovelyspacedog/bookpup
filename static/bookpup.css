@@ -216,10 +216,6 @@ body {
   display: none;
 }
 
-.bp-tabbar-exit-short {
-  display: none;
-}
-
 .bp-tab-more {
   display: none;
 }
@@ -716,11 +712,6 @@ body {
 
 .bp-wipe-phrase-lede {
   margin-bottom: 0.25rem;
-}
-
-/* Mobile tab bar only — after .bp-btn so display:none wins on desktop */
-.bp-btn.bp-tabbar-exit {
-  display: none;
 }
 
 .bp-table-wrap {
@@ -1916,26 +1907,10 @@ td {
     background: rgb(255 255 255 / 0.06);
   }
 
-  .bp-btn.bp-tabbar-exit {
-    display: flex;
-    align-items: center;
-    flex: 0 0 auto;
-    align-self: center;
-    margin: 0.35rem 0.35rem 0.35rem 0.1rem;
-    padding: 0.38rem 0.5rem;
-    min-height: unset;
-    font-size: 0.82rem;
-    border-left: 1px solid var(--border, #444);
-    border-radius: 0.35rem;
-    white-space: nowrap;
-  }
-
-  .bp-tabbar-exit-long {
-    display: none;
-  }
-
-  .bp-tabbar-exit-short {
-    display: inline;
+  .bp-tab-more-item--exit {
+    margin-top: 0.2rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid var(--border, #444);
   }
 
   .bp-login {
