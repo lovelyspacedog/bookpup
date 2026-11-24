@@ -19,6 +19,17 @@ MAX_DELETIONS_LOG = 200
 PRESENCE_TTL_SECONDS = 90
 MESSAGE_MAX_LEN = 2000
 SYSTEM_SENDER = "bookpup"
+BUGBOT_SENDER = "bugbot"
+VIRTUAL_PEERS = frozenset({SYSTEM_SENDER, BUGBOT_SENDER})
+
+
+def is_virtual_peer(name: str) -> bool:
+    key = str(name or "").strip().lower()
+    return key in {p.lower() for p in VIRTUAL_PEERS}
+
+
+def is_virtual_sender(name: str) -> bool:
+    return is_virtual_peer(name)
 
 _CTRL_RE = re.compile(r"[\x00-\x09\x0b-\x1f\x7f]")
 
@@ -62,8 +73,20 @@ def visible_to(row: dict[str, Any], viewer: str, *, is_admin: bool = False) -> b
 
 
 def _validate_dm_recipient(from_user: str, to_user: str) -> str:
+    dest = str(to_user).strip()
+    key = dest.lower()
+    if key == BUGBOT_SENDER:
+        sender = str(from_user or "").strip()
+        if not sender or sender.lower() == BUGBOT_SENDER:
+            raise ValueError("Cannot send to yourself")
+        row = accounts.get_user(sender)
+        if not row or not row.get("enabled", True):
+            raise ValueError("Unknown user")
+        return BUGBOT_SENDER
+    if key == SYSTEM_SENDER:
+        raise ValueError("BookPup alerts are read-only")
     transfer._validate_recipient(from_user, to_user)
-    return str(to_user).strip()
+    return dest
 
 
 def _row_out(row: dict[str, Any]) -> dict[str, Any]:
@@ -202,7 +225,7 @@ def append_message(username: str, text: str, *, to: str | None = None) -> int:
     user = str(username or "").strip()
     if not user:
         raise ValueError("Username required")
-    if user == SYSTEM_SENDER:
+    if is_virtual_sender(user):
         raise PermissionError("Forbidden")
     clean = sanitize_message(text)
     if not clean:
@@ -227,7 +250,16 @@ def append_message(username: str, text: str, *, to: str | None = None) -> int:
         return mid
 
 
-def append_system_dm(to_user: str, text: str, *, kind: str = "scheduled_sniff") -> int:
+def append_virtual_dm(
+    from_bot: str, to_user: str, text: str, *, kind: str = "system"
+) -> int:
+    bot_key = str(from_bot or "").strip().lower()
+    if bot_key == BUGBOT_SENDER:
+        sender = BUGBOT_SENDER
+    elif bot_key == SYSTEM_SENDER:
+        sender = SYSTEM_SENDER
+    else:
+        raise ValueError("Invalid bot")
     dest = str(to_user or "").strip()
     if not dest:
         raise ValueError("Recipient required")
@@ -248,7 +280,7 @@ def append_system_dm(to_user: str, text: str, *, kind: str = "scheduled_sniff") 
         _messages.append(
             {
                 "id": mid,
-                "username": SYSTEM_SENDER,
+                "username": sender,
                 "to": dest,
                 "text": clean,
                 "ts": now,
@@ -258,6 +290,10 @@ def append_system_dm(to_user: str, text: str, *, kind: str = "scheduled_sniff") 
         _trim_messages_unlocked()
         _persist_unlocked()
         return mid
+
+
+def append_system_dm(to_user: str, text: str, *, kind: str = "scheduled_sniff") -> int:
+    return append_virtual_dm(SYSTEM_SENDER, to_user, text, kind=kind)
 
 
 def delete_message(message_id: int, actor: str, *, is_admin: bool) -> None:
@@ -272,7 +308,7 @@ def delete_message(message_id: int, actor: str, *, is_admin: bool) -> None:
         row = _messages[idx]
         sender = str(row.get("username") or "").strip()
         dest = _message_recipient(row)
-        if sender == SYSTEM_SENDER:
+        if is_virtual_sender(sender):
             allowed = is_admin or who == dest
         elif dest:
             allowed = is_admin or who == sender
@@ -319,10 +355,10 @@ def _list_dm_peers_unlocked(viewer: str, *, is_admin: bool = False) -> list[dict
                 continue
             sender = str(row.get("username") or "").strip()
             dest = _message_recipient(row) or ""
-            if sender == SYSTEM_SENDER:
+            if is_virtual_sender(sender):
                 if who != dest:
                     continue
-                peer = SYSTEM_SENDER
+                peer = sender
             elif sender == who:
                 peer = dest
             elif dest == who:
@@ -333,7 +369,7 @@ def _list_dm_peers_unlocked(viewer: str, *, is_admin: bool = False) -> list[dict
                 continue
             ts = float(row.get("ts") or 0)
             prev = by_peer.get(peer)
-            system = sender == SYSTEM_SENDER
+            system = is_virtual_sender(sender)
             if prev is None or ts >= float(prev.get("last_ts") or 0):
                 by_peer[peer] = {
                     "username": peer,

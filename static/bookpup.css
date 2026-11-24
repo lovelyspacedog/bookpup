@@ -2673,6 +2673,34 @@ tr.bp-sniff-pick td {
   margin-top: 0.75rem;
 }
 
+.bp-bug-inbox-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.bp-bug-inbox-item {
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border, #333);
+}
+
+.bp-bug-inbox-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.bp-bug-inbox-head {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bp-bug-inbox-body {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
 
 .bp-query-superbar-wrap {
   display: flex;

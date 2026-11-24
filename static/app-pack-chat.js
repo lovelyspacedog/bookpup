@@ -2,7 +2,22 @@
   "use strict";
 
   const POLL_MS = 2000;
-  const SYSTEM_USER = "bookpup";
+  const BOOKPUP_USER = "bookpup";
+  const BUGBOT_USER = "bugbot";
+
+  function virtualBotLabel(peer) {
+    if (peer === BOOKPUP_USER) return "BookPup";
+    if (peer === BUGBOT_USER) return "BugBot";
+    return peer;
+  }
+
+  function isVirtualBot(peer) {
+    return peer === BOOKPUP_USER || peer === BUGBOT_USER;
+  }
+
+  function isVirtualBotSender(from) {
+    return from === BOOKPUP_USER || from === BUGBOT_USER;
+  }
   const feedEl = document.getElementById("pack-chat-feed");
   const presenceEl = document.getElementById("pack-presence-list");
   const inputEl = document.getElementById("pack-chat-input");
@@ -34,8 +49,8 @@
     if (BP.state.packChatMode === "pack") return !dmPeer(msg);
     const peer = BP.state.packChatDmPeer || "";
     if (!peer) return false;
-    if (peer === SYSTEM_USER) {
-      return String(msg.username) === SYSTEM_USER && String(msg.to) === me;
+    if (peer === BOOKPUP_USER) {
+      return String(msg.username) === BOOKPUP_USER && String(msg.to) === me;
     }
     const from = String(msg.username);
     const to = String(msg.to || "");
@@ -54,7 +69,7 @@
     const me = BP.state.sessionUsername || "";
     const from = String(msg.username);
     if (from === me) return "";
-    if (from === SYSTEM_USER) return SYSTEM_USER;
+    if (isVirtualBotSender(from)) return from;
     if (String(msg.to || "").toLowerCase() === me.toLowerCase()) return from;
     return "";
   }
@@ -124,7 +139,7 @@
     if (BP.state.sessionAdmin) return true;
     const from = String(msg.username);
     if (from === me) return true;
-    if (from === SYSTEM_USER && String(msg.to) === me) return true;
+    if (isVirtualBotSender(from) && String(msg.to) === me) return true;
     return false;
   }
 
@@ -152,8 +167,9 @@
     }
     const from = String(msg.username || "?");
     row.className =
-      "bp-irc-line bp-pack-chat-line" + (from === SYSTEM_USER ? " bp-pack-chat-line--sys" : "");
-    const whoLabel = from === SYSTEM_USER ? "BookPup" : from;
+      "bp-irc-line bp-pack-chat-line" +
+      (isVirtualBotSender(from) ? " bp-pack-chat-line--sys" : "");
+    const whoLabel = isVirtualBotSender(from) ? virtualBotLabel(from) : from;
     const delBtn = canDeleteMessage(msg)
       ? '<button type="button" class="bp-btn bp-btn--ghost bp-pack-chat-delete" data-pack-delete="' +
         id +
@@ -210,7 +226,7 @@
 
   function syncModeUi() {
     const peer = BP.state.packChatDmPeer || "";
-    const peerLabel = peer === SYSTEM_USER ? "BookPup" : peer;
+    const peerLabel = virtualBotLabel(peer);
     if (modeLabelEl) {
       modeLabelEl.textContent =
         BP.state.packChatMode === "pack"
@@ -220,8 +236,10 @@
     if (modeSubEl) {
       if (BP.state.packChatMode === "pack") {
         modeSubEl.textContent = "Messages here go to the whole household.";
-      } else if (peer === SYSTEM_USER) {
+      } else if (peer === BOOKPUP_USER) {
         modeSubEl.textContent = "Scheduled sniff alerts land here. Only you see this thread.";
+      } else if (peer === BUGBOT_USER) {
+        modeSubEl.textContent = "Describe a bug or rough edge — BugBot saves it for your admin.";
       } else {
         modeSubEl.textContent = "Only you and " + peerLabel + " see this thread.";
       }
@@ -244,7 +262,7 @@
     li.setAttribute("role", "button");
     li.tabIndex = 0;
     li.setAttribute("data-pack-dm-peer", peer);
-    const label = peer === SYSTEM_USER ? "BookPup" : peer;
+    const label = virtualBotLabel(peer);
     li.setAttribute("aria-label", "Open private message with " + label);
   }
 
@@ -254,7 +272,7 @@
     syncModeUi();
   }
 
-  function setDmMode(peer) {
+  async function setDmMode(peer) {
     const me = BP.state.sessionUsername || "";
     const dest = String(peer || "").trim();
     if (!dest || dest === me) return;
@@ -262,6 +280,14 @@
     BP.state.packChatDmPeer = dest;
     clearPeerUnread(dest);
     syncModeUi();
+    if (dest === BUGBOT_USER) {
+      try {
+        await BP.api("/api/pack/chat/bugbot/open");
+        await pollPackChat(true);
+      } catch {
+        /* intro retry on next poll */
+      }
+    }
   }
 
   function appendPresenceNameRow(name) {
@@ -301,7 +327,7 @@
     });
     (BP.state.packChatPeers || []).forEach((peerRow) => {
       const name = String(peerRow.username || "");
-      if (!name || name === me || name === SYSTEM_USER) return;
+      if (!name || name === me || isVirtualBot(name)) return;
       if (presenceEl.querySelector('[data-pack-dm-peer="' + CSS.escape(name) + '"]')) return;
       const li = document.createElement("li");
       li.className = "bp-pack-presence-item";
@@ -319,27 +345,34 @@
       applyPeerBadge(li, name);
       presenceEl.appendChild(li);
     });
-    const bookpupPeer = (BP.state.packChatPeers || []).some((p) => p.username === SYSTEM_USER);
-    const hasBookpupMsg = Object.values(BP.state.packChatById).some(
-      (m) => String(m.username) === SYSTEM_USER && String(m.to) === me
-    );
-    if ((bookpupPeer || hasBookpupMsg) && !presenceEl.querySelector('[data-pack-dm-peer="bookpup"]')) {
+    function appendVirtualBotRow(botId, displayName, actionLabel) {
+      const peer = (BP.state.packChatPeers || []).some((p) => p.username === botId);
+      const hasMsg = Object.values(BP.state.packChatById).some((m) => {
+        const from = String(m.username);
+        const to = String(m.to || "");
+        return (from === botId && to === me) || (from === me && to === botId);
+      });
+      const alwaysShow = botId === BUGBOT_USER;
+      if (!(alwaysShow || peer || hasMsg)) return;
+      if (presenceEl.querySelector('[data-pack-dm-peer="' + CSS.escape(botId) + '"]')) return;
       const li = document.createElement("li");
       li.className = "bp-pack-presence-item";
-      wireDmListItem(li, SYSTEM_USER);
+      wireDmListItem(li, botId);
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
       dot.setAttribute("aria-hidden", "true");
-      const nameRow = appendPresenceNameRow("BookPup");
+      const nameRow = appendPresenceNameRow(displayName);
       const stat = document.createElement("span");
       stat.className = "bp-pack-presence-action muted";
-      stat.textContent = "Open alerts →";
+      stat.textContent = actionLabel;
       li.appendChild(dot);
       li.appendChild(nameRow);
       li.appendChild(stat);
-      applyPeerBadge(li, SYSTEM_USER);
+      applyPeerBadge(li, botId);
       presenceEl.appendChild(li);
     }
+    appendVirtualBotRow(BOOKPUP_USER, "BookPup", "Open alerts →");
+    appendVirtualBotRow(BUGBOT_USER, "BugBot", "Report bugs →");
     syncSidebarSelection();
     syncAllPeerBadges();
   }
@@ -401,14 +434,15 @@
     const text = inputEl.value.trim();
     if (!text) return;
     const body = { message: text };
-    if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer && BP.state.packChatDmPeer !== SYSTEM_USER) {
-      body.to = BP.state.packChatDmPeer;
-    } else if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer === SYSTEM_USER) {
-      if (hintEl) {
-        hintEl.textContent = "BookPup alerts are read-only.";
-        hintEl.className = "bp-msg err";
+    if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer) {
+      if (BP.state.packChatDmPeer === BOOKPUP_USER) {
+        if (hintEl) {
+          hintEl.textContent = "BookPup alerts are read-only.";
+          hintEl.className = "bp-msg err";
+        }
+        return;
       }
-      return;
+      body.to = BP.state.packChatDmPeer;
     }
     if (hintEl) {
       hintEl.textContent = "Sending…";
@@ -436,7 +470,12 @@
   async function deletePackMessage(id) {
     const msg = BP.state.packChatById[id];
     const me = BP.state.sessionUsername || "";
-    if (msg && String(msg.username) !== me && String(msg.username) !== SYSTEM_USER && BP.state.sessionAdmin) {
+    if (
+      msg &&
+      String(msg.username) !== me &&
+      !isVirtualBotSender(String(msg.username)) &&
+      BP.state.sessionAdmin
+    ) {
       if (!window.confirm("Remove this message?")) return;
     }
     try {

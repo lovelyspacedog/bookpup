@@ -72,6 +72,76 @@
     });
   }
 
+  function formatBugTs(ts) {
+    const d = new Date((Number(ts) || 0) * 1000);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  async function loadAdminBugInbox() {
+    if (!BP.state.sessionAdmin) return;
+    const msg = document.getElementById("admin-bug-inbox-msg");
+    const list = document.getElementById("admin-bug-inbox-list");
+    if (!msg || !list) return;
+    try {
+      const data = await BP.api("/api/admin/bug-inbox");
+      const rows = data.reports || [];
+      if (!rows.length) {
+        msg.textContent = "No bug reports yet.";
+        msg.className = "bp-msg muted";
+        list.textContent = "";
+        return;
+      }
+      msg.textContent = rows.length + " report(s) from the pack.";
+      msg.className = "bp-msg muted";
+      list.textContent = "";
+      rows.forEach((row) => {
+        const li = document.createElement("li");
+        li.className = "bp-bug-inbox-item";
+        const head = document.createElement("p");
+        head.className = "bp-bug-inbox-head";
+        head.textContent =
+          (row.from || "?") + " · " + formatBugTs(row.ts);
+        const body = document.createElement("p");
+        body.className = "bp-bug-inbox-body";
+        body.textContent = String(row.text || "");
+        const actions = document.createElement("p");
+        actions.className = "bp-lib-actions";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "bp-btn";
+        btn.textContent = "Dismiss";
+        btn.addEventListener("click", () => {
+          void (async () => {
+            try {
+              await BP.api("/api/admin/bug-inbox/" + encodeURIComponent(String(row.id)), {
+                method: "DELETE",
+              });
+              await loadAdminBugInbox();
+              BP.showAppToast?.("Bug inbox", "Report dismissed", "ok");
+            } catch (err) {
+              BP.showAppToast?.("Bug inbox", err.message || "Could not dismiss", "err");
+            }
+          })();
+        });
+        actions.appendChild(btn);
+        li.appendChild(head);
+        li.appendChild(body);
+        li.appendChild(actions);
+        list.appendChild(li);
+      });
+    } catch (err) {
+      msg.textContent = err.message || "Could not load bug inbox";
+      msg.className = "bp-msg err";
+      list.textContent = "";
+    }
+  }
+
   async function loadAdminDigest() {
     if (!BP.state.sessionAdmin) return;
     const summary = document.getElementById("admin-digest-summary");
@@ -437,6 +507,7 @@
         BP.showAppToast?.("Wipe", `Kennel cleared for ${target}`, "ok");
         loadAccountsTab();
         BP.loadAdminDigest?.();
+        BP.loadAdminBugInbox?.();
         if (target === BP.state.sessionUsername) {
           BP.loadLibrary?.();
         }
@@ -489,4 +560,5 @@
   BP.loadAccountTab = loadAccountTab;
   BP.loadAccountsTab = loadAccountsTab;
   BP.loadAdminDigest = loadAdminDigest;
+  BP.loadAdminBugInbox = loadAdminBugInbox;
 })(window.BookPup);

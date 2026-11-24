@@ -570,6 +570,7 @@ window.BookPup = window.BookPup || {};
       if (BP.state.sessionAdmin) {
         BP.loadAccountsTab();
         BP.loadAdminDigest();
+        BP.loadAdminBugInbox?.();
       }
     }
   }
