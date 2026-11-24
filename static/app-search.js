@@ -1396,6 +1396,9 @@
         fetchLabel +
         "</button></td>";
       if (hit) tr.classList.add("bp-sniff-in-kennel");
+      if (BP.walkTrailActive && r.walk_trail) {
+        tr.dataset.walkTrailRow = "1";
+      }
       const rowCheck = tr.querySelector(".sniff-row-check");
       if (rowCheck) {
         rowCheck.checked = sniffSelected.has(pickKey);

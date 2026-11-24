@@ -13,6 +13,7 @@
   let stepAdvanceTimer = null;
   let registerSnapshot = null;
   let fetchDone = false;
+  let focusTargetEl = null;
 
   const root = () => document.getElementById("walk-trail-root");
   const tipEl = () => document.getElementById("walk-trail-tip");
@@ -133,10 +134,38 @@
     return Math.ceil(shell.getBoundingClientRect().height || 0);
   }
 
+  function clearFocusTarget() {
+    if (focusTargetEl) {
+      focusTargetEl.classList.remove("bp-walk-trail-focus");
+      focusTargetEl = null;
+    }
+  }
+
+  function markFocusTarget(target) {
+    clearFocusTarget();
+    if (!target) return;
+    const focus =
+      target.matches?.("tr[data-walk-trail-row]") ? target : target.closest?.("#results-wrap, #search-form, #irc-panel, #panel-library") || target;
+    focusTargetEl = focus;
+    focus.classList.add("bp-walk-trail-focus");
+  }
+
+  function resolveStepTarget(st) {
+    if (!st) return null;
+    if (st.id === "fetch") {
+      return (
+        document.querySelector("tr[data-walk-trail-row]") ||
+        document.querySelector("#results-wrap")
+      );
+    }
+    return st.selector ? document.querySelector(st.selector) : null;
+  }
+
   function placeSpot(target) {
     const spot = spotEl();
     if (!spot || !target) {
       spot?.classList.add("hidden");
+      clearFocusTarget();
       return;
     }
     const rect = target.getBoundingClientRect();
@@ -146,6 +175,7 @@
     spot.style.left = rect.left - pad + "px";
     spot.style.width = rect.width + pad * 2 + "px";
     spot.style.height = rect.height + pad * 2 + "px";
+    markFocusTarget(target);
     try {
       target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
     } catch {
@@ -259,7 +289,7 @@
       id: "fetch",
       title: "Fetch your row",
       body: "Click Fetch on the row that matches your practice .mobi (not the decoy EPUBs).",
-      selector: "#results-wrap",
+      selector: "tr[data-walk-trail-row]",
       placement: "top",
       advance: "fetch-done",
     },
@@ -356,7 +386,7 @@
     if (skipBtn) {
       skipBtn.classList.toggle("hidden", st.advance !== "cleanup");
     }
-    const target = st.selector ? document.querySelector(st.selector) : null;
+    const target = resolveStepTarget(st);
     placeSpot(target);
     requestAnimationFrame(() => {
       positionTip(target, st.placement);
@@ -374,6 +404,7 @@
     root()?.classList.add("hidden");
     document.body.classList.remove("bp-walk-trail-active");
     spotEl()?.classList.add("hidden");
+    clearFocusTarget();
   }
 
   function teardownWalk(partial) {
@@ -489,8 +520,21 @@
     BP.state.walkTrailSearchDone = true;
     runMockIrcScript(tutorialQuery);
     const rows = buildDecoyRows(tutorialQuery);
+    BP.state.walkTrailPracticeRow = rows.find((r) => r.walk_trail) || null;
     BP.ingestWalkTrailResults?.(rows, tutorialQuery);
     updateTipChrome();
+  }
+
+  function onDocumentFetchClick(ev) {
+    if (!active || fetchDone || currentStep()?.id !== "fetch") return;
+    const btn = ev.target.closest?.("tr[data-walk-trail-row] .dl-row");
+    if (!btn) return;
+    const tr = btn.closest("tr");
+    const row = BP.state.walkTrailPracticeRow;
+    if (!row) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    void handleFetch(row, tr);
   }
 
   async function handleFetch(row, tr) {
@@ -570,6 +614,7 @@
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape" && active) exitWalkTrail();
     });
+    document.addEventListener("click", onDocumentFetchClick, true);
     const relayout = () => {
       if (active) updateTipChrome();
     };

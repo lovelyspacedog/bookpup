@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.85
+
+- **Fix:** **Walk the Trail** — practice **Fetch** works on mobile (results above overlay; capture handler; spotlight no longer eats taps).
+
 ## 1.3.84
 
 - **Fix:** **Walk the Trail** coach card stays on screen on mobile (docked above tab bar); spotlight/tip use viewport positioning so Next and targets respond to taps.

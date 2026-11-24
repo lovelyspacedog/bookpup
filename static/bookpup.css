@@ -3124,13 +3124,35 @@ tr.bp-sniff-pick td {
   display: block;
 }
 
+.bp-walk-trail-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.45);
+}
+
 .bp-walk-trail-spot {
   position: fixed;
   pointer-events: none;
   border: 2px solid var(--link, #8af);
   border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+  box-shadow: none;
+  background: rgba(136, 170, 255, 0.06);
   transition: top 0.15s ease, left 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.bp-walk-trail-focus {
+  position: relative;
+  z-index: 2601;
+  pointer-events: auto;
+}
+
+.bp-walk-trail-focus .dl-row,
+.bp-walk-trail-focus button,
+.bp-walk-trail-focus input,
+.bp-walk-trail-focus select,
+.bp-walk-trail-focus summary {
+  pointer-events: auto;
 }
 
 .bp-walk-trail-tip {
