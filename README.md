@@ -78,7 +78,7 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 | Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select |
 | Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, whole-kennel `/api/library/shares…`, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |
-| Pack chat | `GET /api/pack/chat?after=&del_after=`, `GET /api/pack/chat/peers`, `GET /api/pack/chat/bugbot/open` (first-open intro), `POST /api/pack/chat` (`message`, optional `to` for PM or `bugbot`), `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin, pack channel only). Scheduled sniff alerts → owner PM from `bookpup` (not ntfy). Bug reports → admin **Bug inbox** on Pack roster (`GET/DELETE /api/admin/bug-inbox`). |
+| Pack chat | `GET /api/pack/chat?after=&del_after=`, `GET /api/pack/chat/peers`, `GET /api/pack/chat/bugbot/open` / `featurecat/open` (first-open intros), `POST /api/pack/chat` (`message`, optional `to` for PM, `bugbot`, or `featurecat`), `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin, pack channel only). Scheduled sniff alerts → owner PM from `bookpup` (not ntfy). Bug / feature messages → admin **Bug inbox** / **Feature inbox** (`GET/DELETE /api/admin/bug-inbox`, `/api/admin/feature-inbox`). |
 | Public | `GET /api/health`, `GET /api/irc/targets` |
 
 Frontend loads `static/app-*.js` in order; shared state is on `window.BookPup`.

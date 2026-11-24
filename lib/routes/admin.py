@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .. import accounts, admin_digest, bugbot, library_export, quota, user_wipe
+from .. import accounts, admin_digest, bugbot, featurecat, library_export, quota, user_wipe
 from ._types import RequestHandler
 
 
@@ -13,6 +13,12 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
             handler.send_json(403, {"error": "Admin access required"})
             return True
         handler.send_json(200, {"reports": bugbot.list_inbox()})
+        return True
+    if path == "/api/admin/feature-inbox":
+        if not admin:
+            handler.send_json(403, {"error": "Admin access required"})
+            return True
+        handler.send_json(200, {"reports": featurecat.list_inbox()})
         return True
     if path == "/api/admin/digest":
         if not admin:
@@ -127,6 +133,31 @@ def handle_delete(handler: RequestHandler, path: str, qs: dict | None = None) ->
             handler.send_json(200, {"ok": True})
 
         handler.dispatch(drop)
+        return True
+    feature_prefix = "/api/admin/feature-inbox/"
+    if path.startswith(feature_prefix):
+        if not handler._is_admin:
+            handler.send_json(403, {"error": "Admin access required"})
+            return True
+        rest = path[len(feature_prefix) :].strip()
+        if not rest or "/" in rest:
+            handler.send_json(400, {"error": "Invalid submission id"})
+            return True
+        try:
+            submission_id = int(rest)
+        except ValueError:
+            handler.send_json(400, {"error": "Invalid submission id"})
+            return True
+
+        def drop_feature() -> None:
+            try:
+                featurecat.dismiss_submission(submission_id)
+            except KeyError:
+                handler.send_json(404, {"error": "Submission not found"})
+                return
+            handler.send_json(200, {"ok": True})
+
+        handler.dispatch(drop_feature)
         return True
     if not path.startswith("/api/admin/accounts/"):
         return False

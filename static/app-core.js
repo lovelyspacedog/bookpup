@@ -571,6 +571,7 @@ window.BookPup = window.BookPup || {};
         BP.loadAccountsTab();
         BP.loadAdminDigest();
         BP.loadAdminBugInbox?.();
+        BP.loadAdminFeatureInbox?.();
       }
     }
   }

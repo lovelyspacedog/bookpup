@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .. import bugbot
+from .. import featurecat
 from .. import pack_chat
 from ._types import RequestHandler
 
@@ -14,6 +15,22 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         return True
     if path == "/api/pack/chat/bugbot/open":
         bugbot.ensure_intro(handler._current_user)
+        snap = pack_chat.snapshot(
+            touch_user=handler._current_user,
+            viewer=handler._current_user,
+            is_admin=handler._is_admin,
+        )
+        handler.send_json(
+            200,
+            {
+                "ok": True,
+                "latest_id": snap["latest_id"],
+                "latest_del_seq": snap["latest_del_seq"],
+            },
+        )
+        return True
+    if path == "/api/pack/chat/featurecat/open":
+        featurecat.ensure_intro(handler._current_user)
         snap = pack_chat.snapshot(
             touch_user=handler._current_user,
             viewer=handler._current_user,
@@ -56,10 +73,20 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         to_user = str(raw_to).strip() if raw_to is not None and str(raw_to).strip() else None
 
         def send() -> None:
-            if to_user and to_user.lower() == pack_chat.BUGBOT_SENDER:
+            to_key = (to_user or "").lower()
+            if to_key == pack_chat.BUGBOT_SENDER:
                 mid = pack_chat.append_message(handler._current_user, text, to=to_user)
                 try:
                     bugbot.on_user_report(handler._current_user, text, pack_message_id=mid)
+                except ValueError as exc:
+                    handler.send_json(400, {"error": str(exc)})
+                    return
+            elif to_key == pack_chat.FEATURECAT_SENDER:
+                mid = pack_chat.append_message(handler._current_user, text, to=to_user)
+                try:
+                    featurecat.on_user_submission(
+                        handler._current_user, text, pack_message_id=mid
+                    )
                 except ValueError as exc:
                     handler.send_json(400, {"error": str(exc)})
                     return

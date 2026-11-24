@@ -20,7 +20,8 @@ PRESENCE_TTL_SECONDS = 90
 MESSAGE_MAX_LEN = 2000
 SYSTEM_SENDER = "bookpup"
 BUGBOT_SENDER = "bugbot"
-VIRTUAL_PEERS = frozenset({SYSTEM_SENDER, BUGBOT_SENDER})
+FEATURECAT_SENDER = "featurecat"
+VIRTUAL_PEERS = frozenset({SYSTEM_SENDER, BUGBOT_SENDER, FEATURECAT_SENDER})
 
 
 def is_virtual_peer(name: str) -> bool:
@@ -72,19 +73,27 @@ def visible_to(row: dict[str, Any], viewer: str, *, is_admin: bool = False) -> b
     return bool(is_admin)
 
 
+def _canonical_virtual_peer(name: str) -> str | None:
+    key = str(name or "").strip().lower()
+    for peer in VIRTUAL_PEERS:
+        if peer.lower() == key:
+            return peer
+    return None
+
+
 def _validate_dm_recipient(from_user: str, to_user: str) -> str:
     dest = str(to_user).strip()
-    key = dest.lower()
-    if key == BUGBOT_SENDER:
+    canon = _canonical_virtual_peer(dest)
+    if canon:
+        if canon == SYSTEM_SENDER:
+            raise ValueError("BookPup alerts are read-only")
         sender = str(from_user or "").strip()
-        if not sender or sender.lower() == BUGBOT_SENDER:
+        if not sender or sender.lower() == canon.lower():
             raise ValueError("Cannot send to yourself")
         row = accounts.get_user(sender)
         if not row or not row.get("enabled", True):
             raise ValueError("Unknown user")
-        return BUGBOT_SENDER
-    if key == SYSTEM_SENDER:
-        raise ValueError("BookPup alerts are read-only")
+        return canon
     transfer._validate_recipient(from_user, to_user)
     return dest
 
@@ -253,12 +262,8 @@ def append_message(username: str, text: str, *, to: str | None = None) -> int:
 def append_virtual_dm(
     from_bot: str, to_user: str, text: str, *, kind: str = "system"
 ) -> int:
-    bot_key = str(from_bot or "").strip().lower()
-    if bot_key == BUGBOT_SENDER:
-        sender = BUGBOT_SENDER
-    elif bot_key == SYSTEM_SENDER:
-        sender = SYSTEM_SENDER
-    else:
+    sender = _canonical_virtual_peer(from_bot)
+    if not sender:
         raise ValueError("Invalid bot")
     dest = str(to_user or "").strip()
     if not dest:

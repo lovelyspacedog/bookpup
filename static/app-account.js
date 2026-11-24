@@ -83,6 +83,32 @@
     });
   }
 
+  function renderAdminInboxList(rows, listEl) {
+    listEl.textContent = "";
+    rows.forEach((row) => {
+      const li = document.createElement("li");
+      li.className = "bp-bug-inbox-item";
+      const head = document.createElement("p");
+      head.className = "bp-bug-inbox-head";
+      head.textContent = (row.from || "?") + " · " + formatBugTs(row.ts);
+      const body = document.createElement("p");
+      body.className = "bp-bug-inbox-body";
+      body.textContent = String(row.text || "");
+      const actions = document.createElement("p");
+      actions.className = "bp-lib-actions";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "bp-btn";
+      btn.textContent = "Dismiss";
+      btn.dataset.inboxRowId = String(row.id);
+      li.appendChild(head);
+      li.appendChild(body);
+      li.appendChild(actions);
+      actions.appendChild(btn);
+      listEl.appendChild(li);
+    });
+  }
+
   async function loadAdminBugInbox() {
     if (!BP.state.sessionAdmin) return;
     const msg = document.getElementById("admin-bug-inbox-msg");
@@ -99,27 +125,13 @@
       }
       msg.textContent = rows.length + " report(s) from the pack.";
       msg.className = "bp-msg muted";
-      list.textContent = "";
-      rows.forEach((row) => {
-        const li = document.createElement("li");
-        li.className = "bp-bug-inbox-item";
-        const head = document.createElement("p");
-        head.className = "bp-bug-inbox-head";
-        head.textContent =
-          (row.from || "?") + " · " + formatBugTs(row.ts);
-        const body = document.createElement("p");
-        body.className = "bp-bug-inbox-body";
-        body.textContent = String(row.text || "");
-        const actions = document.createElement("p");
-        actions.className = "bp-lib-actions";
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "bp-btn";
-        btn.textContent = "Dismiss";
+      renderAdminInboxList(rows, list);
+      list.querySelectorAll("button[data-inbox-row-id]").forEach((btn) => {
         btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-inbox-row-id");
           void (async () => {
             try {
-              await BP.api("/api/admin/bug-inbox/" + encodeURIComponent(String(row.id)), {
+              await BP.api("/api/admin/bug-inbox/" + encodeURIComponent(String(id)), {
                 method: "DELETE",
               });
               await loadAdminBugInbox();
@@ -129,14 +141,49 @@
             }
           })();
         });
-        actions.appendChild(btn);
-        li.appendChild(head);
-        li.appendChild(body);
-        li.appendChild(actions);
-        list.appendChild(li);
       });
     } catch (err) {
       msg.textContent = err.message || "Could not load bug inbox";
+      msg.className = "bp-msg err";
+      list.textContent = "";
+    }
+  }
+
+  async function loadAdminFeatureInbox() {
+    if (!BP.state.sessionAdmin) return;
+    const msg = document.getElementById("admin-feature-inbox-msg");
+    const list = document.getElementById("admin-feature-inbox-list");
+    if (!msg || !list) return;
+    try {
+      const data = await BP.api("/api/admin/feature-inbox");
+      const rows = data.reports || [];
+      if (!rows.length) {
+        msg.textContent = "No feature requests yet.";
+        msg.className = "bp-msg muted";
+        list.textContent = "";
+        return;
+      }
+      msg.textContent = rows.length + " request(s) from the pack.";
+      msg.className = "bp-msg muted";
+      renderAdminInboxList(rows, list);
+      list.querySelectorAll("button[data-inbox-row-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-inbox-row-id");
+          void (async () => {
+            try {
+              await BP.api("/api/admin/feature-inbox/" + encodeURIComponent(String(id)), {
+                method: "DELETE",
+              });
+              await loadAdminFeatureInbox();
+              BP.showAppToast?.("Feature inbox", "Request dismissed", "ok");
+            } catch (err) {
+              BP.showAppToast?.("Feature inbox", err.message || "Could not dismiss", "err");
+            }
+          })();
+        });
+      });
+    } catch (err) {
+      msg.textContent = err.message || "Could not load feature inbox";
       msg.className = "bp-msg err";
       list.textContent = "";
     }
@@ -508,6 +555,7 @@
         loadAccountsTab();
         BP.loadAdminDigest?.();
         BP.loadAdminBugInbox?.();
+        BP.loadAdminFeatureInbox?.();
         if (target === BP.state.sessionUsername) {
           BP.loadLibrary?.();
         }
@@ -561,4 +609,5 @@
   BP.loadAccountsTab = loadAccountsTab;
   BP.loadAdminDigest = loadAdminDigest;
   BP.loadAdminBugInbox = loadAdminBugInbox;
+  BP.loadAdminFeatureInbox = loadAdminFeatureInbox;
 })(window.BookPup);

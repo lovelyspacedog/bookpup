@@ -4,19 +4,35 @@
   const POLL_MS = 2000;
   const BOOKPUP_USER = "bookpup";
   const BUGBOT_USER = "bugbot";
+  const FEATURECAT_USER = "featurecat";
 
   function virtualBotLabel(peer) {
     if (peer === BOOKPUP_USER) return "BookPup";
     if (peer === BUGBOT_USER) return "BugBot";
+    if (peer === FEATURECAT_USER) return "FeatureCat";
     return peer;
   }
 
   function isVirtualBot(peer) {
-    return peer === BOOKPUP_USER || peer === BUGBOT_USER;
+    return peer === BOOKPUP_USER || peer === BUGBOT_USER || peer === FEATURECAT_USER;
   }
 
   function isVirtualBotSender(from) {
-    return from === BOOKPUP_USER || from === BUGBOT_USER;
+    return from === BOOKPUP_USER || from === BUGBOT_USER || from === FEATURECAT_USER;
+  }
+
+  function virtualBotOpenPath(peer) {
+    if (peer === BUGBOT_USER) return "/api/pack/chat/bugbot/open";
+    if (peer === FEATURECAT_USER) return "/api/pack/chat/featurecat/open";
+    return null;
+  }
+
+  function virtualBotAlwaysVisible(peer) {
+    return peer === BUGBOT_USER || peer === FEATURECAT_USER;
+  }
+
+  function virtualBotAlwaysOnline(peer) {
+    return peer === BUGBOT_USER || peer === FEATURECAT_USER;
   }
   const feedEl = document.getElementById("pack-chat-feed");
   const presenceEl = document.getElementById("pack-presence-list");
@@ -240,6 +256,8 @@
         modeSubEl.textContent = "Scheduled sniff alerts land here. Only you see this thread.";
       } else if (peer === BUGBOT_USER) {
         modeSubEl.textContent = "Describe a bug or rough edge — BugBot saves it for your admin.";
+      } else if (peer === FEATURECAT_USER) {
+        modeSubEl.textContent = "Pitch a feature — FeatureCat saves it for your admin.";
       } else {
         modeSubEl.textContent = "Only you and " + peerLabel + " see this thread.";
       }
@@ -280,9 +298,10 @@
     BP.state.packChatDmPeer = dest;
     clearPeerUnread(dest);
     syncModeUi();
-    if (dest === BUGBOT_USER) {
+    const openPath = virtualBotOpenPath(dest);
+    if (openPath) {
       try {
-        await BP.api("/api/pack/chat/bugbot/open");
+        await BP.api(openPath);
         await pollPackChat(true);
       } catch {
         /* intro retry on next poll */
@@ -352,7 +371,7 @@
         const to = String(m.to || "");
         return (from === botId && to === me) || (from === me && to === botId);
       });
-      const alwaysShow = botId === BUGBOT_USER;
+      const alwaysShow = virtualBotAlwaysVisible(botId);
       if (!(alwaysShow || peer || hasMsg)) return;
       if (presenceEl.querySelector('[data-pack-dm-peer="' + CSS.escape(botId) + '"]')) return;
       const li = document.createElement("li");
@@ -360,7 +379,7 @@
       wireDmListItem(li, botId);
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
-      if (botId === BUGBOT_USER) {
+      if (virtualBotAlwaysOnline(botId)) {
         dot.classList.add("bp-pack-presence-dot--on");
         dot.title = "Online";
       }
@@ -377,6 +396,7 @@
     }
     appendVirtualBotRow(BOOKPUP_USER, "BookPup", "Open alerts →");
     appendVirtualBotRow(BUGBOT_USER, "BugBot", "Report bugs →");
+    appendVirtualBotRow(FEATURECAT_USER, "FeatureCat", "Request features →");
     syncSidebarSelection();
     syncAllPeerBadges();
   }

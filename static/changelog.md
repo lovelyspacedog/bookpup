@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.78
+
+- **Pack:** **FeatureCat** — feature requests in Pack chat (intro on first open, always online); admins triage on **Pack roster** → **Feature inbox**.
+
 ## 1.3.77
 
 - **Pack:** **BugBot** always shows an online dot in Pack chat.
