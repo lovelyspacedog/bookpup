@@ -2755,6 +2755,13 @@ tr.bp-sniff-pick td {
 .bp-reader-comic-stage--dual .bp-reader-comic-pane {
   flex: 1 1 0;
   max-width: calc(50% - 0.2rem);
+  box-sizing: border-box;
+  border-radius: 2px;
+}
+
+.bp-reader-comic-stage--dual .bp-reader-comic-pane--active {
+  outline: 1px solid color-mix(in srgb, var(--accent, #6af) 85%, transparent);
+  outline-offset: 2px;
 }
 
 .bp-reader-epub-nav--comic .bp-reader-progress,

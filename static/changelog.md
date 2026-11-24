@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.16
+
+- **Reader:** Comic **dual page** — pick active page with **1** / **2** or **[** / **]** (or tap a page); thin outline shows which pane gets zoom and pan.
+
 ## 1.4.15
 
 - **Reader:** Keyboard shortcuts in the reader — arrow keys (pages), **S** (Study), **D** (dual-page spread), comic **+/−/0** zoom and arrow pan when zoomed; **Escape** closes Study then the book; focus stays in the reader while it is open.

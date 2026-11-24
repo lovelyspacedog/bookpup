@@ -254,6 +254,18 @@
           comicKeyActions.pan(dx, dy);
           return;
         }
+        if (comicKeyActions.isDual && comicKeyActions.isDual()) {
+          if (ev.key === "[" || ev.key === "1") {
+            ev.preventDefault();
+            comicKeyActions.selectPane(0);
+            return;
+          }
+          if (ev.key === "]" || ev.key === "2") {
+            ev.preventDefault();
+            comicKeyActions.selectPane(1);
+            return;
+          }
+        }
       }
       if (formatKeyExtra) formatKeyExtra(ev);
     };
@@ -1351,6 +1363,32 @@
         function applyPaneTransform(ix) {
           paneEls[ix].style.transform = paneTransform(paneView[ix]);
         }
+        function rightPaneVisible() {
+          return comicDual && comicPage + 1 < comicPageCount;
+        }
+        function updateActivePaneUi() {
+          const dual = rightPaneVisible();
+          paneEls.forEach((pane, ix) => {
+            const selected = dual && ix === activePane;
+            pane.classList.toggle("bp-reader-comic-pane--active", selected);
+            if (dual) {
+              pane.setAttribute("aria-selected", selected ? "true" : "false");
+            } else {
+              pane.classList.remove("bp-reader-comic-pane--active");
+              pane.removeAttribute("aria-selected");
+            }
+          });
+        }
+        function setActivePane(ix) {
+          if (!paneEls[ix]) return;
+          if (ix === 1 && !rightPaneVisible()) return;
+          activePane = ix;
+          updateActivePaneUi();
+          const apv = paneView[activePane];
+          zoomOut.disabled = apv.zoom <= COMIC_ZOOM_MIN + 0.001;
+          zoomIn.disabled = apv.zoom >= COMIC_ZOOM_MAX - 0.001;
+          zoomPct.textContent = Math.round(apv.zoom * 100) + "%";
+        }
         function endComicDrag() {
           comicDrag = null;
           viewport.classList.remove("bp-reader-comic-viewport--dragging");
@@ -1375,7 +1413,7 @@
         }
         function beginComicDrag(clientX, clientY, target) {
           const ix = paneFromTarget(target);
-          activePane = ix;
+          setActivePane(ix);
           const pv = paneView[ix];
           comicDrag = {
             x: clientX,
@@ -1413,6 +1451,13 @@
         }
         makeComicPane(0);
         makeComicPane(1);
+        paneEls.forEach((pane, ix) => {
+          pane.addEventListener("click", (ev) => {
+            if (!rightPaneVisible()) return;
+            setActivePane(ix);
+            ev.stopPropagation();
+          });
+        });
         const img = paneImgs[0];
         const img2 = paneImgs[1];
         viewport.appendChild(stage);
@@ -1449,6 +1494,7 @@
           zoomOut.disabled = apv.zoom <= COMIC_ZOOM_MIN + 0.001;
           zoomIn.disabled = apv.zoom >= COMIC_ZOOM_MAX - 0.001;
           zoomPct.textContent = Math.round(apv.zoom * 100) + "%";
+          updateActivePaneUi();
         }
         function updateComicSpreadUi() {
           const dual = comicDual;
@@ -1466,13 +1512,15 @@
           localStorage.setItem("bookpupComicDual", comicDual ? "1" : "0");
           if (comicDual) comicPage -= comicPage % 2;
           updateComicSpreadUi();
+          if (!comicDual) setActivePane(0);
+          else updateActivePaneUi();
           void showPage();
         }
         function setPaneZoom(ix, next) {
           const pv = paneView[ix];
           pv.zoom = Math.min(COMIC_ZOOM_MAX, Math.max(COMIC_ZOOM_MIN, next));
           if (pv.zoom <= 1.001) resetPaneView(ix);
-          activePane = ix;
+          setActivePane(ix);
           applyComicZoom();
         }
         function resetComicFit() {
@@ -1494,7 +1542,7 @@
           (ev) => {
             ev.preventDefault();
             const ix = paneFromTarget(ev.target);
-            activePane = ix;
+            setActivePane(ix);
             const factor = ev.deltaY < 0 ? 1.1 : 1 / 1.1;
             setPaneZoom(ix, paneView[ix].zoom * factor);
           },
@@ -1511,7 +1559,7 @@
               const cx = (a.clientX + b.clientX) / 2;
               const cy = (a.clientY + b.clientY) / 2;
               pinchPaneIx = paneFromTarget(document.elementFromPoint(cx, cy));
-              activePane = pinchPaneIx;
+              setActivePane(pinchPaneIx);
               pinchZoom0 = paneView[pinchPaneIx].zoom;
             } else if (ev.touches.length === 1) {
               beginComicDrag(ev.touches[0].clientX, ev.touches[0].clientY, ev.target);
@@ -1618,6 +1666,8 @@
           }
           resetComicFit();
           updateComicNav();
+          if (!rightPaneVisible() && activePane !== 0) setActivePane(0);
+          else updateActivePaneUi();
           scheduleSaveReading(authHeader);
         }
         prev.addEventListener("click", () => {
@@ -1654,6 +1704,8 @@
         updateComicSpreadUi();
         comicKeyActions = {
           isZoomed: () => paneView[0].zoom > 1.001 || paneView[1].zoom > 1.001,
+          isDual: () => rightPaneVisible(),
+          selectPane: (ix) => setActivePane(ix),
           zoomIn: () => setPaneZoom(activePane, paneView[activePane].zoom * 1.25),
           zoomOut: () => setPaneZoom(activePane, paneView[activePane].zoom / 1.25),
           zoomFit: () => resetComicFit(),
@@ -1664,6 +1716,7 @@
             applyPaneTransform(activePane);
           },
         };
+        setActivePane(0);
         formatKeyExtra = (ev) => {
           if (comicKeyActions?.isZoomed()) return;
           if (ev.key === "ArrowLeft" || ev.key === "PageUp") {
@@ -1683,7 +1736,11 @@
             ev.key === "+" ||
             ev.key === "=" ||
             ev.key === "-" ||
-            ev.key === "0"
+            ev.key === "0" ||
+            ev.key === "[" ||
+            ev.key === "]" ||
+            ev.key === "1" ||
+            ev.key === "2"
           ) {
             modal.dispatchEvent(
               new KeyboardEvent("keydown", {
