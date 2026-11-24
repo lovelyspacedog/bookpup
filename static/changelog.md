@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.101
+
+- **Fix:** **Walk the Trail** mobile coach placement (Den scroll, Fetch/Queue/Tag/Pack channel layout, Catalogued scroll); cleanup targets your practice book in **Catalogued bones** or Fresh catches; finish opens Pup guide page 1.
+
 ## 1.3.100
 
 - **Fix:** **Walk the Trail** Fresh catches no longer snaps back to the top while you scroll; cleanup coach docks at the bottom; **Remove fresh catch** sits above the tour overlay.

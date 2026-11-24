@@ -17,6 +17,9 @@
   let focusTargetEl = null;
   const autoAdvanceFired = new Set();
   let kennelIntroScrolled = false;
+  let denIntroScrolled = false;
+  let fetchIntroScrolled = false;
+  let catalogIntroScrolled = false;
 
   function fetchStepIndex() {
     return steps.findIndex((s) => s.id === "fetch");
@@ -199,11 +202,9 @@
       return document.querySelector("#tab-library");
     }
     if (st.id === "cleanup") {
-      if (tutorialItemId) {
-        const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
-        return card?.querySelector(".del") || card || document.getElementById("lib-section-downloads");
-      }
-      return document.getElementById("lib-section-downloads");
+      const card = tutorialPracticeCard();
+      if (card) return card.querySelector(".del") || card;
+      return document.getElementById("lib-section-calibre") || document.getElementById("lib-section-downloads");
     }
     if (st.id === "tag") {
       const modal = document.getElementById("register-modal");
@@ -230,12 +231,61 @@
   function usesTopCoachDock(st) {
     if (!st) return false;
     if (st.coachDockBottom) return false;
+    if (MOBILE_TIP_MQ.matches && st?.mobileCoachBottom) return false;
     if (st.coachDockTop) return true;
     return MOBILE_TIP_MQ.matches && st.mobileTip === "top";
   }
 
   function usesBottomCoachDock(st) {
-    return !!st?.coachDockBottom;
+    if (st?.coachDockBottom) return true;
+    return MOBILE_TIP_MQ.matches && !!st?.mobileCoachBottom;
+  }
+
+  function tutorialPracticeCard() {
+    if (!tutorialItemId) return null;
+    return document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
+  }
+
+  function primeDenMobileScroll() {
+    if (!MOBILE_TIP_MQ.matches || denIntroScrolled) return;
+    denIntroScrolled = true;
+    ensureDenPanelOpen();
+    const panel = document.getElementById("irc-panel");
+    try {
+      panel?.scrollIntoView({ block: "end", behavior: "instant", inline: "nearest" });
+    } catch {
+      /* ignore */
+    }
+    const doc = document.documentElement;
+    const max = Math.max(0, (doc.scrollHeight || 0) - window.innerHeight);
+    try {
+      window.scrollTo({ top: max, left: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, max);
+    }
+  }
+
+  function primeFetchMobileScroll() {
+    if (!MOBILE_TIP_MQ.matches || fetchIntroScrolled) return;
+    fetchIntroScrolled = true;
+    try {
+      document.getElementById("filter")?.scrollIntoView({ block: "start", behavior: "instant", inline: "nearest" });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function primeCatalogScroll() {
+    if (catalogIntroScrolled) return;
+    catalogIntroScrolled = true;
+    const el = document.getElementById("lib-section-calibre");
+    if (!el) return;
+    try {
+      el.scrollIntoView({ block: "start", behavior: "instant", inline: "nearest" });
+    } catch {
+      /* ignore */
+    }
+    if (MOBILE_TIP_MQ.matches) scrollRevealBelowTopCoach(el);
   }
 
   function primeKennelScrollOnce() {
@@ -353,7 +403,7 @@
     if (!target) return;
     if (st?.id === "sniff" && BP.state.walkTrailSearchDone) return;
     try {
-      if (st?.id === "kennel" || st?.id === "cleanup") return;
+      if (st?.id === "kennel" || st?.id === "cleanup" || st?.id === "fetch" || st?.id === "catalog") return;
       const block = st?.id === "den" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
       target.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
     } catch {
@@ -406,6 +456,7 @@
     const dockBottom = usesBottomCoachDock(st);
     tip.classList.toggle("bp-walk-trail-tip--dock", (dockMobile && !dockTop && !dockBottom) || dockBottom);
     tip.classList.toggle("bp-walk-trail-tip--dock-top", dockTop);
+    tip.classList.toggle("bp-walk-trail-tip--dock-top-loose", dockTop && !!st?.mobileTipTopLoose);
     if (dockBottom || dockMobile || st?.coachDockTop) {
       tip.style.top = "";
       tip.style.left = "";
@@ -509,6 +560,7 @@
       body: "Click Fetch on the row that matches your practice .mobi (not the decoy EPUBs).",
       selector: "tr[data-walk-trail-row]",
       placement: "top",
+      mobileCoachBottom: true,
       advance: "fetch-done",
     },
     {
@@ -518,6 +570,7 @@
       selector: "#tab-queue",
       placement: "bottom",
       mobileTip: "top",
+      mobileTipTopLoose: true,
       advance: "manual",
     },
     {
@@ -536,7 +589,7 @@
       body: "Tap Tag on your practice catch. Change at least one field (title, author, or tags), then save.",
       selector: "#lib-items-downloads",
       placement: "top",
-      mobileTip: "top",
+      mobileCoachBottom: true,
       advance: "tag-saved",
     },
     {
@@ -545,6 +598,7 @@
       body: "After you tag, the book moves here and counts toward your storage quota.",
       selector: "#lib-section-calibre",
       placement: "top",
+      mobileTip: "top",
       advance: "manual",
     },
     {
@@ -564,6 +618,7 @@
       selector: "#pack-chat-mode-pack",
       placement: "top",
       mobileTip: "top",
+      mobileTipTopLoose: true,
       coachDockTop: true,
       advance: "manual",
     },
@@ -580,8 +635,8 @@
     {
       id: "cleanup",
       title: "Remove practice book?",
-      body: "Optional: in Kennel → Fresh catches, toss the practice file so it does not stay on your shelf. Tap Skip to keep it.",
-      selector: "#lib-section-downloads",
+      body: "Optional: in Kennel, toss the practice file (Catalogued bones after you tagged, or Fresh catches if you skipped Tag). Tap Skip to keep it.",
+      selector: "#lib-section-calibre",
       placement: "top",
       mobileTip: "top",
       coachDockBottom: true,
@@ -590,7 +645,7 @@
     {
       id: "done",
       title: "Trail complete",
-      body: "Opening Pup guide page 12 for Pack chat and everyday habits.",
+      body: "Opening Pup guide page 1 for the welcome summary.",
       selector: null,
       placement: "top",
       advance: "finish",
@@ -665,6 +720,7 @@
     if (st.id === "den") {
       ensureDenPanelOpen();
       ensureDenMockVisible();
+      requestAnimationFrame(() => primeDenMobileScroll());
     }
     if (st.id === "tag") {
       BP.state.walkTrailExpectTag = true;
@@ -734,6 +790,9 @@
     tutorialItemId = "";
     registerSnapshot = null;
     kennelIntroScrolled = false;
+    denIntroScrolled = false;
+    fetchIntroScrolled = false;
+    catalogIntroScrolled = false;
     autoAdvanceFired.clear();
     clearMockIrcTimer();
     if (stepAdvanceTimer) {
@@ -767,7 +826,7 @@
     if (st.advance === "finish") {
       markComplete();
       teardownWalk(true);
-      BP.openGuidePage?.(11);
+      BP.openGuidePage?.(0);
       return;
     }
     if (stepIndex >= steps.length - 1) {
@@ -780,6 +839,20 @@
     if (next?.id === "queue") {
       const qbtn = BP.tabButton("queue");
       if (qbtn) BP.activateTab(qbtn);
+    }
+    if (next?.id === "den") {
+      denIntroScrolled = false;
+      requestAnimationFrame(() => primeDenMobileScroll());
+    }
+    if (next?.id === "fetch") {
+      fetchIntroScrolled = false;
+      requestAnimationFrame(() => primeFetchMobileScroll());
+    }
+    if (next?.id === "catalog") {
+      catalogIntroScrolled = false;
+      const libBtn = BP.tabButton("library");
+      if (libBtn) BP.activateTab(libBtn);
+      requestAnimationFrame(() => primeCatalogScroll());
     }
     if (next?.id === "kennel") {
       kennelIntroScrolled = false;
