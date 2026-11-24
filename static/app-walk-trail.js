@@ -212,10 +212,61 @@
       }
       return document.getElementById("lib-section-downloads");
     }
+    if (st.id === "pack-bots") {
+      const list = document.getElementById("pack-presence-list");
+      return (
+        list?.querySelector('[data-pack-dm-peer="featurecat"]') ||
+        list?.querySelector('[data-pack-dm-peer="bugbot"]') ||
+        list
+      );
+    }
     return st.selector ? document.querySelector(st.selector) : null;
   }
 
+  function usesTopCoachDock(st) {
+    if (!st) return false;
+    if (st.coachDockTop) return true;
+    return MOBILE_TIP_MQ.matches && st.mobileTip === "top";
+  }
+
+  function packBotSidebarRect() {
+    const list = document.getElementById("pack-presence-list");
+    if (!list) return null;
+    const nodes = ["bugbot", "featurecat"]
+      .map((id) => list.querySelector('[data-pack-dm-peer="' + id + '"]'))
+      .filter(Boolean);
+    if (!nodes.length) return null;
+    const pad = 6;
+    const rects = nodes.map((n) => n.getBoundingClientRect());
+    const top = Math.min(...rects.map((r) => r.top)) - pad;
+    const left = Math.min(...rects.map((r) => r.left)) - pad;
+    const right = Math.max(...rects.map((r) => r.right)) + pad;
+    const bottom = Math.max(...rects.map((r) => r.bottom)) + pad;
+    return { top, left, width: right - left, height: bottom - top };
+  }
+
+  function layoutSpotRingFromRect(rect) {
+    const spot = spotEl();
+    if (!spot || !rect || rect.width < 2 || rect.height < 2) {
+      spot?.classList.add("hidden");
+      return;
+    }
+    spot.classList.remove("hidden");
+    spot.style.top = rect.top + "px";
+    spot.style.left = rect.left + "px";
+    spot.style.width = rect.width + "px";
+    spot.style.height = rect.height + "px";
+  }
+
   function layoutSpotRing(target) {
+    const st = currentStep();
+    if (st?.id === "pack-bots") {
+      const botRing = packBotSidebarRect();
+      if (botRing) {
+        layoutSpotRingFromRect(botRing);
+        return;
+      }
+    }
     const spot = spotEl();
     if (!spot || !target) {
       spot?.classList.add("hidden");
@@ -291,7 +342,7 @@
       return;
     }
     const st = currentStep();
-    const dockTopCoach = MOBILE_TIP_MQ.matches && st?.mobileTip === "top";
+    const dockTopCoach = usesTopCoachDock(st);
     if (dockTopCoach) {
       scheduleWalkTrailLayout(target, st?.placement);
       requestAnimationFrame(() => {
@@ -326,10 +377,10 @@
     const st = currentStep();
     tip.dataset.placement = placement || "bottom";
     const dockMobile = MOBILE_TIP_MQ.matches;
-    const dockTop = dockMobile && st?.mobileTip === "top";
+    const dockTop = usesTopCoachDock(st);
     tip.classList.toggle("bp-walk-trail-tip--dock", dockMobile && !dockTop);
     tip.classList.toggle("bp-walk-trail-tip--dock-top", dockTop);
-    if (dockMobile) {
+    if (dockMobile || st?.coachDockTop) {
       tip.style.top = "";
       tip.style.left = "";
       tip.style.right = "";
@@ -476,6 +527,7 @@
       selector: "#tab-pack",
       placement: "bottom",
       mobileTip: "top",
+      coachDockTop: true,
       advance: "pack-open",
     },
     {
@@ -483,17 +535,19 @@
       title: "Pack channel",
       body: "Pack chat · everyone reaches the whole household. Pups in the sidebar are for private messages.",
       selector: "#pack-chat-mode-pack",
-      placement: "bottom",
+      placement: "top",
       mobileTip: "top",
+      coachDockTop: true,
       advance: "manual",
     },
     {
       id: "pack-bots",
       title: "BugBot & FeatureCat",
-      body: "Open BugBot or FeatureCat in the sidebar to report bugs or ideas. Admins see them on Pack roster. Type clear in a bot thread to reset.",
-      selector: "#pack-chat-sidebar-hint",
-      placement: "bottom",
+      body: "Tap BugBot or FeatureCat in the list below to report bugs or ideas. Admins see them on Pack roster. Type clear in a bot thread to reset.",
+      selector: "#pack-presence-list",
+      placement: "top",
       mobileTip: "top",
+      coachDockTop: true,
       advance: "manual",
     },
     {
@@ -608,7 +662,11 @@
     }
     document.body.classList.remove("bp-walk-trail-tag-modal");
     const target = resolveStepTarget(st);
-    markFocusTarget(target);
+    if (st.id === "pack-bots") {
+      clearFocusTarget();
+    } else {
+      markFocusTarget(target);
+    }
     placeSpot(target);
   }
 

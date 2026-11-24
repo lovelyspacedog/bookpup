@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.98
+
+- **Fix:** **Walk the Trail** Pack chat steps — coach pins to the top; **BugBot & FeatureCat** highlights the bot rows, not the sidebar blurb over the message feed.
+
 ## 1.3.97
 
 - **UX:** **Walk the Trail** — Fetch queue stays on Queue; Fresh catches scrolls to your practice file; new **Pack chat** steps (household channel, DMs, BugBot/FeatureCat); finish opens Pup guide page 12.
