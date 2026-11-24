@@ -194,6 +194,7 @@ window.BookPup = window.BookPup || {};
     if (loginScreen) loginScreen.classList.add("hidden");
     if (appShell) appShell.classList.remove("hidden");
     await loadSession();
+    BP.loadNotifiedDoneJobs?.();
     BP.refreshQueue();
     BP.loadLibrary();
     renderSearchHistoryUi();

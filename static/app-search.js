@@ -980,12 +980,17 @@
     return false;
   }
 
+  const FETCH_DONE_BACKFILL_SECONDS = 180;
+
   function fetchBackfillAllowed(job) {
     if (!job || job.type !== "download" || job.state !== "done") return false;
     if (!(job.raw_bytes || job.staging_id)) return false;
     if (BP.state.notifiedDoneJobs.has(job.id)) return false;
     if (fetchMatchesDoneJob(job)) return true;
-    return true;
+    const updated = Number(job.updated_at || 0);
+    if (!updated) return false;
+    const age = Date.now() / 1000 - updated;
+    return age >= 0 && age <= FETCH_DONE_BACKFILL_SECONDS;
   }
 
   function applyFetchDone(job, row, tr) {

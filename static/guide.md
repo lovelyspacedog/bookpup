@@ -9,7 +9,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 - You stay signed in in this browser until you choose **Head out** or the server restarts.
 - Admins add accounts under **Pack roster**. Everyone can change their own password under **Your tag**.
 - **Walk the Trail** on **Sniff** is a hands-on tour: practice sniff/fetch, Fresh catches, Tag, then **Pack chat** (household channel, DMs, BugBot/FeatureCat).
-- Finished **Walk the Trail** once? Use **Walk the Trail again** on **Sniff**, this page (link at the bottom), or **Page 2** below.
+- Finished **Walk the Trail** once? Use **Walk the Trail again** at the bottom of this page.
 
 ## Page 2 — Sniff, fetch, catalog, read
 

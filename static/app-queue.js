@@ -5,6 +5,40 @@
   const queueTabBadge = document.getElementById("queue-tab-badge");
   const queueWatch = new Map();
   let queueRefreshTimer = null;
+  const NOTIFIED_DL_MAX = 200;
+
+  function notifiedDlStorageKey() {
+    const u = String(BP.state.sessionUsername || "").trim();
+    return u ? "bookpupNotifiedDl:" + u : "bookpupNotifiedDl";
+  }
+
+  function loadNotifiedDoneJobs() {
+    BP.state.notifiedDoneJobs = new Set();
+    try {
+      const raw = localStorage.getItem(notifiedDlStorageKey());
+      if (!raw) return;
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        arr.forEach((id) => {
+          if (id) BP.state.notifiedDoneJobs.add(String(id));
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function persistNotifiedDoneJob(jobId) {
+    if (!jobId) return;
+    const id = String(jobId);
+    BP.state.notifiedDoneJobs.add(id);
+    try {
+      const kept = [...BP.state.notifiedDoneJobs].slice(-NOTIFIED_DL_MAX);
+      localStorage.setItem(notifiedDlStorageKey(), JSON.stringify(kept));
+    } catch {
+      /* ignore */
+    }
+  }
 
   function friendlyJobKind(job) {
     const t = job?.type || "";
@@ -104,7 +138,7 @@
   function announceDownloadDone(job) {
     if (job?.type !== "download" || job?.state !== "done" || !job?.id) return;
     if (BP.state.notifiedDoneJobs.has(job.id)) return;
-    BP.state.notifiedDoneJobs.add(job.id);
+    persistNotifiedDoneJob(job.id);
     BP.markUxFetchComplete?.();
     BP.markUxStashComplete?.();
     BP.maybePromptFetchNotify?.();
@@ -486,4 +520,5 @@
   BP.updateIrcStatusPill = updateIrcStatusPill;
   BP.trackQueueJobs = trackQueueJobs;
   BP.updateQueueBadge = updateQueueBadge;
+  BP.loadNotifiedDoneJobs = loadNotifiedDoneJobs;
 })(window.BookPup);

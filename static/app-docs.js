@@ -238,7 +238,7 @@
 
   function bindWalkTrailRestart() {
     if (guideShowAll || !BP.walkTrailIsComplete?.()) return;
-    if (guidePageIndex > 1) return;
+    if (guidePageIndex !== 0) return;
     const body = document.getElementById("guide-body");
     if (!body || body.querySelector("#guide-walk-trail-restart")) return;
     const box = document.createElement("p");

@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.3.108
+
+- **UX:** **Walk the Trail again** only on **Pup guide** page 1 — removed from **Sniff** (including mobile dock).
+- **Fix:** **Fresh catch** toast/desktop alert no longer replays after tag/toss, sign-out, or reload; remembered per account with a short backfill window for mid-fetch refresh.
+
 ## 1.3.107
 
 - **Fix:** **Walk the Trail** **BugBot & FeatureCat** — mobile coach docks above the tab bar so bot rows stay tappable.
