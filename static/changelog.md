@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.89
+
+- **Fix:** **Walk the Trail** coach card stays readable on **Den chatter** (highlight no longer stacks over the tip on mobile).
+
 ## 1.3.88
 
 - **Fix:** **Walk the Trail** advances after practice **Fetch** (explicit step transition, touch handler, reuse existing Fresh catch on repeat).

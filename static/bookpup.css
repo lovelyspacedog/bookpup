@@ -3116,7 +3116,7 @@ tr.bp-sniff-pick td {
 .bp-walk-trail {
   position: fixed;
   inset: 0;
-  z-index: 2500;
+  z-index: 4000;
   pointer-events: none;
 }
 
@@ -3143,7 +3143,6 @@ tr.bp-sniff-pick td {
 
 .bp-walk-trail-focus {
   position: relative;
-  z-index: 2601;
   pointer-events: auto;
   outline: 2px solid var(--link, #8af);
   outline-offset: 2px;
@@ -3155,6 +3154,7 @@ tr.bp-sniff-pick td {
 
 .bp-walk-trail-tip {
   position: fixed;
+  z-index: 2;
   pointer-events: auto;
   touch-action: manipulation;
   max-width: min(22rem, calc(100vw - 1.5rem));

@@ -332,8 +332,8 @@
     {
       id: "den",
       title: "Den chatter",
-      body: "Live IRC logs appear here during real sniffs. For practice, we scripted the lines you just saw.",
-      selector: "#irc-panel",
+      body: "Live IRC logs appear here during real sniffs. For practice, we scripted the lines above. Tap Next when you are ready.",
+      selector: "#irc-feed",
       placement: "top",
       advance: "manual",
     },
@@ -434,8 +434,11 @@
     const st = currentStep();
     const tip = tipEl();
     if (!st || !tip) return;
-    tip.querySelector("[data-wt-title]").textContent = st.title;
-    tip.querySelector("[data-wt-body]").textContent = st.body;
+    const titleEl = document.getElementById("walk-trail-tip-title");
+    const bodyEl = tip.querySelector("[data-wt-body]");
+    if (titleEl) titleEl.textContent = st.title;
+    if (bodyEl) bodyEl.textContent = st.body;
+    tip.classList.remove("hidden");
     const nextBtn = tip.querySelector("[data-wt-next]");
     const skipBtn = tip.querySelector("[data-wt-cleanup-skip]");
     const canNext = canAdvanceManual();
@@ -533,10 +536,7 @@
       const st = currentStep();
       if (!st) return;
       const key = st.id + ":" + st.advance;
-      if (st.advance === "search-done" && BP.state.walkTrailSearchDone && !autoAdvanceFired.has(key)) {
-        autoAdvanceFired.add(key);
-        setTimeout(() => void goNext(), 400);
-      } else if (st.advance === "tag-saved" && BP.state.walkTrailTagged && !autoAdvanceFired.has(key)) {
+      if (st.advance === "tag-saved" && BP.state.walkTrailTagged && !autoAdvanceFired.has(key)) {
         autoAdvanceFired.add(key);
         setTimeout(() => void goNext(), 400);
       }
@@ -585,7 +585,15 @@
     const rows = buildDecoyRows(tutorialQuery);
     BP.state.walkTrailPracticeRow = rows.find((r) => r.walk_trail) || null;
     BP.ingestWalkTrailResults?.(rows, tutorialQuery);
+    document.getElementById("results-wrap")?.scrollIntoView({ block: "start", behavior: "smooth" });
     updateTipChrome();
+    setTimeout(() => {
+      if (!active || currentStep()?.id !== "sniff" || !BP.state.walkTrailSearchDone) return;
+      const key = "sniff:search-done";
+      if (autoAdvanceFired.has(key)) return;
+      autoAdvanceFired.add(key);
+      void goNext();
+    }, 1600);
   }
 
   function onDocumentFetchClick(ev) {
