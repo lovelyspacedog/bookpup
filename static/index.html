@@ -446,7 +446,16 @@
             </div>
           </div>
         </div>
+        <p id="lib-browse-banner" class="bp-msg muted hidden" aria-live="polite"></p>
         <div class="bp-lib-toolbar">
+          <label class="bp-lib-toolbar-label muted" for="lib-browse-select">Browsing</label>
+          <select id="lib-browse-select" class="bp-lib-select">
+            <option value="">My kennel</option>
+          </select>
+          <button type="button" id="lib-sharing-btn" class="bp-btn bp-btn--badged">
+            Sharing
+            <span id="lib-sharing-badge" class="bp-tab-badge hidden" aria-hidden="true"></span>
+          </button>
           <button type="button" id="lib-export-btn" class="bp-btn">Export catalog</button>
           <span class="bp-lib-toolbar-label muted">View</span>
           <button type="button" id="lib-view-grid" class="bp-btn" aria-pressed="true">Grid</button>
@@ -759,6 +768,30 @@
           <button type="button" id="register-cancel" class="bp-btn">Cancel</button>
         </p>
       </form>
+    </div>
+    <div id="lib-share-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2 id="lib-share-modal-title">Kennel sharing</h2>
+        <button type="button" id="lib-share-modal-close" class="bp-btn">Close</button>
+      </header>
+      <div class="bp-card bp-register-form">
+        <h3>Ask to browse</h3>
+        <p class="muted">Request access to another pup&rsquo;s whole kennel. They choose lend (browse/read) or give (you can copy books into yours).</p>
+        <form id="lib-share-request-form">
+          <label for="lib-share-request-user">Pup</label>
+          <select id="lib-share-request-user" required></select>
+          <p id="lib-share-request-msg" class="bp-msg muted"></p>
+          <p class="bp-register-actions">
+            <button type="submit" class="bp-btn primary">Send request</button>
+          </p>
+        </form>
+        <h3>Requests for you</h3>
+        <div id="lib-share-incoming" class="bp-share-list"></div>
+        <h3>Your requests</h3>
+        <div id="lib-share-outgoing" class="bp-share-list"></div>
+        <h3>You share with</h3>
+        <div id="lib-share-granted" class="bp-share-list"></div>
+      </div>
     </div>
     <div id="send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
       <header class="bp-register-head">

@@ -66,6 +66,8 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 ## Page 8 — Kennel
 
+- **Sharing** — ask another pup to browse your whole kennel (or approve their request). **Lend** = they can read and download; **give** = they can also **Add to my kennel** (copies, your quota unchanged). Use **Browsing** to switch between your kennel and pups who shared with you. Pack chat gets a **BookPup** note when someone requests access.
+
 - **Fresh catches** — downloads waiting to be **Tag this book** (metadata + cover).
 - **Fresh catches** — **Toss** uses a simple confirm. **Catalogued bones** — **Read**, **Cover**, **Pass to pup…**, **Toss** (type the random phrase in the dialog).
 - **Import Calibre** and **Import KOReader** for bulk bring-over. Grid/list view is remembered in the browser.

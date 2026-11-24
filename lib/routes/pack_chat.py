@@ -83,7 +83,7 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     return False
 
 
-def handle_delete(handler: RequestHandler, path: str) -> bool:
+def handle_delete(handler: RequestHandler, path: str, qs: dict | None = None) -> bool:
     prefix = "/api/pack/chat/"
     if not path.startswith(prefix):
         return False

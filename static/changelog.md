@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.70
+
+- **Kennel:** whole-kennel sharing — request browse access; owner accepts **lend** (read/download) or **give** (add copies on demand); **Sharing** panel and **Browsing** picker; Pack chat ping on requests.
+
 ## 1.3.69
 
 - **UX:** on mobile, **Head out** moved from the tab bar into **More** (desktop header **Head out** unchanged).

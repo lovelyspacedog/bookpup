@@ -75,7 +75,7 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     return False
 
 
-def handle_delete(handler: RequestHandler, path: str) -> bool:
+def handle_delete(handler: RequestHandler, path: str, qs: dict | None = None) -> bool:
     if not path.startswith("/api/search/saved/"):
         return False
     saved_id = path[len("/api/search/saved/") :]

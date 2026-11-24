@@ -20,6 +20,13 @@ from ..comic import comic_module
 from ..comic_errors import ComicReadError
 from ..convert import prepare_view
 from ..import_session import create_session, finish_session, write_chunk
+from ..shared_library import (
+    assert_own_catalog_only,
+    catalog_context,
+    owner_from_body,
+    owner_from_qs,
+    url_query_owner,
+)
 from ..upload import read_multipart_upload, save_multipart_files
 from ._types import RequestHandler
 
@@ -29,9 +36,19 @@ _IMPORT_SESSION_PREFIXES = (
 )
 
 
-def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
+def _with_item_catalog(handler: RequestHandler, qs: dict, fn):
+    shared = owner_from_qs(qs)
+    with catalog_context(handler._current_user, shared):
+        return fn()
+
+
+def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
     owner = handler._current_user
+    if path.startswith("/api/library/shares"):
+        return False
+    shared = owner_from_qs(qs)
     if path == "/api/library/export":
+        assert_own_catalog_only(shared, "export")
         payload = library_export.export_user_catalog()
         import json as _json
 
@@ -40,81 +57,121 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
         handler.send_bytes(body, "application/json; charset=utf-8", f"bookpup-catalog-{safe}.json")
         return True
     if path == "/api/library":
-        handler.send_json(200, library.status())
+        with catalog_context(handler._current_user, shared):
+            payload = library.status()
+        if shared:
+            payload["shared"] = True
+            payload["owner"] = shared
+        handler.send_json(200, payload)
         return True
     if not path.startswith("/api/library/"):
         return False
     segments = [p for p in path.split("/") if p]
     if len(segments) == 4 and segments[3] == "cover":
         item_id = segments[2]
-        cover = covers_mod.resolve_cover_path(item_id)
-        if cover is None or not cover.is_file():
-            handler.send_json(404, {"error": "No cover"})
-            return True
-        handler.send_bytes(cover.read_bytes(), covers_mod.cover_mime(cover), None)
+
+        def serve_cover() -> None:
+            cover = covers_mod.resolve_cover_path(item_id)
+            if cover is None or not cover.is_file():
+                handler.send_json(404, {"error": "No cover"})
+                return
+            handler.send_bytes(cover.read_bytes(), covers_mod.cover_mime(cover), None)
+
+        _with_item_catalog(handler, qs, serve_cover)
         return True
     if len(segments) == 5 and segments[3] == "ai" and segments[4] == "status":
+        assert_own_catalog_only(shared, "use Reader Study on")
         item_id = segments[2]
-        library.item_path(item_id)
-        handler.send_json(200, reader_ai.status())
+
+        def ai_status() -> None:
+            library.item_path(item_id)
+            handler.send_json(200, reader_ai.status())
+
+        _with_item_catalog(handler, qs, ai_status)
         return True
     if len(segments) == 4 and segments[3] == "reading":
         item_id = segments[2]
-        library.item_path(item_id)
-        handler.send_json(200, reading.get_state(item_id))
+        if shared:
+            from .. import library_shares
+
+            if not library_shares.can_read(handler._current_user, shared):
+                raise PermissionError("Shared kennel access denied")
+            from .. import user_paths
+
+            user_paths.set_user(shared)
+            try:
+                library.item_path(item_id)
+            finally:
+                user_paths.set_user(handler._current_user)
+            handler.send_json(200, reading.get_state(item_id, shared_owner=shared))
+        else:
+            library.item_path(item_id)
+            handler.send_json(200, reading.get_state(item_id))
         return True
     if len(segments) >= 5 and segments[3] == "comic":
         item_id = segments[2]
-        file_path = library.item_path(item_id)
-        if len(segments) == 5 and segments[4] == "meta":
-            mod = comic_module(file_path)
-            try:
-                handler.send_json(200, mod.comic_meta(file_path))
-            except ComicReadError as exc:
-                handler.send_json(
-                    422,
-                    {"error": str(exc), "debug_stderr": exc.debug_stderr},
-                )
-            return True
-        if len(segments) == 6 and segments[4] == "page":
-            try:
-                page_ix = int(segments[5])
-            except ValueError as exc:
-                raise ValueError("Invalid page") from exc
-            mod = comic_module(file_path)
-            try:
-                data, mime = mod.page_bytes(file_path, page_ix)
-            except ComicReadError as exc:
-                handler.send_json(
-                    422,
-                    {"error": str(exc), "debug_stderr": exc.debug_stderr},
-                )
-                return True
-            handler.send_bytes(data, mime)
-            return True
+
+        def comic_route() -> None:
+            file_path = library.item_path(item_id)
+            if len(segments) == 5 and segments[4] == "meta":
+                mod = comic_module(file_path)
+                try:
+                    handler.send_json(200, mod.comic_meta(file_path))
+                except ComicReadError as exc:
+                    handler.send_json(
+                        422,
+                        {"error": str(exc), "debug_stderr": exc.debug_stderr},
+                    )
+                return
+            if len(segments) == 6 and segments[4] == "page":
+                try:
+                    page_ix = int(segments[5])
+                except ValueError as exc:
+                    raise ValueError("Invalid page") from exc
+                mod = comic_module(file_path)
+                try:
+                    data, mime = mod.page_bytes(file_path, page_ix)
+                except ComicReadError as exc:
+                    handler.send_json(
+                        422,
+                        {"error": str(exc), "debug_stderr": exc.debug_stderr},
+                    )
+                    return
+                handler.send_bytes(data, mime)
+
+        _with_item_catalog(handler, qs, comic_route)
+        return True
     if len(segments) == 4 and segments[3] == "read":
         item_id = segments[2]
         if not item_id:
             raise ValueError("Invalid library id")
-        meta = prepare_view(item_id)
-        file_path = Path(meta["path"])
-        view_fmt = meta["format"]
-        ctype = {
-            "pdf": "application/pdf",
-            "epub": "application/epub+zip",
-            "txt": "text/plain; charset=utf-8",
-            "md": "text/markdown; charset=utf-8",
-            "html": "text/html; charset=utf-8",
-            "cbz": "application/vnd.comicbook+zip",
-            "cbr": "application/vnd.comicbook-rar",
-        }.get(view_fmt) or mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-        handler.send_bytes(file_path.read_bytes(), ctype)
+
+        def serve_read() -> None:
+            meta = prepare_view(item_id)
+            file_path = Path(meta["path"])
+            view_fmt = meta["format"]
+            ctype = {
+                "pdf": "application/pdf",
+                "epub": "application/epub+zip",
+                "txt": "text/plain; charset=utf-8",
+                "md": "text/markdown; charset=utf-8",
+                "html": "text/html; charset=utf-8",
+                "cbz": "application/vnd.comicbook+zip",
+                "cbr": "application/vnd.comicbook-rar",
+            }.get(view_fmt) or mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+            handler.send_bytes(file_path.read_bytes(), ctype)
+
+        _with_item_catalog(handler, qs, serve_read)
         return True
     if len(segments) == 3:
         item_id = segments[2]
-        file_path = library.item_path(item_id)
-        ctype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-        handler.send_bytes(file_path.read_bytes(), ctype, file_path.name)
+
+        def serve_file() -> None:
+            file_path = library.item_path(item_id)
+            ctype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+            handler.send_bytes(file_path.read_bytes(), ctype, file_path.name)
+
+        _with_item_catalog(handler, qs, serve_file)
         return True
     return False
 
@@ -280,54 +337,102 @@ def route_upload_cover(handler: RequestHandler, path: str, length: int, content_
 
 
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
+    shared = owner_from_body(body)
+    oq = url_query_owner(shared)
     if path.startswith("/api/library/") and path.endswith("/view"):
         item_id = path[len("/api/library/") : -len("/view")]
         if not item_id or "/" in item_id:
             raise ValueError("Invalid library id")
-        meta = prepare_view(item_id)
-        title = item_id
-        for row in library.list_items():
-            if row.get("id") == item_id:
-                title = row.get("title") or title
-                break
-        handler.send_json(
-            200,
-            {
-                "ok": True,
-                "id": item_id,
-                "format": meta["format"],
-                "converted": meta.get("converted", False),
-                "source_format": meta.get("source_format"),
-                "title": title,
-                "read_url": f"/api/library/{item_id}/read",
-                "comic_meta_url": f"/api/library/{item_id}/comic/meta"
-                if meta["format"] in ("cbz", "cbr", "cb7")
-                else None,
-            },
-        )
+
+        def open_view() -> None:
+            meta = prepare_view(item_id)
+            title = item_id
+            for row in library.list_items():
+                if row.get("id") == item_id:
+                    title = row.get("title") or title
+                    break
+            handler.send_json(
+                200,
+                {
+                    "ok": True,
+                    "id": item_id,
+                    "format": meta["format"],
+                    "converted": meta.get("converted", False),
+                    "source_format": meta.get("source_format"),
+                    "title": title,
+                    "owner": shared,
+                    "read_url": f"/api/library/{item_id}/read{oq}",
+                    "comic_meta_url": (
+                        f"/api/library/{item_id}/comic/meta{oq}"
+                        if meta["format"] in ("cbz", "cbr", "cb7")
+                        else None
+                    ),
+                },
+            )
+
+        with catalog_context(handler._current_user, shared):
+            open_view()
         return True
     if path.startswith("/api/library/") and path.endswith("/reading"):
         item_id = path[len("/api/library/") : -len("/reading")]
         if not item_id or "/" in item_id:
             raise ValueError("Invalid library id")
-        library.item_path(item_id)
         loc = body.get("location")
         if loc is not None and not isinstance(loc, dict):
             raise ValueError("location must be an object")
-        handler.send_json(200, reading.set_location(item_id, loc))
+        if shared:
+            from .. import library_shares
+            from .. import user_paths
+
+            if not library_shares.can_read(handler._current_user, shared):
+                raise PermissionError("Shared kennel access denied")
+            user_paths.set_user(shared)
+            try:
+                library.item_path(item_id)
+            finally:
+                user_paths.set_user(handler._current_user)
+            handler.send_json(
+                200, reading.set_location(item_id, loc, shared_owner=shared)
+            )
+        else:
+            library.item_path(item_id)
+            handler.send_json(200, reading.set_location(item_id, loc))
         return True
     if path.startswith("/api/library/") and path.endswith("/bookmarks"):
         item_id = path[len("/api/library/") : -len("/bookmarks")]
         if not item_id or "/" in item_id:
             raise ValueError("Invalid library id")
-        library.item_path(item_id)
         label = str(body.get("label") or "").strip()
         loc = body.get("location")
         if not isinstance(loc, dict):
             raise ValueError("location required")
-        mark = reading.add_bookmark(item_id, label, loc)
-        handler.send_json(201, {"bookmark": mark, "reading": reading.get_state(item_id)})
+        if shared:
+            from .. import library_shares
+            from .. import user_paths
+
+            if not library_shares.can_read(handler._current_user, shared):
+                raise PermissionError("Shared kennel access denied")
+            user_paths.set_user(shared)
+            try:
+                library.item_path(item_id)
+            finally:
+                user_paths.set_user(handler._current_user)
+            mark = reading.add_bookmark(item_id, label, loc, shared_owner=shared)
+            handler.send_json(
+                201,
+                {
+                    "bookmark": mark,
+                    "reading": reading.get_state(item_id, shared_owner=shared),
+                },
+            )
+        else:
+            library.item_path(item_id)
+            mark = reading.add_bookmark(item_id, label, loc)
+            handler.send_json(
+                201, {"bookmark": mark, "reading": reading.get_state(item_id)}
+            )
         return True
+    assert_own_catalog_only(shared)
     if path.startswith("/api/library/") and path.endswith("/cover/images/search"):
         item_id = path[len("/api/library/") : -len("/cover/images/search")]
         if not item_id or "/" in item_id:
@@ -422,18 +527,40 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     return False
 
 
-def handle_delete(handler: RequestHandler, path: str) -> bool:
+def handle_delete(handler: RequestHandler, path: str, qs: dict | None = None) -> bool:
     if not path.startswith("/api/library/"):
         return False
+    qs = qs or {}
+    shared = owner_from_qs(qs)
     segments = [p for p in path.split("/") if p]
     if len(segments) == 5 and segments[0] == "api" and segments[1] == "library" and segments[3] == "bookmarks":
         item_id = segments[2]
         bookmark_id = segments[4]
 
         def drop_mark() -> None:
-            library.item_path(item_id)
-            reading.delete_bookmark(item_id, bookmark_id)
-            handler.send_json(200, {"ok": True, "reading": reading.get_state(item_id)})
+            if shared:
+                from .. import library_shares
+                from .. import user_paths
+
+                if not library_shares.can_read(handler._current_user, shared):
+                    raise PermissionError("Shared kennel access denied")
+                user_paths.set_user(shared)
+                try:
+                    library.item_path(item_id)
+                finally:
+                    user_paths.set_user(handler._current_user)
+                reading.delete_bookmark(item_id, bookmark_id, shared_owner=shared)
+                handler.send_json(
+                    200,
+                    {
+                        "ok": True,
+                        "reading": reading.get_state(item_id, shared_owner=shared),
+                    },
+                )
+            else:
+                library.item_path(item_id)
+                reading.delete_bookmark(item_id, bookmark_id)
+                handler.send_json(200, {"ok": True, "reading": reading.get_state(item_id)})
 
         handler.dispatch(drop_mark)
         return True

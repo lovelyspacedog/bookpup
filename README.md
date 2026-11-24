@@ -76,7 +76,7 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 |------|-----------|
 | Auth | `POST /api/login`, `GET /api/session`, `POST /api/logout`, `POST /api/account` |
 | Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select |
-| Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, OPDS `/opds/catalog` |
+| Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, whole-kennel `/api/library/shares…`, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |
 | Pack chat | `GET /api/pack/chat?after=&del_after=`, `GET /api/pack/chat/peers`, `POST /api/pack/chat` (`message`, optional `to` for PM), `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin, pack channel only). Scheduled sniff alerts → owner PM from `bookpup` (not ntfy). |
 | Public | `GET /api/health`, `GET /api/irc/targets` |

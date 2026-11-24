@@ -11,6 +11,7 @@ from typing import Any
 from .core import ensure_dirs
 from . import user_paths
 from .json_atomic import atomic_write_json
+from .shared_library import shared_storage_key
 
 
 def _load() -> dict:
@@ -26,9 +27,10 @@ def _save(data: dict) -> None:
     atomic_write_json(path, data)
 
 
-def get_state(item_id: str) -> dict:
+def get_state(item_id: str, *, shared_owner: str | None = None) -> dict:
+    key = shared_storage_key(item_id, shared_owner)
     data = _load()
-    row = (data.get("items") or {}).get(item_id) or {}
+    row = (data.get("items") or {}).get(key) or {}
     return {
         "item_id": item_id,
         "location": row.get("location"),
@@ -37,25 +39,35 @@ def get_state(item_id: str) -> dict:
     }
 
 
-def set_location(item_id: str, location: dict[str, Any] | None) -> dict:
+def set_location(
+    item_id: str, location: dict[str, Any] | None, *, shared_owner: str | None = None
+) -> dict:
     if not item_id:
         raise ValueError("item_id required")
+    key = shared_storage_key(item_id, shared_owner)
     data = _load()
     items = data.setdefault("items", {})
-    row = items.setdefault(item_id, {"bookmarks": []})
+    row = items.setdefault(key, {"bookmarks": []})
     row["location"] = location
     row["updated_at"] = time.time()
     _save(data)
-    return get_state(item_id)
+    return get_state(item_id, shared_owner=shared_owner)
 
 
-def add_bookmark(item_id: str, label: str, location: dict[str, Any]) -> dict:
+def add_bookmark(
+    item_id: str,
+    label: str,
+    location: dict[str, Any],
+    *,
+    shared_owner: str | None = None,
+) -> dict:
     if not location:
         raise ValueError("location required")
     label = (label or "Bookmark").strip()[:120] or "Bookmark"
+    key = shared_storage_key(item_id, shared_owner)
     data = _load()
     items = data.setdefault("items", {})
-    row = items.setdefault(item_id, {"bookmarks": []})
+    row = items.setdefault(key, {"bookmarks": []})
     marks = row.setdefault("bookmarks", [])
     mark = {
         "id": secrets.token_urlsafe(8),
@@ -68,10 +80,13 @@ def add_bookmark(item_id: str, label: str, location: dict[str, Any]) -> dict:
     return mark
 
 
-def delete_bookmark(item_id: str, bookmark_id: str) -> None:
+def delete_bookmark(
+    item_id: str, bookmark_id: str, *, shared_owner: str | None = None
+) -> None:
+    key = shared_storage_key(item_id, shared_owner)
     data = _load()
     items = data.get("items") or {}
-    row = items.get(item_id)
+    row = items.get(key)
     if not row:
         raise KeyError(bookmark_id)
     marks = row.get("bookmarks") or []

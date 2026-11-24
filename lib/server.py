@@ -23,6 +23,7 @@ from .routes import (
     jobs as jobs_routes,
     kosync as kosync_routes,
     library as library_routes,
+    library_shares as library_shares_routes,
     opds as opds_routes,
     public as public_routes,
     reader_ai_routes,
@@ -207,6 +208,7 @@ class Handler(BaseHTTPRequestHandler):
             session_routes,
             auth_routes,
             admin,
+            library_shares_routes,
             library_routes,
             jobs_routes,
             irc_routes,
@@ -248,6 +250,7 @@ class Handler(BaseHTTPRequestHandler):
             search_routes,
             jobs_routes,
             auth_routes,
+            library_shares_routes,
             library_routes,
             staging_routes,
             admin,
@@ -260,9 +263,17 @@ class Handler(BaseHTTPRequestHandler):
     def do_DELETE(self) -> None:
         if not self.require_auth() or not self.require_csrf():
             return
-        path = urlparse(self.path).path
-        for mod in (admin, search_routes, library_routes, pack_chat_routes):
-            if mod.handle_delete(self, path):
+        parsed = urlparse(self.path)
+        path = parsed.path
+        qs = parse_qs(parsed.query)
+        for mod in (
+            admin,
+            search_routes,
+            library_shares_routes,
+            library_routes,
+            pack_chat_routes,
+        ):
+            if mod.handle_delete(self, path, qs):
                 return
         self.send_json(404, {"error": "Not found"})
 

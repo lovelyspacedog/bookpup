@@ -8,6 +8,10 @@
   const LIB_SORT_KEY = "bookpupLibrarySort";
   const coverBlobUrls = new Map();
   let libraryItemsCache = [];
+  let libraryBrowseOwner = "";
+  let libraryBrowseMode = null;
+  let librarySharesData = { incoming: [], outgoing: [], browsing: [] };
+  let ownLibraryQuota = { used_bytes: 0, quota_bytes: 1 };
   const LIBRARY_READABLE_FALLBACK = new Set([
     "epub",
     "pdf",
@@ -29,6 +33,14 @@
   ]);
   let libraryReadableFormats = new Set(LIBRARY_READABLE_FALLBACK);
   const libFilterInput = document.getElementById("lib-filter");
+
+  function libOwnerQuery() {
+    return libraryBrowseOwner ? "?owner=" + encodeURIComponent(libraryBrowseOwner) : "";
+  }
+
+  function isSharedBrowse() {
+    return !!libraryBrowseOwner;
+  }
 
   function migrateLibraryViewPrefs() {
     const legacy = localStorage.getItem(LIB_VIEW_KEY);
@@ -407,7 +419,7 @@
   }
 
   async function downloadLibraryItem(item) {
-    const res = await fetch("/api/library/" + encodeURIComponent(item.id), {
+    const res = await fetch("/api/library/" + encodeURIComponent(item.id) + libOwnerQuery(), {
       headers: { ...(BP.state.authHeader ? { Authorization: BP.state.authHeader } : {}) },
     });
     if (res.status === 401) {
@@ -440,7 +452,7 @@
   async function coverUrlForItem(item) {
     if (!item.has_cover) return null;
     if (coverBlobUrls.has(item.id)) return coverBlobUrls.get(item.id);
-    const res = await fetch("/api/library/" + encodeURIComponent(item.id) + "/cover", {
+    const res = await fetch("/api/library/" + encodeURIComponent(item.id) + "/cover" + libOwnerQuery(), {
       headers: { ...CSRF, ...(BP.state.authHeader ? { Authorization: BP.state.authHeader } : {}) },
     });
     if (!res.ok) return null;
@@ -525,8 +537,29 @@
     });
   }
 
+  async function takeSharedItem(item) {
+    if (!libraryBrowseOwner) return;
+    try {
+      await BP.api(
+        "/api/library/shares/" +
+          encodeURIComponent(libraryBrowseOwner) +
+          "/items/" +
+          encodeURIComponent(item.id) +
+          "/take",
+        { method: "POST", body: "{}" }
+      );
+      BP.showAppToast("Kennel", "Added to your kennel — " + (item.title || item.filename), "ok");
+      const own = await BP.api("/api/library");
+      ownLibraryQuota = { used_bytes: own.used_bytes, quota_bytes: own.quota_bytes };
+      if (!isSharedBrowse()) updateLibraryQuota(own);
+    } catch (err) {
+      BP.showAppToast("Kennel", err.message || "Could not add book", "err");
+    }
+  }
+
   function attachLibraryCard(card, item, readable) {
     const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
+    const shared = isSharedBrowse();
     const dl = card.querySelector("a.dl");
     if (dl) {
       dl.href = "#";
@@ -539,6 +572,7 @@
     }
     const read = card.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
+  if (!shared) {
     card.querySelector(".del")?.addEventListener("click", async () => {
       if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
       await BP.tossLibraryItem(item.id);
@@ -550,6 +584,8 @@
     card.querySelector(".send")?.addEventListener("click", () =>
       openSendModal({ kind: "library", id: item.id, title: item.title || item.filename })
     );
+  }
+    card.querySelector(".take-shared")?.addEventListener("click", () => void takeSharedItem(item));
     const img = card.querySelector(".bp-lib-cover");
     if (img) {
       if (item.has_cover) {
@@ -567,11 +603,23 @@
     const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
     const canRead = readable.has(fmt);
     const staged = isStagedItem(item);
+    const shared = isSharedBrowse();
     const card = document.createElement("article");
     card.className = "bp-lib-card";
     if (item.id) card.dataset.libItemId = item.id;
     const meta = libraryMetaLine(item);
     const pub = item.pubdate ? BP.escapeHtml(String(item.pubdate)) + " · " : "";
+    const ownerActions = shared
+      ? ""
+      : (staged ? '<button type="button" class="bp-btn register">Tag</button> ' : "") +
+        (isRegisteredItem(item) ? '<button type="button" class="bp-btn edit-meta">Edit tags</button> ' : "") +
+        '<button type="button" class="bp-btn cover">Cover</button> ' +
+        '<button type="button" class="bp-btn send">Pass to pup…</button> ' +
+        '<button type="button" class="bp-btn del">Toss</button> ';
+    const takeBtn =
+      shared && libraryBrowseMode === "give"
+        ? '<button type="button" class="bp-btn take-shared">Add to my kennel</button> '
+        : "";
     card.innerHTML =
       '<div class="bp-lib-cover-wrap">' +
       '<img class="bp-lib-cover" alt="" width="120" height="160" loading="lazy" />' +
@@ -589,12 +637,9 @@
       "</p>" +
       '<div class="bp-lib-card-actions">' +
       (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
-      (staged ? '<button type="button" class="bp-btn register">Tag</button> ' : "") +
-      (isRegisteredItem(item) ? '<button type="button" class="bp-btn edit-meta">Edit tags</button> ' : "") +
-      '<button type="button" class="bp-btn cover">Cover</button> ' +
-      '<button type="button" class="bp-btn send">Pass to pup…</button> ' +
+      ownerActions +
+      takeBtn +
       '<a class="bp-btn dl" href="#">Grab file</a> ' +
-      '<button type="button" class="bp-btn del">Toss</button>' +
       "</div></div>";
     attachLibraryCard(card, item, readable);
     return card;
@@ -602,6 +647,7 @@
 
   function attachLibraryRow(tr, item, readable) {
     const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
+    const shared = isSharedBrowse();
     const read = tr.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
     const dl = tr.querySelector("a.dl");
@@ -614,16 +660,19 @@
         );
       });
     }
-    tr.querySelector(".del")?.addEventListener("click", async () => {
-      if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
-      await BP.tossLibraryItem(item.id);
-    });
-    tr.querySelector(".register")?.addEventListener("click", () => openRegisterModal(item));
-    tr.querySelector(".edit-meta")?.addEventListener("click", () => openEditMetadataModal(item));
-    tr.querySelector(".cover")?.addEventListener("click", () => openCoverModal(item));
-    tr.querySelector(".send")?.addEventListener("click", () =>
-      openSendModal({ kind: "library", id: item.id, title: item.title || item.filename })
-    );
+    if (!shared) {
+      tr.querySelector(".del")?.addEventListener("click", async () => {
+        if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
+        await BP.tossLibraryItem(item.id);
+      });
+      tr.querySelector(".register")?.addEventListener("click", () => openRegisterModal(item));
+      tr.querySelector(".edit-meta")?.addEventListener("click", () => openEditMetadataModal(item));
+      tr.querySelector(".cover")?.addEventListener("click", () => openCoverModal(item));
+      tr.querySelector(".send")?.addEventListener("click", () =>
+        openSendModal({ kind: "library", id: item.id, title: item.title || item.filename })
+      );
+    }
+    tr.querySelector(".take-shared")?.addEventListener("click", () => void takeSharedItem(item));
     const thumb = tr.querySelector(".bp-lib-list-cover");
     if (thumb && item.has_cover) {
       coverUrlForItem(item).then((url) => {
@@ -652,6 +701,18 @@
       if (series && item.series_index != null && item.series_index !== "") {
         series += " #" + item.series_index;
       }
+      const shared = isSharedBrowse();
+      const ownerCells = shared
+        ? ""
+        : (isStagedItem(item) ? '<button type="button" class="bp-btn register">Tag</button> ' : "") +
+          (isRegisteredItem(item) ? '<button type="button" class="bp-btn edit-meta">Edit tags</button> ' : "") +
+          '<button type="button" class="bp-btn cover">Cover</button> ' +
+          '<button type="button" class="bp-btn send">Pass to pup…</button> ' +
+          '<button type="button" class="bp-btn del">Toss</button> ';
+      const takeBtn =
+        shared && libraryBrowseMode === "give"
+          ? '<button type="button" class="bp-btn take-shared">Add to my kennel</button> '
+          : "";
       const tr = document.createElement("tr");
       tr.innerHTML =
         "<td class='bp-lib-td-cover'><img class='bp-lib-list-cover' alt='' width='40' height='56' loading='lazy' /></td>" +
@@ -678,12 +739,9 @@
         "</td>" +
         "<td class='bp-lib-td-actions'>" +
         (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
-        (isStagedItem(item) ? '<button type="button" class="bp-btn register">Tag</button> ' : "") +
-        (isRegisteredItem(item) ? '<button type="button" class="bp-btn edit-meta">Edit tags</button> ' : "") +
-        '<button type="button" class="bp-btn cover">Cover</button> ' +
-        '<button type="button" class="bp-btn send">Pass to pup…</button> ' +
+        ownerCells +
+        takeBtn +
         '<a class="bp-btn dl" href="#">Grab file</a> ' +
-        '<button type="button" class="bp-btn del">Toss</button>' +
         "</td>";
       attachLibraryRow(tr, item, readable);
       tbody.appendChild(tr);
@@ -756,8 +814,42 @@
     }
   }
 
+  function updateSharedBrowseChrome() {
+    const shared = isSharedBrowse();
+    const banner = document.getElementById("lib-browse-banner");
+    const exportBtn = document.getElementById("lib-export-btn");
+    const freshBtn = document.getElementById("fresh-upload-btn");
+    const calImp = document.getElementById("calibre-import-btn");
+    const koImp = document.getElementById("koreader-import-btn");
+    const dlHead = document.querySelector("#lib-section-downloads .bp-lib-section-head p");
+    const calHead = document.querySelector("#lib-section-calibre .bp-lib-section-head p");
+    if (banner) {
+      if (shared) {
+        const mode =
+          libraryBrowseMode === "give"
+            ? "give — you may copy books into your kennel"
+            : "lend — browse and read only";
+        banner.textContent = "Browsing " + libraryBrowseOwner + "'s kennel (" + mode + ").";
+        banner.classList.remove("hidden");
+      } else {
+        banner.classList.add("hidden");
+        banner.textContent = "";
+      }
+    }
+    if (exportBtn) exportBtn.classList.toggle("hidden", shared);
+    if (freshBtn) freshBtn.classList.toggle("hidden", shared);
+    if (calImp) calImp.classList.toggle("hidden", shared);
+    if (koImp) koImp.classList.toggle("hidden", shared);
+    if (dlHead) dlHead.classList.toggle("hidden", shared);
+    if (calHead && shared) calHead.textContent = "Their catalogued and fresh books — read-only.";
+    else if (calHead && !shared)
+      calHead.textContent =
+        "Registered books — synced to OPDS and KOReader wireless progress.";
+  }
+
   function renderLibrary() {
     const filterActive = !!(libFilterInput && libFilterInput.value.trim());
+    updateSharedBrowseChrome();
     document.getElementById("lib-usage").textContent =
       libraryUsageText || "Library";
     clearCoverUrls();
@@ -841,32 +933,91 @@
     });
   }
 
+  async function refreshLibraryShares() {
+    try {
+      librarySharesData = await BP.api("/api/library/shares");
+    } catch (_e) {
+      librarySharesData = { incoming: [], outgoing: [], browsing: [] };
+    }
+    syncBrowseSelect();
+    updateSharingBadge();
+    renderShareModalLists();
+  }
+
+  function syncBrowseSelect() {
+    const sel = document.getElementById("lib-browse-select");
+    if (!sel) return;
+    const prev = libraryBrowseOwner;
+    const browsing = librarySharesData.browsing || [];
+    sel.innerHTML =
+      '<option value="">My kennel</option>' +
+      browsing
+        .map((g) => {
+          const label = g.owner + " (" + (g.mode === "give" ? "give" : "lend") + ")";
+          return (
+            '<option value="' + BP.escapeHtml(g.owner) + '">' + BP.escapeHtml(label) + "</option>"
+          );
+        })
+        .join("");
+    if (prev && browsing.some((g) => g.owner === prev)) {
+      sel.value = prev;
+    } else if (prev && !browsing.some((g) => g.owner === prev)) {
+      libraryBrowseOwner = "";
+      libraryBrowseMode = null;
+      sel.value = "";
+    }
+    const hit = browsing.find((g) => g.owner === sel.value);
+    libraryBrowseMode = hit ? hit.mode : null;
+  }
+
+  function updateSharingBadge() {
+    const badge = document.getElementById("lib-sharing-badge");
+    if (!badge) return;
+    const pending = (librarySharesData.incoming || []).filter((g) => g.status === "pending").length;
+    badge.classList.toggle("hidden", pending < 1);
+    badge.textContent = pending > 9 ? "9+" : String(pending);
+  }
+
   async function loadLibrary() {
-    const lib = await BP.api("/api/library");
-    if (lib.pruned_ghosts > 0) {
+    await refreshLibraryShares();
+    const path = libraryBrowseOwner
+      ? "/api/library/shares/" + encodeURIComponent(libraryBrowseOwner) + "/catalog"
+      : "/api/library";
+    const lib = await BP.api(path);
+    if (!libraryBrowseOwner && lib.pruned_ghosts > 0) {
       BP.showAppToast?.(
         "Kennel",
         `Removed ${lib.pruned_ghosts} ghost ${lib.pruned_ghosts === 1 ? "entry" : "entries"} (file was gone).`,
         "info"
       );
     }
-    libraryUsageText = `Kennel ${BP.bytes(lib.used_bytes)} / ${BP.bytes(lib.quota_bytes)}`;
+    if (!libraryBrowseOwner) {
+      ownLibraryQuota = { used_bytes: lib.used_bytes, quota_bytes: lib.quota_bytes };
+      libraryUsageText = `Kennel ${BP.bytes(lib.used_bytes)} / ${BP.bytes(lib.quota_bytes)}`;
+      updateLibraryQuota(lib);
+    } else {
+      libraryUsageText = libraryBrowseOwner + "'s kennel";
+      updateLibraryQuota(ownLibraryQuota);
+      libraryBrowseMode = lib.share_mode || libraryBrowseMode;
+    }
     libraryItemsCache = lib.items || [];
     if (Array.isArray(lib.readable_formats) && lib.readable_formats.length) {
       libraryReadableFormats = new Set(lib.readable_formats);
     } else {
       libraryReadableFormats = new Set(LIBRARY_READABLE_FALLBACK);
     }
-    updateLibraryQuota(lib);
     updateLibraryBadge();
     renderLibrary();
   }
 
   async function openLibraryReader(item) {
     try {
+      const body = libraryBrowseOwner
+        ? JSON.stringify({ owner: libraryBrowseOwner })
+        : "{}";
       const meta = await BP.api("/api/library/" + encodeURIComponent(item.id) + "/view", {
         method: "POST",
-        body: "{}",
+        body,
       });
       if (window.BookPupReader) {
         await window.BookPupReader.open(meta, BP.state.authHeader);
@@ -1470,6 +1621,164 @@
         if (status) status.textContent = err.message || "Import failed";
       } finally {
         koreaderImportInput.value = "";
+      }
+    });
+  }
+
+  const shareModal = document.getElementById("lib-share-modal");
+  const shareIncomingEl = document.getElementById("lib-share-incoming");
+  const shareOutgoingEl = document.getElementById("lib-share-outgoing");
+  const shareGrantedEl = document.getElementById("lib-share-granted");
+  const shareRequestForm = document.getElementById("lib-share-request-form");
+  const shareRequestUser = document.getElementById("lib-share-request-user");
+  const shareRequestMsg = document.getElementById("lib-share-request-msg");
+
+  function shareRow(label, actions) {
+    const row = document.createElement("div");
+    row.className = "bp-share-row";
+    const meta = document.createElement("span");
+    meta.className = "bp-share-meta";
+    meta.textContent = label;
+    row.appendChild(meta);
+    actions.forEach((btn) => row.appendChild(btn));
+    return row;
+  }
+
+  function renderShareModalLists() {
+    if (!shareIncomingEl) return;
+    shareIncomingEl.innerHTML = "";
+    const pendingIn = (librarySharesData.incoming || []).filter((g) => g.status === "pending");
+    if (!pendingIn.length) {
+      shareIncomingEl.innerHTML = '<p class="bp-msg muted">No pending requests.</p>';
+    } else {
+      pendingIn.forEach((g) => {
+        const lend = document.createElement("button");
+        lend.type = "button";
+        lend.className = "bp-btn";
+        lend.textContent = "Lend";
+        lend.addEventListener("click", () => void respondShare(g.id, "accept", "lend"));
+        const give = document.createElement("button");
+        give.type = "button";
+        give.className = "bp-btn";
+        give.textContent = "Give";
+        give.addEventListener("click", () => void respondShare(g.id, "accept", "give"));
+        const decline = document.createElement("button");
+        decline.type = "button";
+        decline.className = "bp-btn";
+        decline.textContent = "Decline";
+        decline.addEventListener("click", () => void respondShare(g.id, "decline"));
+        shareIncomingEl.appendChild(
+          shareRow(g.requester + " wants to browse your kennel", [lend, give, decline])
+        );
+      });
+    }
+    shareOutgoingEl.innerHTML = "";
+    const pendingOut = (librarySharesData.outgoing || []).filter((g) => g.status === "pending");
+    if (!pendingOut.length) {
+      shareOutgoingEl.innerHTML = '<p class="bp-msg muted">No outgoing requests.</p>';
+    } else {
+      pendingOut.forEach((g) => {
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "bp-btn";
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", () => void cancelShareRequest(g.id));
+        shareOutgoingEl.appendChild(shareRow("Waiting on " + g.owner, [cancel]));
+      });
+    }
+    shareGrantedEl.innerHTML = "";
+    const granted = librarySharesData.granted || [];
+    if (!granted.length) {
+      shareGrantedEl.innerHTML = '<p class="bp-msg muted">You are not sharing your kennel.</p>';
+    } else {
+      granted.forEach((g) => {
+        const revoke = document.createElement("button");
+        revoke.type = "button";
+        revoke.className = "bp-btn";
+        revoke.textContent = "Revoke";
+        revoke.addEventListener("click", () => void respondShare(g.id, "revoke"));
+        const mode = g.mode === "give" ? "give" : "lend";
+        shareGrantedEl.appendChild(
+          shareRow(g.requester + " (" + mode + ")", [revoke])
+        );
+      });
+    }
+  }
+
+  async function respondShare(id, action, mode) {
+    try {
+      if (action === "accept") {
+        await BP.api("/api/library/shares/" + id + "/accept", {
+          method: "POST",
+          body: JSON.stringify({ mode }),
+        });
+      } else if (action === "decline") {
+        await BP.api("/api/library/shares/" + id + "/decline", { method: "POST", body: "{}" });
+      } else if (action === "revoke") {
+        await BP.api("/api/library/shares/" + id + "/revoke", { method: "POST", body: "{}" });
+      }
+      await loadLibrary();
+    } catch (err) {
+      BP.showAppToast("Sharing", err.message || "Request failed", "err");
+    }
+  }
+
+  async function cancelShareRequest(id) {
+    try {
+      await BP.api("/api/library/shares/" + id, { method: "DELETE" });
+      await loadLibrary();
+    } catch (err) {
+      BP.showAppToast("Sharing", err.message || "Could not cancel", "err");
+    }
+  }
+
+  async function openShareModal() {
+    const { users } = await BP.api("/api/users");
+    const me = BP.state.sessionUsername;
+    const choices = (users || []).filter((u) => u && u !== me);
+    if (shareRequestUser) {
+      shareRequestUser.innerHTML = choices
+        .map((u) => '<option value="' + BP.escapeHtml(u) + '">' + BP.escapeHtml(u) + "</option>")
+        .join("");
+    }
+    renderShareModalLists();
+    if (shareRequestMsg) shareRequestMsg.textContent = "";
+    shareModal?.classList.remove("hidden");
+  }
+
+  function closeShareModal() {
+    shareModal?.classList.add("hidden");
+  }
+
+  document.getElementById("lib-sharing-btn")?.addEventListener("click", () => void openShareModal());
+  document.getElementById("lib-share-modal-close")?.addEventListener("click", closeShareModal);
+  document.getElementById("lib-browse-select")?.addEventListener("change", (ev) => {
+    libraryBrowseOwner = ev.target.value || "";
+    const hit = (librarySharesData.browsing || []).find((g) => g.owner === libraryBrowseOwner);
+    libraryBrowseMode = hit ? hit.mode : null;
+    loadLibrary().catch((err) => BP.showAppToast("Kennel", err.message, "err"));
+  });
+  if (shareRequestForm) {
+    shareRequestForm.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const owner = shareRequestUser && shareRequestUser.value;
+      if (!owner) return;
+      if (shareRequestMsg) {
+        shareRequestMsg.textContent = "Sending…";
+        shareRequestMsg.className = "bp-msg muted";
+      }
+      try {
+        await BP.api("/api/library/shares/request", {
+          method: "POST",
+          body: JSON.stringify({ owner }),
+        });
+        if (shareRequestMsg) shareRequestMsg.textContent = "Request sent.";
+        await loadLibrary();
+      } catch (err) {
+        if (shareRequestMsg) {
+          shareRequestMsg.textContent = err.message;
+          shareRequestMsg.className = "bp-msg err";
+        }
       }
     });
   }

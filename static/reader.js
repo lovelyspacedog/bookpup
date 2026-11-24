@@ -37,6 +37,7 @@
   let activeItemId = null;
   let activeFormat = null;
   let activeAuthHeader = null;
+  let activeSharedOwner = null;
   let readingState = null;
   let saveTimer = null;
   let epubSpread = localStorage.getItem("bookpupEpubSpread") === "always" ? "always" : "none";
@@ -185,10 +186,17 @@
     return { ...CSRF, ...(authHeader ? { Authorization: authHeader } : {}) };
   }
 
+  function catalogOwnerQuery() {
+    return activeSharedOwner ? "?owner=" + encodeURIComponent(activeSharedOwner) : "";
+  }
+
   async function fetchReading(itemId, authHeader) {
-    const res = await fetch("/api/library/" + encodeURIComponent(itemId) + "/reading", {
+    const res = await fetch(
+      "/api/library/" + encodeURIComponent(itemId) + "/reading" + catalogOwnerQuery(),
+      {
       headers: authHeaders(authHeader),
-    });
+    }
+    );
     if (!res.ok) return { bookmarks: [], location: null };
     return res.json();
   }
@@ -229,7 +237,10 @@
       await fetch("/api/library/" + encodeURIComponent(activeItemId) + "/reading", {
         method: "POST",
         headers: { ...authHeaders(authHeader), "Content-Type": "application/json" },
-        body: JSON.stringify({ location: loc }),
+        body: JSON.stringify({
+          location: loc,
+          ...(activeSharedOwner ? { owner: activeSharedOwner } : {}),
+        }),
       });
     } catch (_e) {
       /* best effort */
@@ -307,7 +318,11 @@
   async function deleteBookmark(bookmarkId, authHeader) {
     if (!activeItemId) return;
     await fetch(
-      "/api/library/" + encodeURIComponent(activeItemId) + "/bookmarks/" + encodeURIComponent(bookmarkId),
+      "/api/library/" +
+        encodeURIComponent(activeItemId) +
+        "/bookmarks/" +
+        encodeURIComponent(bookmarkId) +
+        catalogOwnerQuery(),
       { method: "DELETE", headers: authHeaders(authHeader) }
     );
     readingState = await fetchReading(activeItemId, authHeader);
@@ -322,7 +337,11 @@
     const res = await fetch("/api/library/" + encodeURIComponent(activeItemId) + "/bookmarks", {
       method: "POST",
       headers: { ...authHeaders(authHeader), "Content-Type": "application/json" },
-      body: JSON.stringify({ label: label, location: loc }),
+      body: JSON.stringify({
+        label: label,
+        location: loc,
+        ...(activeSharedOwner ? { owner: activeSharedOwner } : {}),
+      }),
     });
     if (!res.ok) return;
     const data = await res.json();
@@ -398,6 +417,7 @@
     activeItemId = null;
     activeFormat = null;
     activeAuthHeader = null;
+    activeSharedOwner = null;
     readingState = null;
     clearComicDebugUi();
   }
@@ -837,6 +857,7 @@
     cleanup();
     activeAuthHeader = authHeader;
     activeItemId = meta.id || null;
+    activeSharedOwner = meta.owner || null;
     activeFormat = meta.format;
     if (activeItemId) {
       readingState = await fetchReading(activeItemId, authHeader);
@@ -1274,7 +1295,8 @@
             "/api/library/" +
             encodeURIComponent(meta.id) +
             "/comic/page/" +
-            ix;
+            ix +
+            catalogOwnerQuery();
           const res = await fetch(url, { headers: fetchHeaders(authHeader) });
           if (!res.ok) {
             let errMsg = "Could not load page";
