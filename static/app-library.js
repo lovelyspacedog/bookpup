@@ -251,6 +251,11 @@
     return out.filter((item) => libraryItemMatchesFilter(item, q));
   }
 
+  function deviceSendButton(item, shared) {
+    if (shared || !isRegisteredItem(item)) return "";
+    return '<button type="button" class="bp-btn device-send">Send to e-reader…</button> ';
+  }
+
   function offlineActionButton(item, shared) {
     if (shared || !BP.offlineBooks?.canKeepOffline(item)) return "";
     if (offlineIdSet.has(item.id)) {
@@ -289,6 +294,7 @@
   function wireOfflineActions(root, item) {
     root.querySelector(".keep-offline")?.addEventListener("click", () => void keepOfflineCopy(item));
     root.querySelector(".remove-offline")?.addEventListener("click", () => void removeOfflineCopy(item));
+    root.querySelector(".device-send")?.addEventListener("click", () => BP.openDeviceSendModal?.(item));
   }
 
   function clearCoverUrls() {
@@ -697,6 +703,7 @@
       BP.escapeHtml(BP.bytes(item.bytes || 0)) +
       "</p>" +
       '<div class="bp-lib-card-actions">' +
+      deviceSendButton(item, shared) +
       offlineActionButton(item, shared) +
       (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
       ownerActions +
@@ -801,6 +808,7 @@
         BP.escapeHtml(BP.bytes(item.bytes || 0)) +
         "</td>" +
         "<td class='bp-lib-td-actions'>" +
+        deviceSendButton(item, shared) +
         offlineActionButton(item, shared) +
         (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
         ownerCells +

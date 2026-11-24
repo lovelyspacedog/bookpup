@@ -185,6 +185,8 @@ window.BookPup = window.BookPup || {};
         /* channel picker is optional; don't drop admin session */
       }
       BP.state.sessionOpdsUrl = s.opds_catalog_url || s.opds_url || "";
+      BP.state.sessionKindleEmail = s.kindle_email || "";
+      BP.state.sessionKoreaderUrl = s.koreader_sync_url || "";
       BP.state.soulseekLimits = s.soulseek_limits || null;
     } catch {
       BP.state.sessionAdmin = false;

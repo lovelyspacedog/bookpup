@@ -4,8 +4,10 @@
   const COVER_MAX_BYTES = BP.COVER_MAX_BYTES;
   function loadAccountTab() {
     const userEl = document.getElementById("account-current-user");
+    const kindleEl = document.getElementById("account-kindle-email");
     const msg = document.getElementById("account-tab-msg");
     if (userEl) userEl.value = BP.state.sessionUsername || "";
+    if (kindleEl) kindleEl.value = BP.state.sessionKindleEmail || "";
     if (msg) {
       msg.textContent = "";
       msg.className = "bp-msg muted";
@@ -15,9 +17,9 @@
       if (BP.state.sessionOpdsUrl) {
         opdsEl.classList.remove("hidden");
         opdsEl.textContent =
-          "OPDS (catalogued bones only): " +
+          "OPDS catalog: " +
           BP.state.sessionOpdsUrl +
-          " — use your BookPup username and password.";
+          " — BookPup username and password.";
       } else {
         opdsEl.classList.add("hidden");
         opdsEl.textContent = "";
@@ -42,16 +44,20 @@
       ev.preventDefault();
       const msg = document.getElementById("account-tab-msg");
       try {
+        const kindleRaw = document.getElementById("account-kindle-email")?.value.trim() || "";
+        const body = {
+          current_password: document.getElementById("account-current-password").value,
+          new_username: document.getElementById("account-new-username").value.trim() || null,
+          new_password: document.getElementById("account-new-password").value || null,
+          kindle_email: kindleRaw || null,
+        };
         const data = await BP.api("/api/account", {
           method: "POST",
-          body: JSON.stringify({
-            current_password: document.getElementById("account-current-password").value,
-            new_username: document.getElementById("account-new-username").value.trim() || null,
-            new_password: document.getElementById("account-new-password").value || null,
-          }),
+          body: JSON.stringify(body),
         });
         BP.state.sessionUsername = data.username || BP.state.sessionUsername;
         BP.state.sessionAdmin = !!data.admin;
+        await BP.loadSession?.();
         const tab = document.getElementById("accounts-tab");
         const adminBlock = document.getElementById("accounts-admin-block");
         if (tab) tab.textContent = BP.state.sessionAdmin ? "Pack roster" : "Your tag";

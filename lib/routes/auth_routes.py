@@ -56,12 +56,15 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         current_pw = str(body.get("current_password") or "")
         new_name = str(body.get("new_username") or "").strip() or None
         new_pw = str(body.get("new_password") or "") or None
-        final = accounts.change_own_login(
-            handler._current_user,
-            current_password=current_pw,
-            new_username=new_name,
-            new_password=new_pw,
-        )
+        kwargs = {
+            "current_password": current_pw,
+            "new_username": new_name,
+            "new_password": new_pw,
+        }
+        if "kindle_email" in body:
+            raw = body.get("kindle_email")
+            kwargs["kindle_email"] = None if raw is None else str(raw).strip()
+        final = accounts.change_own_login(handler._current_user, **kwargs)
         header = handler.headers.get("Authorization") or ""
         token = header[7:].strip() if header.startswith("Bearer ") else ""
         if token:

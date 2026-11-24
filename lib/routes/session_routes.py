@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .. import irc_targets, quota, soulseek_limits, transfer
+from .. import accounts, irc_targets, quota, soulseek_limits, transfer
 from ..core import public_base_url
 from ._types import RequestHandler
 
@@ -25,6 +25,8 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
                 "irc_targets": irc_targets.list_targets(),
                 "opds_url": f"{base}/opds",
                 "opds_catalog_url": f"{base}/opds/catalog",
+                "koreader_sync_url": base,
+                "kindle_email": accounts.kindle_email_for(owner),
                 "soulseek_limits": soulseek_limits.limits_for_user(owner),
             },
         )

@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.11
+
+- **Kennel:** **Send to e-reader…** on catalogued bones — pick format (original or EPUB), get a one-time HTTPS download link for Kindle, KOReader, or sideload.
+- **UX:** **Your tag** — save Send-to-Kindle email; OPDS / KOReader / Kindle help in one **E-readers** panel.
+
 ## 1.4.10
 
 - **UX:** **What's new** — all **1.3.x** patch notes (**1.3.0**–**1.3.110**) rolled into one abridged **1.3** history block (same style as **Through 1.2.x**).

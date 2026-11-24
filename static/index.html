@@ -636,6 +636,13 @@
           <input id="account-current-password" type="password" required autocomplete="current-password" />
           <label for="account-new-password">New password (optional)</label>
           <input id="account-new-password" type="password" autocomplete="new-password" />
+          <label for="account-kindle-email">Send-to-Kindle email (optional)</label>
+          <input
+            id="account-kindle-email"
+            type="email"
+            autocomplete="off"
+            placeholder="name@kindle.com"
+          />
           <p id="account-opds" class="bp-msg muted hidden"></p>
           <label class="bp-check">
             <input type="checkbox" id="notify-dl-enable" />
@@ -662,10 +669,11 @@
             </p>
           </section>
           <details class="bp-koreader-setup" id="koreader-setup-panel">
-            <summary>KOReader setup (wireless + USB)</summary>
-            <p class="bp-msg muted">
-              Wireless: KOReader <strong>Progress sync</strong> → custom server — same URL, username, and password as this site (OPDS URL above).
-              USB: zip <code>Title.epub.sdr</code> from Kindle <code>documents/</code> (or <code>koreader/docsettings/</code>) and use <strong>Import KOReader</strong> in Kennel.
+            <summary>E-readers (OPDS, KOReader, Kindle)</summary>
+            <p class="bp-msg muted" id="account-ereader-summary">
+              <strong>OPDS</strong> — catalogued bones only; use your BookPup username and password.
+              <strong>KOReader</strong> — Progress sync → custom server at your BookPup URL (same login).
+              <strong>Kindle</strong> — on a catalogued bone use <strong>Send to e-reader…</strong> for a short download link; email it to your Send-to-Kindle address (save it above).
             </p>
           </details>
           <p id="account-tab-msg" class="bp-msg muted"></p>
@@ -904,6 +912,35 @@
         <div id="lib-share-granted" class="bp-share-list"></div>
       </div>
     </div>
+    <div id="device-send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2 id="device-send-modal-title">Send to e-reader</h2>
+        <button type="button" id="device-send-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="device-send-form" class="bp-card bp-register-form">
+        <p class="muted">Catalogued bone: <strong id="device-send-title"></strong></p>
+        <label for="device-send-format">Format</label>
+        <select id="device-send-format" name="format" required></select>
+        <p id="device-send-hint" class="bp-msg muted"></p>
+        <p class="bp-lib-actions">
+          <button type="submit" class="bp-btn primary">Create download link</button>
+          <button type="button" id="device-send-cancel" class="bp-btn">Cancel</button>
+        </p>
+        <label for="device-send-link">One-time link</label>
+        <div class="bp-lib-filter-input-row">
+          <input id="device-send-link" type="url" readonly />
+          <button type="button" id="device-send-copy" class="bp-btn">Copy</button>
+        </div>
+        <p id="device-send-msg" class="bp-msg muted"></p>
+        <div id="device-send-kindle-steps" class="hidden">
+          <p class="bp-msg muted">
+            <strong>Kindle:</strong> open your Send-to-Kindle inbox email, paste the link in the body or attach the file after download, or use Amazon&rsquo;s
+            <em>Send to Kindle</em> page with the downloaded file.
+            <strong>KOReader / OPDS:</strong> paste the link in the browser download, or use OPDS on <strong>Your tag</strong>.
+          </p>
+        </div>
+      </form>
+    </div>
     <div id="send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
       <header class="bp-register-head">
         <h2 id="send-modal-title">Pass to a pup</h2>
@@ -991,6 +1028,7 @@
     <script src="/static/app-search.js?v=__VERSION__" defer></script>
     <script src="/static/app-queue.js?v=__VERSION__" defer></script>
     <script src="/static/app-offline-store.js?v=__VERSION__" defer></script>
+    <script src="/static/app-device-send.js?v=__VERSION__" defer></script>
     <script src="/static/app-library.js?v=__VERSION__" defer></script>
     <script src="/static/app-ux.js?v=__VERSION__" defer></script>
     <script src="/static/app-pwa.js?v=__VERSION__" defer></script>

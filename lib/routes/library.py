@@ -18,7 +18,9 @@ from .. import (
 )
 from ..comic import comic_module
 from ..comic_errors import ComicReadError
+from .. import device_delivery, sideload_tokens
 from ..convert import prepare_view
+from ..core import public_base_url
 from ..import_session import create_session, finish_session, write_chunk
 from ..shared_library import (
     assert_own_catalog_only,
@@ -140,6 +142,28 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
                 handler.send_bytes(data, mime)
 
         _with_item_catalog(handler, qs, comic_route)
+        return True
+    if len(segments) == 4 and segments[3] == "sideload":
+        item_id = segments[2]
+        assert_own_catalog_only(shared, "send books to an e-reader from")
+
+        def sideload_formats() -> None:
+            row = library.get_item_row(item_id)
+            if not library.is_registered(row):
+                raise ValueError("Only catalogued bones can be sent to an e-reader")
+            library.item_path(item_id)
+            handler.send_json(
+                200,
+                {
+                    "ok": True,
+                    "item_id": item_id,
+                    "title": row.get("title") or row.get("filename"),
+                    "formats": device_delivery.delivery_options(item_id),
+                    "ttl_seconds": sideload_tokens.DEFAULT_TTL_SECONDS,
+                },
+            )
+
+        _with_item_catalog(handler, qs, sideload_formats)
         return True
     if len(segments) == 4 and segments[3] == "read":
         item_id = segments[2]
@@ -339,6 +363,33 @@ def route_upload_cover(handler: RequestHandler, path: str, length: int, content_
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     shared = owner_from_body(body)
     oq = url_query_owner(shared)
+    if path.startswith("/api/library/") and path.endswith("/sideload"):
+        item_id = path[len("/api/library/") : -len("/sideload")].strip("/")
+        if not item_id or "/" in item_id:
+            raise ValueError("Invalid library id")
+        assert_own_catalog_only(shared, "send books to an e-reader from")
+        row = library.get_item_row(item_id)
+        if not library.is_registered(row):
+            raise ValueError("Only catalogued bones can be sent to an e-reader")
+        library.item_path(item_id)
+        delivery = str(body.get("format") or "source").strip().lower()
+        tok = sideload_tokens.create_token(handler._current_user, item_id, delivery)
+        base = public_base_url(handler.config).rstrip("/")
+        download_url = f"{base}/api/sideload/{tok['token']}"
+        title = str(row.get("title") or row.get("filename") or "Book")
+        handler.send_json(
+            200,
+            {
+                "ok": True,
+                "item_id": item_id,
+                "title": title,
+                "format": delivery,
+                "download_url": download_url,
+                "expires_at": tok["expires"],
+                "expires_in_seconds": tok["expires_in_seconds"],
+            },
+        )
+        return True
     if path.startswith("/api/library/") and path.endswith("/view"):
         item_id = path[len("/api/library/") : -len("/view")]
         if not item_id or "/" in item_id:

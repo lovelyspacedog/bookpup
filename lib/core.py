@@ -8,7 +8,7 @@ import secrets
 import sys
 from pathlib import Path
 
-VERSION = "1.4.10"
+VERSION = "1.4.11"
 DEFAULT_PUBLIC_URL = "https://bookpup.tonypup.box.ca"
 CONFIG_DIR = Path.home() / ".config" / "bookpup"
 CONFIG_FILE = CONFIG_DIR / "config.json"

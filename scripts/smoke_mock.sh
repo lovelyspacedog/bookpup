@@ -5,4 +5,4 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export BOOKPUP_IRC_MOCK=1
 export BOOKPUP_XDCC_MOCK=1
-exec python3 -m unittest tests.test_smoke_api tests.test_server_public tests.test_auth -v
+exec python3 -m unittest tests.test_smoke_api tests.test_server_public tests.test_auth tests.test_sideload -v

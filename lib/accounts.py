@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import secrets
 import threading
 from pathlib import Path
@@ -21,6 +22,12 @@ _cache: dict | None = None
 _cache_mtime: float | None = None
 
 DEFAULT_USER_QUOTA = 2 * 1024 * 1024 * 1024
+_KINDLE_SUFFIXES = (
+    "@kindle.com",
+    "@free.kindle.com",
+    "@pbsns.net",
+    "@sendtokindle.com",
+)
 
 
 def _load_raw() -> dict:
@@ -160,6 +167,27 @@ def reload_accounts() -> None:
 def list_users() -> list[dict]:
     migrate_legacy()
     return list(_load_raw().get("users") or [])
+
+
+def normalize_kindle_email(raw: object) -> str | None:
+    if raw is None:
+        return None
+    email = str(raw).strip().lower()
+    if not email:
+        return None
+    if not re.match(r"^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$", email):
+        raise ValueError("Kindle email must look like name@kindle.com")
+    if not any(email.endswith(suffix) for suffix in _KINDLE_SUFFIXES):
+        raise ValueError("Use your Send-to-Kindle address (@kindle.com or @free.kindle.com)")
+    return email
+
+
+def kindle_email_for(username: str) -> str | None:
+    row = get_user(username)
+    if not row:
+        return None
+    val = str(row.get("kindle_email") or "").strip()
+    return val or None
 
 
 def get_user(username: str) -> dict | None:
@@ -353,6 +381,12 @@ def update_user(username: str, fields: dict) -> dict:
             if not others:
                 raise ValueError("Cannot remove the last admin")
         row["admin"] = want
+    if "kindle_email" in fields:
+        raw = fields.get("kindle_email")
+        if raw is None or str(raw).strip() == "":
+            row.pop("kindle_email", None)
+        else:
+            row["kindle_email"] = normalize_kindle_email(raw)
     users[idx] = row
     data["users"] = users
     _save(data)
@@ -365,20 +399,27 @@ def change_own_login(
     current_password: str,
     new_username: str | None = None,
     new_password: str | None = None,
+    kindle_email: object = ...,
 ) -> str:
-    """Verify current password; apply optional username/password change. Returns final username."""
+    """Verify current password; apply profile changes. Returns final username."""
     name = str(username or "").strip()
     if not verify_password(name, str(current_password or "")):
         raise PermissionError("Current password is incorrect")
     new_name = str(new_username or "").strip() if new_username else ""
     new_pw = str(new_password or "") if new_password else ""
-    if not new_name and not new_pw:
-        raise ValueError("Provide a new username and/or new password")
+    has_kindle = kindle_email is not ...
+    if not new_name and not new_pw and not has_kindle:
+        raise ValueError("Provide a change to save")
     fields: dict = {}
     if new_pw:
         fields["password"] = new_pw
     if new_name and new_name != name:
         fields["new_username"] = new_name
+    if has_kindle:
+        if kindle_email is None or str(kindle_email).strip() == "":
+            fields["kindle_email"] = None
+        else:
+            fields["kindle_email"] = normalize_kindle_email(kindle_email)
     update_user(name, fields)
     return new_name if new_name and new_name != name else name
 

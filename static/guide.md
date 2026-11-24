@@ -91,10 +91,12 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - Pack chat gets a **BookPup** note when someone requests access.
 - **Pass to pup…** on a catalogued book sends a copy to someone else’s kennel.
 
-## Page 11 — Calibre & KOReader
+## Page 11 — Calibre, e-readers & KOReader
 
 - **Import Calibre** and **Import KOReader** on **Kennel** bring existing libraries in bulk (secondary path if you already use those apps).
-- **KOReader sync** (device): on the e-reader, set **Progress sync** to a custom server. Use your BookPup website address and the **same** username/password as this site. Only **Catalogued bones** sync — tag books before syncing. BookPup matches by file fingerprint.
+- **Send to e-reader…** (catalogued bones only): choose **original** or **EPUB** (converted when needed), then **Create download link**. Copy the one-time URL — it expires in about an hour. Use it to download on your device, or email the file to your Send-to-Kindle address (**Your tag** → Send-to-Kindle email).
+- **OPDS:** URL on **Your tag** — username and password match this site; catalogued bones only.
+- **KOReader sync** (device): **Progress sync** → custom server at your BookPup URL — same username/password. Only **Catalogued bones** sync — tag books first. BookPup matches by file fingerprint.
 
 ## Page 12 — Pack chat, account & habits
 

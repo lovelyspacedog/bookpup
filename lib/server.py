@@ -189,6 +189,13 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self.dispatch(lambda: public_routes.route_public_health(self))
             return
+        if path.startswith("/api/sideload/"):
+            token = path[len("/api/sideload/") :].strip("/")
+            if token and "/" not in token:
+                from .routes import sideload as sideload_routes
+
+                self.dispatch(lambda: sideload_routes.route_public_download(self, token))
+                return
         if opds_path(path):
             self.dispatch(lambda: opds_routes.route_opds_get(self, path))
             return
