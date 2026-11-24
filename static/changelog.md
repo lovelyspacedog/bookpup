@@ -4,6 +4,11 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.63
+
+- **UX:** **Pack chat** private messages — click a pup (or **BookPup**) in the sidebar; **Pack** pill returns to the group channel.
+- **Sniff:** **Scheduled sniff** new-row alerts go to the bookmark owner’s **BookPup** PM instead of household ntfy (download ntfy unchanged).
+
 ## 1.3.62
 
 - **UX:** **Pack chat** tab — household group chat with who’s online; delete your own messages; admins can remove any message or clear the thread (not IRC **Den chatter**).

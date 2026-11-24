@@ -74,6 +74,51 @@ class PackChatStoreTest(unittest.TestCase):
         snap = pack_chat.snapshot(after=0)
         self.assertEqual(len(snap["messages"]), 1)
 
+    @mock.patch("lib.pack_chat.transfer._validate_recipient")
+    def test_dm_visible_only_to_parties(self, mock_val: mock.MagicMock) -> None:
+        mock_val.return_value = None
+        pack_chat.append_message("alice", "secret", to="bob")
+        pack_chat.append_message("alice", "hi all")
+        bob = pack_chat.snapshot(after=0, viewer="bob")
+        self.assertEqual(len(bob["messages"]), 2)
+        carol = pack_chat.snapshot(after=0, viewer="carol")
+        self.assertEqual(len(carol["messages"]), 1)
+        self.assertEqual(carol["messages"][0]["text"], "hi all")
+
+    def test_self_dm_rejected(self) -> None:
+        with self.assertRaises(ValueError):
+            pack_chat.append_message("alice", "nope", to="alice")
+
+    @mock.patch("lib.pack_chat.accounts.get_user", return_value={"username": "bob", "enabled": True})
+    def test_system_dm_visible_to_recipient(self, _mock_user: mock.MagicMock) -> None:
+        pack_chat.append_system_dm("bob", "sniff alert", kind="scheduled_sniff")
+        bob = pack_chat.snapshot(after=0, viewer="bob")
+        self.assertEqual(len(bob["messages"]), 1)
+        self.assertEqual(bob["messages"][0]["username"], pack_chat.SYSTEM_SENDER)
+        alice = pack_chat.snapshot(after=0, viewer="alice")
+        self.assertEqual(alice["messages"], [])
+
+    @mock.patch("lib.pack_chat.transfer._validate_recipient")
+    def test_recipient_can_delete_system_dm(self, mock_val: mock.MagicMock) -> None:
+        mock_val.return_value = None
+        with mock.patch(
+            "lib.pack_chat.accounts.get_user",
+            return_value={"username": "bob", "enabled": True},
+        ):
+            mid = pack_chat.append_system_dm("bob", "alert")
+        pack_chat.delete_message(mid, "bob", is_admin=False)
+
+    @mock.patch("lib.pack_chat.transfer._validate_recipient")
+    def test_clear_pack_only(self, mock_val: mock.MagicMock) -> None:
+        mock_val.return_value = None
+        pack_chat.append_message("alice", "pack line")
+        pack_chat.append_message("alice", "dm", to="bob")
+        ids = pack_chat.clear_messages()
+        self.assertEqual(len(ids), 1)
+        snap = pack_chat.snapshot(after=0, viewer="bob")
+        self.assertEqual(len(snap["messages"]), 1)
+        self.assertEqual(snap["messages"][0]["text"], "dm")
+
 
 if __name__ == "__main__":
     unittest.main()

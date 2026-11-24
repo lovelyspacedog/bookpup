@@ -8,6 +8,7 @@ import threading
 import time
 from typing import Any
 
+from . import accounts
 from . import core
 from . import json_atomic
 from . import transfer
@@ -17,6 +18,7 @@ MAX_MESSAGES = 500
 MAX_DELETIONS_LOG = 200
 PRESENCE_TTL_SECONDS = 90
 MESSAGE_MAX_LEN = 2000
+SYSTEM_SENDER = "bookpup"
 
 _CTRL_RE = re.compile(r"[\x00-\x09\x0b-\x1f\x7f]")
 
@@ -32,6 +34,43 @@ _presence: dict[str, float] = {}
 def sanitize_message(text: str) -> str:
     text = _CTRL_RE.sub("", str(text or ""))
     return text.strip()
+
+
+def _message_recipient(row: dict[str, Any]) -> str | None:
+    dest = row.get("to")
+    if dest is None:
+        return None
+    cleaned = str(dest).strip()
+    return cleaned or None
+
+
+def is_pack_message(row: dict[str, Any]) -> bool:
+    return _message_recipient(row) is None
+
+
+def visible_to(row: dict[str, Any], viewer: str, *, is_admin: bool = False) -> bool:
+    who = str(viewer or "").strip()
+    if not who:
+        return False
+    if is_pack_message(row):
+        return True
+    sender = str(row.get("username") or "").strip()
+    dest = _message_recipient(row) or ""
+    if who == sender or who == dest:
+        return True
+    return bool(is_admin)
+
+
+def _validate_dm_recipient(from_user: str, to_user: str) -> str:
+    transfer._validate_recipient(from_user, to_user)
+    return str(to_user).strip()
+
+
+def _row_out(row: dict[str, Any]) -> dict[str, Any]:
+    out = dict(row)
+    if _message_recipient(row) is None:
+        out.pop("to", None)
+    return out
 
 
 def _trim_messages_unlocked() -> None:
@@ -70,9 +109,21 @@ def _load_unlocked() -> None:
                         ts = float(row.get("ts") or 0)
                         if mid < 1 or not user or not text:
                             continue
-                        _messages.append(
-                            {"id": mid, "username": user, "text": text, "ts": ts}
-                        )
+                        msg: dict[str, Any] = {
+                            "id": mid,
+                            "username": user,
+                            "text": text,
+                            "ts": ts,
+                        }
+                        dest = row.get("to")
+                        if dest is not None:
+                            dest_s = str(dest).strip()
+                            if dest_s:
+                                msg["to"] = dest_s
+                        kind = row.get("kind")
+                        if kind:
+                            msg["kind"] = str(kind)
+                        _messages.append(msg)
                 _next_id = max(_next_id, int(raw.get("next_id") or 1))
                 if _messages:
                     _next_id = max(_next_id, max(int(m["id"]) for m in _messages) + 1)
@@ -147,22 +198,63 @@ def _presence_list_unlocked() -> list[dict[str, Any]]:
     return out
 
 
-def append_message(username: str, text: str) -> int:
+def append_message(username: str, text: str, *, to: str | None = None) -> int:
     user = str(username or "").strip()
     if not user:
         raise ValueError("Username required")
+    if user == SYSTEM_SENDER:
+        raise PermissionError("Forbidden")
     clean = sanitize_message(text)
     if not clean:
         raise ValueError("Message required")
     if len(clean) > MESSAGE_MAX_LEN:
         raise ValueError(f"Message too long (max {MESSAGE_MAX_LEN} characters)")
+    dest: str | None = None
+    if to is not None and str(to).strip():
+        dest = _validate_dm_recipient(user, str(to).strip())
     _ensure_loaded()
     now = time.time()
     global _next_id
     with _lock:
         mid = _next_id
         _next_id += 1
-        _messages.append({"id": mid, "username": user, "text": clean, "ts": now})
+        row: dict[str, Any] = {"id": mid, "username": user, "text": clean, "ts": now}
+        if dest:
+            row["to"] = dest
+        _messages.append(row)
+        _trim_messages_unlocked()
+        _persist_unlocked()
+        return mid
+
+
+def append_system_dm(to_user: str, text: str, *, kind: str = "scheduled_sniff") -> int:
+    dest = str(to_user or "").strip()
+    if not dest:
+        raise ValueError("Recipient required")
+    row = accounts.get_user(dest)
+    if not row or not row.get("enabled", True):
+        raise ValueError("Unknown user")
+    clean = sanitize_message(text)
+    if not clean:
+        raise ValueError("Message required")
+    if len(clean) > MESSAGE_MAX_LEN:
+        clean = clean[:MESSAGE_MAX_LEN]
+    _ensure_loaded()
+    now = time.time()
+    global _next_id
+    with _lock:
+        mid = _next_id
+        _next_id += 1
+        _messages.append(
+            {
+                "id": mid,
+                "username": SYSTEM_SENDER,
+                "to": dest,
+                "text": clean,
+                "ts": now,
+                "kind": str(kind or "system"),
+            }
+        )
         _trim_messages_unlocked()
         _persist_unlocked()
         return mid
@@ -178,8 +270,15 @@ def delete_message(message_id: int, actor: str, *, is_admin: bool) -> None:
         if idx is None:
             raise KeyError(str(message_id))
         row = _messages[idx]
-        owner = str(row.get("username") or "").strip()
-        if owner != who and not is_admin:
+        sender = str(row.get("username") or "").strip()
+        dest = _message_recipient(row)
+        if sender == SYSTEM_SENDER:
+            allowed = is_admin or who == dest
+        elif dest:
+            allowed = is_admin or who == sender
+        else:
+            allowed = is_admin or who == sender
+        if not allowed:
             raise PermissionError("Forbidden")
         global _del_seq
         _del_seq += 1
@@ -193,20 +292,63 @@ def delete_message(message_id: int, actor: str, *, is_admin: bool) -> None:
 
 
 def clear_messages() -> list[int]:
-    """Remove all messages (admin). Returns deleted message ids."""
+    """Remove pack-channel messages only (admin). Returns deleted message ids."""
     _ensure_loaded()
     with _lock:
-        ids = [int(m["id"]) for m in _messages]
+        pack_rows = [m for m in _messages if is_pack_message(m)]
+        ids = [int(m["id"]) for m in pack_rows]
         global _del_seq
         now = time.time()
         for mid in ids:
             _del_seq += 1
             _deletions.append({"del_seq": _del_seq, "message_id": mid, "ts": now})
-        _messages.clear()
+        _messages[:] = [m for m in _messages if not is_pack_message(m)]
         if len(_deletions) > MAX_DELETIONS_LOG:
             _deletions[:] = _deletions[-MAX_DELETIONS_LOG:]
         _persist_unlocked()
         return ids
+
+
+def _list_dm_peers_unlocked(viewer: str, *, is_admin: bool = False) -> list[dict[str, Any]]:
+    who = str(viewer or "").strip()
+    if not who:
+        return []
+    by_peer: dict[str, dict[str, Any]] = {}
+    for row in _messages:
+            if not visible_to(row, who, is_admin=is_admin) or is_pack_message(row):
+                continue
+            sender = str(row.get("username") or "").strip()
+            dest = _message_recipient(row) or ""
+            if sender == SYSTEM_SENDER:
+                if who != dest:
+                    continue
+                peer = SYSTEM_SENDER
+            elif sender == who:
+                peer = dest
+            elif dest == who:
+                peer = sender
+            else:
+                continue
+            if not peer or peer == who:
+                continue
+            ts = float(row.get("ts") or 0)
+            prev = by_peer.get(peer)
+            system = sender == SYSTEM_SENDER
+            if prev is None or ts >= float(prev.get("last_ts") or 0):
+                by_peer[peer] = {
+                    "username": peer,
+                    "last_ts": ts,
+                    "system": system or bool(prev and prev.get("system")),
+                }
+            elif system:
+                by_peer[peer]["system"] = True
+    return sorted(by_peer.values(), key=lambda r: float(r.get("last_ts") or 0), reverse=True)
+
+
+def list_dm_peers(viewer: str, *, is_admin: bool = False) -> list[dict[str, Any]]:
+    _ensure_loaded()
+    with _lock:
+        return _list_dm_peers_unlocked(viewer, is_admin=is_admin)
 
 
 def snapshot(
@@ -214,21 +356,30 @@ def snapshot(
     del_after: int = 0,
     *,
     touch_user: str | None = None,
+    viewer: str | None = None,
+    is_admin: bool = False,
 ) -> dict[str, Any]:
     _ensure_loaded()
     if touch_user:
         touch_presence(touch_user)
+    who = str(viewer or touch_user or "").strip()
     with _lock:
-        msgs = [dict(m) for m in _messages if int(m["id"]) > int(after)]
+        msgs = [
+            _row_out(m)
+            for m in _messages
+            if int(m["id"]) > int(after) and (not who or visible_to(m, who, is_admin=is_admin))
+        ]
         removed = [
             int(d["message_id"])
             for d in _deletions
             if int(d["del_seq"]) > int(del_after)
         ]
+        peers = _list_dm_peers_unlocked(who, is_admin=is_admin) if who else []
         return {
             "messages": msgs,
             "latest_id": _latest_message_id_unlocked(),
             "removed": removed,
             "latest_del_seq": _del_seq,
             "presence": _presence_list_unlocked(),
+            "peers": peers,
         }

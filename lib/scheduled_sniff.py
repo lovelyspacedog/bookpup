@@ -113,7 +113,7 @@ class ScheduleRunner:
             }
             search_workspace.patch_saved_schedule(username, saved_id, patch)
             if new_rows:
-                notify.maybe_sniff_watch_new(
+                notify.sniff_watch_pm(
                     owner=username,
                     watch_name=str(watch.get("name") or "bookmark"),
                     query=str(watch.get("query") or ""),

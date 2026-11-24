@@ -2983,6 +2983,20 @@ tr.bp-sniff-pick td {
   font-size: 0.9rem;
 }
 
+.bp-pack-presence-item--clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0.15rem 0.25rem;
+}
+
+.bp-pack-presence-item--clickable:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bp-pack-presence-dot--sys {
+  background: var(--bp-accent, #6a8cff);
+}
+
 .bp-pack-presence-dot {
   width: 0.5rem;
   height: 0.5rem;
@@ -3002,6 +3016,27 @@ tr.bp-sniff-pick td {
   min-height: 14rem;
   max-height: min(50vh, 28rem);
   margin-bottom: 0.75rem;
+}
+
+.bp-pack-chat-mode {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.bp-pack-chat-mode-btn.active {
+  font-weight: 600;
+}
+
+.bp-pack-chat-mode-label {
+  font-size: 0.9rem;
+}
+
+.bp-pack-chat-line--sys {
+  opacity: 0.95;
+  font-style: normal;
 }
 
 .bp-pack-chat-compose {

@@ -2,6 +2,7 @@
   "use strict";
 
   const POLL_MS = 2000;
+  const SYSTEM_USER = "bookpup";
   const feedEl = document.getElementById("pack-chat-feed");
   const presenceEl = document.getElementById("pack-presence-list");
   const inputEl = document.getElementById("pack-chat-input");
@@ -9,6 +10,8 @@
   const sendBtn = document.getElementById("pack-chat-send");
   const clearBtn = document.getElementById("pack-chat-clear");
   const badgeEl = document.getElementById("pack-tab-badge");
+  const modePackBtn = document.getElementById("pack-chat-mode-pack");
+  const modeLabelEl = document.getElementById("pack-chat-mode-label");
 
   if (!BP.state.packChatAfterId) BP.state.packChatAfterId = 0;
   if (!BP.state.packChatDelAfter) BP.state.packChatDelAfter = 0;
@@ -16,16 +19,25 @@
   if (BP.state.packChatUnread == null) BP.state.packChatUnread = 0;
   if (BP.state.packChatTabActive == null) BP.state.packChatTabActive = false;
   if (BP.state.packChatBootstrapped == null) BP.state.packChatBootstrapped = false;
+  if (BP.state.packChatMode == null) BP.state.packChatMode = "pack";
+  if (BP.state.packChatDmPeer == null) BP.state.packChatDmPeer = "";
 
-  function formatTs(ts) {
-    const d = new Date((Number(ts) || 0) * 1000);
-    if (Number.isNaN(d.getTime())) return "";
-    return d.toLocaleString(undefined, {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+  function dmPeer(msg) {
+    return msg && msg.to != null && String(msg.to).trim() !== "";
+  }
+
+  function messageInCurrentThread(msg) {
+    const me = BP.state.sessionUsername || "";
+    if (!msg) return false;
+    if (BP.state.packChatMode === "pack") return !dmPeer(msg);
+    const peer = BP.state.packChatDmPeer || "";
+    if (!peer) return false;
+    if (peer === SYSTEM_USER) {
+      return String(msg.username) === SYSTEM_USER && String(msg.to) === me;
+    }
+    const from = String(msg.username);
+    const to = String(msg.to || "");
+    return (from === me && to === peer) || (from === peer && to === me);
   }
 
   function syncPackBadge() {
@@ -38,8 +50,11 @@
   function canDeleteMessage(msg) {
     const me = BP.state.sessionUsername || "";
     if (!me || !msg) return false;
-    if (String(msg.username) === me) return true;
-    return !!BP.state.sessionAdmin;
+    if (BP.state.sessionAdmin) return true;
+    const from = String(msg.username);
+    if (from === me) return true;
+    if (from === SYSTEM_USER && String(msg.to) === me) return true;
+    return false;
   }
 
   function removeMessageDom(id) {
@@ -49,50 +64,112 @@
     node?.remove();
   }
 
-  function renderMessageDom(msg) {
+  function renderMessageRow(msg) {
     if (!feedEl || !msg) return;
     const id = Number(msg.id);
-    if (!id) return;
+    if (!id || !messageInCurrentThread(msg)) {
+      const existing = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
+      existing?.remove();
+      return;
+    }
+    BP.state.packChatById[id] = msg;
     let row = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
     if (!row) {
       row = document.createElement("div");
-      row.className = "bp-irc-line bp-pack-chat-line";
       row.setAttribute("data-pack-msg-id", String(id));
       feedEl.appendChild(row);
     }
-    const who = String(msg.username || "?");
+    const from = String(msg.username || "?");
+    row.className =
+      "bp-irc-line bp-pack-chat-line" + (from === SYSTEM_USER ? " bp-pack-chat-line--sys" : "");
     const delBtn = canDeleteMessage(msg)
       ? '<button type="button" class="bp-btn bp-btn--ghost bp-pack-chat-delete" data-pack-delete="' +
         id +
         '" aria-label="Delete message">Remove</button>'
       : "";
+    const whoLabel = from === SYSTEM_USER ? "BookPup" : from;
     row.innerHTML =
       '<span class="bp-irc-meta">' +
       BP.escapeHtml(formatTs(msg.ts)) +
       "</span> " +
       "<strong>" +
-      BP.escapeHtml(who) +
+      BP.escapeHtml(whoLabel) +
       "</strong>: " +
       BP.escapeHtml(String(msg.text || "")) +
       " " +
       delBtn;
-    BP.state.packChatById[id] = msg;
   }
 
   function rerenderPackFeed() {
     if (!feedEl) return;
     feedEl.innerHTML = "";
     const rows = Object.values(BP.state.packChatById).sort((a, b) => Number(a.id) - Number(b.id));
-    rows.forEach((m) => renderMessageDom(m));
+    rows.forEach((m) => renderMessageRow(m));
     feedEl.scrollTop = feedEl.scrollHeight;
+  }
+
+  function formatTs(ts) {
+    const d = new Date((Number(ts) || 0) * 1000);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function syncModeUi() {
+    if (modePackBtn) {
+      modePackBtn.classList.toggle("active", BP.state.packChatMode === "pack");
+      modePackBtn.setAttribute("aria-pressed", BP.state.packChatMode === "pack" ? "true" : "false");
+    }
+    if (modeLabelEl) {
+      modeLabelEl.textContent =
+        BP.state.packChatMode === "pack"
+          ? "Pack channel"
+          : "PM: " + (BP.state.packChatDmPeer === SYSTEM_USER ? "BookPup" : BP.state.packChatDmPeer);
+    }
+    if (inputEl) {
+      inputEl.placeholder =
+        BP.state.packChatMode === "pack"
+          ? "Message the pack…"
+          : "Private message to " + BP.state.packChatDmPeer + "…";
+    }
+    if (clearBtn) {
+      clearBtn.classList.toggle("hidden", BP.state.packChatMode !== "pack" || !BP.state.sessionAdmin);
+    }
+    rerenderPackFeed();
+  }
+
+  function setPackMode() {
+    BP.state.packChatMode = "pack";
+    BP.state.packChatDmPeer = "";
+    syncModeUi();
+  }
+
+  function setDmMode(peer) {
+    const me = BP.state.sessionUsername || "";
+    const dest = String(peer || "").trim();
+    if (!dest || dest === me) return;
+    BP.state.packChatMode = "dm";
+    BP.state.packChatDmPeer = dest;
+    syncModeUi();
   }
 
   function renderPresence(list) {
     if (!presenceEl) return;
+    const me = BP.state.sessionUsername || "";
     presenceEl.innerHTML = "";
     (list || []).forEach((row) => {
       const li = document.createElement("li");
       li.className = "bp-pack-presence-item";
+      if (row.username && row.username !== me) {
+        li.classList.add("bp-pack-presence-item--clickable");
+        li.setAttribute("role", "button");
+        li.tabIndex = 0;
+        li.setAttribute("data-pack-dm-peer", row.username);
+      }
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot" + (row.online ? " bp-pack-presence-dot--on" : "");
       dot.setAttribute("aria-hidden", "true");
@@ -106,10 +183,55 @@
       li.appendChild(stat);
       presenceEl.appendChild(li);
     });
+    (BP.state.packChatPeers || []).forEach((peerRow) => {
+      const name = String(peerRow.username || "");
+      if (!name || name === me || name === SYSTEM_USER) return;
+      if (presenceEl.querySelector('[data-pack-dm-peer="' + CSS.escape(name) + '"]')) return;
+      const li = document.createElement("li");
+      li.className = "bp-pack-presence-item bp-pack-presence-item--clickable";
+      li.setAttribute("role", "button");
+      li.tabIndex = 0;
+      li.setAttribute("data-pack-dm-peer", name);
+      const dot = document.createElement("span");
+      dot.className = "bp-pack-presence-dot";
+      dot.setAttribute("aria-hidden", "true");
+      const label = document.createElement("span");
+      label.textContent = name;
+      const stat = document.createElement("span");
+      stat.className = "muted bp-pack-presence-stat";
+      stat.textContent = "PM";
+      li.appendChild(dot);
+      li.appendChild(label);
+      li.appendChild(stat);
+      presenceEl.appendChild(li);
+    });
+    const bookpupPeer = (BP.state.packChatPeers || []).some((p) => p.username === SYSTEM_USER);
+    const hasBookpupMsg = Object.values(BP.state.packChatById).some(
+      (m) => String(m.username) === SYSTEM_USER && String(m.to) === me
+    );
+    if ((bookpupPeer || hasBookpupMsg) && !presenceEl.querySelector('[data-pack-dm-peer="bookpup"]')) {
+      const li = document.createElement("li");
+      li.className = "bp-pack-presence-item bp-pack-presence-item--clickable";
+      li.setAttribute("role", "button");
+      li.tabIndex = 0;
+      li.setAttribute("data-pack-dm-peer", SYSTEM_USER);
+      const dot = document.createElement("span");
+      dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
+      dot.setAttribute("aria-hidden", "true");
+      const label = document.createElement("span");
+      label.textContent = "BookPup";
+      const stat = document.createElement("span");
+      stat.className = "muted bp-pack-presence-stat";
+      stat.textContent = "Alerts";
+      li.appendChild(dot);
+      li.appendChild(label);
+      li.appendChild(stat);
+      presenceEl.appendChild(li);
+    }
   }
 
   function bumpUnread(fromMsg) {
-    if (BP.state.packChatTabActive) return;
+    if (BP.state.packChatTabActive && messageInCurrentThread(fromMsg)) return;
     const me = BP.state.sessionUsername || "";
     if (fromMsg && String(fromMsg.username) === me) return;
     BP.state.packChatUnread = (BP.state.packChatUnread || 0) + 1;
@@ -135,16 +257,16 @@
         BP.state.packChatDelAfter = Number(data.latest_del_seq);
       }
       (data.messages || []).forEach((msg) => {
-        renderMessageDom(msg);
+        BP.state.packChatById[Number(msg.id)] = msg;
         if (Number(msg.id) > BP.state.packChatAfterId) BP.state.packChatAfterId = Number(msg.id);
-        if (wasBootstrapped && !BP.state.packChatTabActive) bumpUnread(msg);
+        if (wasBootstrapped) bumpUnread(msg);
         changed = true;
       });
       if (Number(data.latest_id) > BP.state.packChatAfterId) BP.state.packChatAfterId = Number(data.latest_id);
+      if (data.peers) BP.state.packChatPeers = data.peers;
       if (data.presence) renderPresence(data.presence);
-      if (changed && BP.state.packChatTabActive && feedEl) {
-        feedEl.scrollTop = feedEl.scrollHeight;
-      }
+      else if (data.peers) renderPresence([]);
+      if (changed) rerenderPackFeed();
       BP.state.packChatBootstrapped = true;
     } catch {
       /* ignore between polls */
@@ -155,6 +277,16 @@
     if (!inputEl) return;
     const text = inputEl.value.trim();
     if (!text) return;
+    const body = { message: text };
+    if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer && BP.state.packChatDmPeer !== SYSTEM_USER) {
+      body.to = BP.state.packChatDmPeer;
+    } else if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer === SYSTEM_USER) {
+      if (hintEl) {
+        hintEl.textContent = "BookPup alerts are read-only.";
+        hintEl.className = "bp-msg err";
+      }
+      return;
+    }
     if (hintEl) {
       hintEl.textContent = "Sending…";
       hintEl.className = "bp-msg muted";
@@ -162,7 +294,7 @@
     try {
       await BP.api("/api/pack/chat", {
         method: "POST",
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify(body),
       });
       inputEl.value = "";
       if (hintEl) {
@@ -181,8 +313,8 @@
   async function deletePackMessage(id) {
     const msg = BP.state.packChatById[id];
     const me = BP.state.sessionUsername || "";
-    if (msg && String(msg.username) !== me && BP.state.sessionAdmin) {
-      if (!window.confirm("Remove this message for the whole pack?")) return;
+    if (msg && String(msg.username) !== me && String(msg.username) !== SYSTEM_USER && BP.state.sessionAdmin) {
+      if (!window.confirm("Remove this message?")) return;
     }
     try {
       await BP.api("/api/pack/chat/" + encodeURIComponent(String(id)), { method: "DELETE" });
@@ -193,12 +325,13 @@
   }
 
   async function clearPackChat() {
-    if (!window.confirm("Clear all pack chat messages for everyone?")) return;
+    if (!window.confirm("Clear all pack channel messages? Private messages are kept.")) return;
     try {
       await BP.api("/api/pack/chat/clear", { method: "POST", body: "{}" });
-      BP.state.packChatById = {};
-      BP.state.packChatAfterId = 0;
-      if (feedEl) feedEl.innerHTML = "";
+      Object.keys(BP.state.packChatById).forEach((k) => {
+        const m = BP.state.packChatById[k];
+        if (m && !dmPeer(m)) delete BP.state.packChatById[k];
+      });
       await pollPackChat(true);
     } catch (err) {
       BP.showAppToast?.("Pack chat", err.message || "Could not clear", "err");
@@ -226,26 +359,41 @@
     BP.state.packChatUnread = 0;
     BP.state.packChatTabActive = false;
     BP.state.packChatBootstrapped = false;
+    BP.state.packChatMode = "pack";
+    BP.state.packChatDmPeer = "";
+    BP.state.packChatPeers = [];
     if (feedEl) feedEl.innerHTML = "";
     if (presenceEl) presenceEl.innerHTML = "";
     syncPackBadge();
+    syncModeUi();
   }
 
   function onPackChatTabActive() {
     BP.state.packChatTabActive = true;
     BP.state.packChatUnread = 0;
     syncPackBadge();
-    if (!BP.state.packChatBootstrapped) {
-      void pollPackChat(true);
-    } else if (feedEl) {
-      feedEl.scrollTop = feedEl.scrollHeight;
-    }
-    if (clearBtn) clearBtn.classList.toggle("hidden", !BP.state.sessionAdmin);
+    syncModeUi();
+    if (!BP.state.packChatBootstrapped) void pollPackChat(true);
+    else if (feedEl) feedEl.scrollTop = feedEl.scrollHeight;
   }
 
   function onPackChatTabInactive() {
     BP.state.packChatTabActive = false;
   }
+
+  modePackBtn?.addEventListener("click", () => setPackMode());
+  presenceEl?.addEventListener("click", (ev) => {
+    const item = ev.target.closest("[data-pack-dm-peer]");
+    if (!item) return;
+    setDmMode(item.getAttribute("data-pack-dm-peer"));
+  });
+  presenceEl?.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    const item = ev.target.closest("[data-pack-dm-peer]");
+    if (!item) return;
+    ev.preventDefault();
+    setDmMode(item.getAttribute("data-pack-dm-peer"));
+  });
 
   sendBtn?.addEventListener("click", () => void sendPackChat());
   inputEl?.addEventListener("keydown", (ev) => {
@@ -261,6 +409,8 @@
     if (id > 0) void deletePackMessage(id);
   });
   clearBtn?.addEventListener("click", () => void clearPackChat());
+
+  syncModeUi();
 
   BP.startPackChatPoll = startPackChatPoll;
   BP.stopPackChatPoll = stopPackChatPoll;

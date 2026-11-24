@@ -7,6 +7,10 @@ from ._types import RequestHandler
 
 
 def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
+    if path == "/api/pack/chat/peers":
+        peers = pack_chat.list_dm_peers(handler._current_user, is_admin=handler._is_admin)
+        handler.send_json(200, {"peers": peers})
+        return True
     if path != "/api/pack/chat":
         return False
     try:
@@ -17,7 +21,13 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         del_after = int((qs.get("del_after") or ["0"])[0])
     except (ValueError, TypeError, IndexError):
         del_after = 0
-    data = pack_chat.snapshot(after, del_after, touch_user=handler._current_user)
+    data = pack_chat.snapshot(
+        after,
+        del_after,
+        touch_user=handler._current_user,
+        viewer=handler._current_user,
+        is_admin=handler._is_admin,
+    )
     handler.send_json(200, data)
     return True
 
@@ -25,10 +35,16 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
     if path == "/api/pack/chat":
         text = str(body.get("message") or "")
+        raw_to = body.get("to")
+        to_user = str(raw_to).strip() if raw_to is not None and str(raw_to).strip() else None
 
         def send() -> None:
-            mid = pack_chat.append_message(handler._current_user, text)
-            snap = pack_chat.snapshot(touch_user=handler._current_user)
+            mid = pack_chat.append_message(handler._current_user, text, to=to_user)
+            snap = pack_chat.snapshot(
+                touch_user=handler._current_user,
+                viewer=handler._current_user,
+                is_admin=handler._is_admin,
+            )
             handler.send_json(
                 200,
                 {
@@ -48,7 +64,11 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
 
         def clear() -> None:
             pack_chat.clear_messages()
-            snap = pack_chat.snapshot(touch_user=handler._current_user)
+            snap = pack_chat.snapshot(
+                touch_user=handler._current_user,
+                viewer=handler._current_user,
+                is_admin=handler._is_admin,
+            )
             handler.send_json(
                 200,
                 {
@@ -82,7 +102,11 @@ def handle_delete(handler: RequestHandler, path: str) -> bool:
             handler._current_user,
             is_admin=handler._is_admin,
         )
-        snap = pack_chat.snapshot(touch_user=handler._current_user)
+        snap = pack_chat.snapshot(
+            touch_user=handler._current_user,
+            viewer=handler._current_user,
+            is_admin=handler._is_admin,
+        )
         handler.send_json(
             200,
             {

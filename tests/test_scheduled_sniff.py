@@ -95,8 +95,8 @@ class ScheduledSniffRunnerTest(unittest.TestCase):
 
     @mock.patch("lib.search_workspace.accounts.list_users", return_value=[{"username": "pup"}])
     @mock.patch("lib.scheduled_sniff.search_run.run_search_job_for_user")
-    @mock.patch("lib.scheduled_sniff.notify.maybe_sniff_watch_new")
-    def test_runner_notifies_on_new_row(self, mock_ntfy, mock_run, _mock_users) -> None:
+    @mock.patch("lib.scheduled_sniff.notify.sniff_watch_pm")
+    def test_runner_notifies_on_new_row(self, mock_pm, mock_run, _mock_users) -> None:
         from lib import jobs
         from lib.scheduled_sniff import ScheduleRunner
 
@@ -127,8 +127,8 @@ class ScheduledSniffRunnerTest(unittest.TestCase):
         due = search_workspace.list_due_watches(now=9999999999)
         self.assertTrue(due)
         runner._run_watch(due[0])
-        mock_ntfy.assert_called_once()
-        self.assertEqual(mock_ntfy.call_args.kwargs.get("owner"), "pup")
+        mock_pm.assert_called_once()
+        self.assertEqual(mock_pm.call_args.kwargs.get("owner"), "pup")
 
 
 if __name__ == "__main__":
