@@ -3117,16 +3117,21 @@ tr.bp-sniff-pick td {
   min-width: 0;
 }
 
-.bp-pack-chat-line .bp-pack-chat-delete {
+.bp-pack-chat-feed .bp-pack-chat-delete {
   flex: 0 0 auto;
   align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin: 0;
-  padding: 0 0.35rem;
+  padding: 0 0.4rem;
   min-height: 1.4em;
   height: 1.4em;
   line-height: 1.4;
   font-size: 0.7rem;
   white-space: nowrap;
+  width: auto;
+  max-width: none;
 }
 
 .bp-pack-chat-toolbar {

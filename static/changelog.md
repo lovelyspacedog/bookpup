@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.65
+
+- **Fix:** **Pack chat** **Remove** no longer stretches full width (overrides card button styling).
+
 ## 1.3.64
 
 - **UX:** **Pack chat** sidebar — **Pack chat · everyone** for the main channel; pup rows show **Open PM →** (active thread highlighted).
