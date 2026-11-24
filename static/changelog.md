@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.5.4
+
+- **Kennel:** **Shelves** — create named shelves, pick one to filter **Catalogued bones**, **Manage shelf…** to assign books (catalogued only).
+
 ## 1.5.3
 
 - **UX:** **Pup guide** renders markdown tables (Page 2 loop) instead of raw pipe text.

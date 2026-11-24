@@ -51,6 +51,10 @@ def reading_state(username: str | None = None) -> Path:
     return user_root(username) / "reading.json"
 
 
+def shelves_index(username: str | None = None) -> Path:
+    return user_root(username) / "shelves.json"
+
+
 def derived_dir(username: str | None = None) -> Path:
     return user_root(username) / "derived"
 

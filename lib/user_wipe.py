@@ -256,7 +256,7 @@ def _purge_user_tree(username: str) -> None:
         path = root / sub
         if path.is_dir():
             shutil.rmtree(path, ignore_errors=True)
-    for name in ("library.json", "reading.json", "search_workspace.json"):
+    for name in ("library.json", "reading.json", "search_workspace.json", "shelves.json"):
         (root / name).unlink(missing_ok=True)
     user_paths.ensure_user_dirs(username)
     atomic_write_json(user_paths.library_index(username), {"items": []})

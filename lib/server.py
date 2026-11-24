@@ -23,6 +23,7 @@ from .routes import (
     jobs as jobs_routes,
     kosync as kosync_routes,
     library as library_routes,
+    library_shelves as library_shelves_routes,
     library_shares as library_shares_routes,
     opds as opds_routes,
     public as public_routes,
@@ -222,6 +223,7 @@ class Handler(BaseHTTPRequestHandler):
             auth_routes,
             admin,
             library_shares_routes,
+            library_shelves_routes,
             library_routes,
             jobs_routes,
             irc_routes,
@@ -234,11 +236,21 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_PUT(self) -> None:
         path = urlparse(self.path).path
-        if path != "/syncs/progress":
-            self.send_json(405, {"error": "Method not allowed"})
+        if path == "/syncs/progress":
+            length = int(self.headers.get("Content-Length") or 0)
+            self.dispatch(lambda: kosync_routes.route_kosync_put(self, length))
+            return
+        if not self.require_auth() or not self.require_csrf():
             return
         length = int(self.headers.get("Content-Length") or 0)
-        self.dispatch(lambda: kosync_routes.route_kosync_put(self, length))
+        self.dispatch(lambda: self._route_put(path, length))
+
+    def _route_put(self, path: str, length: int) -> None:
+        body = self.read_json(length)
+        for mod in (library_shelves_routes,):
+            if mod.handle_put(self, path, body):
+                return
+        self.send_json(405, {"error": "Method not allowed"})
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
@@ -264,6 +276,7 @@ class Handler(BaseHTTPRequestHandler):
             jobs_routes,
             auth_routes,
             library_shares_routes,
+            library_shelves_routes,
             library_routes,
             staging_routes,
             admin,
@@ -284,10 +297,26 @@ class Handler(BaseHTTPRequestHandler):
             admin,
             search_routes,
             library_shares_routes,
+            library_shelves_routes,
             library_routes,
             pack_chat_routes,
         ):
             if mod.handle_delete(self, path, qs):
+                return
+        self.send_json(404, {"error": "Not found"})
+
+    def do_PATCH(self) -> None:
+        if not self.require_auth() or not self.require_csrf():
+            return
+        parsed = urlparse(self.path)
+        path = parsed.path
+        length = int(self.headers.get("Content-Length") or 0)
+        self.dispatch(lambda: self._route_patch(path, length))
+
+    def _route_patch(self, path: str, length: int) -> None:
+        body = self.read_json(length)
+        for mod in (library_shelves_routes,):
+            if mod.handle_patch(self, path, body):
                 return
         self.send_json(404, {"error": "Not found"})
 

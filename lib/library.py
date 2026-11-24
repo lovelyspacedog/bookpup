@@ -702,6 +702,12 @@ def delete_item(item_id: str) -> None:
         pass
     data["items"] = kept
     _save_index(data)
+    try:
+        from . import shelves as shelves_mod
+
+        shelves_mod.remove_item_from_all_shelves(item_id)
+    except OSError:
+        pass
 
 
 def item_path(item_id: str) -> Path:
@@ -717,9 +723,12 @@ def status() -> dict:
     usage = library_usage()
     pruned = prune_ghost_items()
     items = list_items(prune=False)
+    from . import shelves as shelves_mod
+
     out: dict = {
         "items": items,
         "readable_formats": sorted(READABLE_FORMATS),
+        "shelves": shelves_mod.list_shelves(),
         **usage,
     }
     if pruned:

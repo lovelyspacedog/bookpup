@@ -522,6 +522,14 @@
             <button type="button" id="lib-view-grid" class="bp-btn" aria-pressed="true">Grid</button>
             <button type="button" id="lib-view-list" class="bp-btn" aria-pressed="false">List</button>
           </div>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--shelf" id="lib-shelf-row">
+            <label class="bp-lib-toolbar-label muted" for="lib-shelf-select">Shelf</label>
+            <select id="lib-shelf-select" class="bp-lib-select">
+              <option value="">All catalogued</option>
+            </select>
+            <button type="button" id="lib-shelf-new-btn" class="bp-btn">New shelf…</button>
+            <button type="button" id="lib-shelf-manage-btn" class="bp-btn" disabled>Manage shelf…</button>
+          </div>
           <div class="bp-lib-toolbar-row bp-lib-toolbar-row--group">
             <label class="bp-lib-toolbar-label muted" for="lib-group-by">Group by</label>
             <select id="lib-group-by" class="bp-lib-select">
@@ -885,6 +893,37 @@
         <p class="bp-register-actions">
           <button type="submit" id="register-submit" class="bp-btn primary">Tag it</button>
           <button type="button" id="register-cancel" class="bp-btn">Cancel</button>
+        </p>
+      </form>
+    </div>
+    <div id="shelf-name-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-name-modal-title">
+      <header class="bp-register-head">
+        <h2 id="shelf-name-modal-title">New shelf</h2>
+        <button type="button" id="shelf-name-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="shelf-name-form" class="bp-card bp-register-form">
+        <label for="shelf-name-input">Name</label>
+        <input id="shelf-name-input" type="text" maxlength="80" autocomplete="off" required />
+        <p id="shelf-name-msg" class="bp-msg muted"></p>
+        <p class="bp-register-actions">
+          <button type="button" id="shelf-name-cancel" class="bp-btn">Cancel</button>
+          <button type="submit" class="bp-btn primary">Save</button>
+        </p>
+      </form>
+    </div>
+    <div id="shelf-manage-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-manage-modal-title">
+      <header class="bp-register-head">
+        <h2 id="shelf-manage-modal-title">Manage shelf</h2>
+        <button type="button" id="shelf-manage-modal-close" class="bp-btn">Close</button>
+      </header>
+      <form id="shelf-manage-form" class="bp-card bp-register-form">
+        <p class="muted">Check catalogued bones to keep on this shelf.</p>
+        <div id="shelf-manage-list" class="bp-shelf-manage-list"></div>
+        <p id="shelf-manage-msg" class="bp-msg muted"></p>
+        <p class="bp-register-actions">
+          <button type="button" id="shelf-rename-btn" class="bp-btn">Rename…</button>
+          <button type="button" id="shelf-delete-btn" class="bp-btn bp-btn--danger">Delete shelf</button>
+          <button type="submit" class="bp-btn primary">Save books</button>
         </p>
       </form>
     </div>

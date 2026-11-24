@@ -1238,6 +1238,23 @@ td {
   margin-bottom: 0.75rem;
 }
 
+.bp-shelf-manage-list {
+  max-height: min(50vh, 22rem);
+  overflow: auto;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bp-shelf-manage-list label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
 .bp-lib-offline-only {
   display: inline-flex;
   align-items: center;

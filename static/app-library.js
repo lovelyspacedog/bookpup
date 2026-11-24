@@ -6,6 +6,7 @@
   const LIB_LAYOUT_KEY = "bookpupLibraryLayout";
   const LIB_GROUP_KEY = "bookpupLibraryGroup";
   const LIB_SORT_KEY = "bookpupLibrarySort";
+  const LIB_SHELF_KEY = "bookpupLibraryShelf";
   const coverBlobUrls = new Map();
   let libraryItemsCache = [];
   let libraryBrowseOwner = "";
@@ -14,6 +15,9 @@
   let ownLibraryQuota = { used_bytes: 0, quota_bytes: 1 };
   let offlineIdSet = new Set();
   let libOfflineOnly = false;
+  let libraryShelvesCache = [];
+  let activeShelfId = "";
+  let shelfNameModalMode = "create";
   const LIBRARY_READABLE_FALLBACK = new Set([
     "epub",
     "pdf",
@@ -244,9 +248,18 @@
     return tokens.every((tok) => fuzzyTokenMatch(hay, tok));
   }
 
+  function activeShelfItemSet() {
+    const shelf = libraryShelvesCache.find((s) => s.id === activeShelfId);
+    return new Set((shelf && shelf.item_ids) || []);
+  }
+
   function filterLibraryItems(items) {
     let out = items;
     if (libOfflineOnly) out = out.filter((item) => offlineIdSet.has(item.id));
+    if (activeShelfId) {
+      const ids = activeShelfItemSet();
+      out = out.filter((item) => isRegisteredItem(item) && ids.has(item.id));
+    }
     const q = libFilterInput ? libFilterInput.value : "";
     return out.filter((item) => libraryItemMatchesFilter(item, q));
   }
@@ -908,6 +921,8 @@
         banner.textContent = "";
       }
     }
+    const shelfRow = document.getElementById("lib-shelf-row");
+    if (shelfRow) shelfRow.classList.toggle("hidden", shared || !!BP.state.offlineOnly);
     if (exportBtn) exportBtn.classList.toggle("hidden", shared);
     if (freshBtn) freshBtn.classList.toggle("hidden", shared);
     if (calImp) calImp.classList.toggle("hidden", shared);
@@ -921,8 +936,10 @@
 
   function renderLibrary() {
     const filterActive = !!(libFilterInput && libFilterInput.value.trim());
-    document.getElementById("lib-section-downloads")?.classList.toggle("hidden", !!BP.state.offlineOnly);
+    const hideDownloads = !!BP.state.offlineOnly || !!activeShelfId;
+    document.getElementById("lib-section-downloads")?.classList.toggle("hidden", hideDownloads);
     updateSharedBrowseChrome();
+    updateShelfToolbar();
     document.getElementById("lib-usage").textContent =
       libraryUsageText || "Library";
     clearCoverUrls();
@@ -1109,6 +1126,18 @@
       libraryBrowseMode = lib.share_mode || libraryBrowseMode;
     }
     libraryItemsCache = lib.items || [];
+    libraryShelvesCache = Array.isArray(lib.shelves) ? lib.shelves : [];
+    if (!libraryBrowseOwner) {
+      const saved = localStorage.getItem(LIB_SHELF_KEY) || "";
+      if (saved && libraryShelvesCache.some((s) => s.id === saved)) activeShelfId = saved;
+      else if (saved) {
+        activeShelfId = "";
+        localStorage.removeItem(LIB_SHELF_KEY);
+      }
+    } else {
+      activeShelfId = "";
+    }
+    syncShelfSelect();
     if (Array.isArray(lib.readable_formats) && lib.readable_formats.length) {
       libraryReadableFormats = new Set(lib.readable_formats);
     } else {
@@ -1632,6 +1661,199 @@
       BP.showAppToast("Kennel", "Catalog metadata exported", "ok");
     } catch (err) {
       BP.showAppToast("Export", err.message || "Export failed", "err");
+    }
+  });
+
+  function applyShelvesFromResponse(data) {
+    if (data && Array.isArray(data.shelves)) {
+      libraryShelvesCache = data.shelves;
+      if (activeShelfId && !libraryShelvesCache.some((s) => s.id === activeShelfId)) {
+        activeShelfId = "";
+        localStorage.removeItem(LIB_SHELF_KEY);
+      }
+      syncShelfSelect();
+    }
+  }
+
+  function syncShelfSelect() {
+    const sel = document.getElementById("lib-shelf-select");
+    if (!sel) return;
+    const prev = activeShelfId;
+    sel.innerHTML = '<option value="">All catalogued</option>';
+    libraryShelvesCache.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = s.name + (s.count ? " (" + s.count + ")" : "");
+      sel.appendChild(opt);
+    });
+    sel.value = prev && libraryShelvesCache.some((s) => s.id === prev) ? prev : "";
+    activeShelfId = sel.value || "";
+  }
+
+  function updateShelfToolbar() {
+    const manage = document.getElementById("lib-shelf-manage-btn");
+    if (manage) manage.disabled = !activeShelfId || isSharedBrowse() || !!BP.state.offlineOnly;
+  }
+
+  function setActiveShelf(id) {
+    activeShelfId = id || "";
+    if (activeShelfId && !isSharedBrowse()) localStorage.setItem(LIB_SHELF_KEY, activeShelfId);
+    else localStorage.removeItem(LIB_SHELF_KEY);
+    updateShelfToolbar();
+    renderLibrary();
+  }
+
+  const shelfNameModal = document.getElementById("shelf-name-modal");
+  const shelfNameInput = document.getElementById("shelf-name-input");
+  const shelfNameTitle = document.getElementById("shelf-name-modal-title");
+  const shelfNameMsg = document.getElementById("shelf-name-msg");
+
+  function closeShelfNameModal() {
+    shelfNameModal?.classList.add("hidden");
+    if (shelfNameMsg) shelfNameMsg.textContent = "";
+  }
+
+  function openShelfNameModal(mode) {
+    shelfNameModalMode = mode;
+    if (shelfNameTitle) shelfNameTitle.textContent = mode === "rename" ? "Rename shelf" : "New shelf";
+    if (shelfNameInput) {
+      if (mode === "rename") {
+        const shelf = libraryShelvesCache.find((s) => s.id === activeShelfId);
+        shelfNameInput.value = shelf ? shelf.name : "";
+      } else shelfNameInput.value = "";
+    }
+    shelfNameModal?.classList.remove("hidden");
+    shelfNameInput?.focus();
+  }
+
+  const shelfManageModal = document.getElementById("shelf-manage-modal");
+  const shelfManageList = document.getElementById("shelf-manage-list");
+  const shelfManageTitle = document.getElementById("shelf-manage-modal-title");
+  const shelfManageMsg = document.getElementById("shelf-manage-msg");
+
+  function closeShelfManageModal() {
+    shelfManageModal?.classList.add("hidden");
+    if (shelfManageMsg) shelfManageMsg.textContent = "";
+    if (shelfManageList) shelfManageList.innerHTML = "";
+  }
+
+  function openShelfManageModal() {
+    const shelf = libraryShelvesCache.find((s) => s.id === activeShelfId);
+    if (!shelf || !shelfManageList) return;
+    if (shelfManageTitle) shelfManageTitle.textContent = "Manage shelf — " + shelf.name;
+    const onShelf = new Set(shelf.item_ids || []);
+    shelfManageList.innerHTML = "";
+    const q = (libFilterInput?.value || "").trim().toLowerCase();
+    const registered = libraryItemsCache.filter((it) => isRegisteredItem(it));
+    const list = q
+      ? registered.filter((it) => libraryItemMatchesFilter(it, q))
+      : registered.slice().sort((a, b) => String(a.title || "").localeCompare(String(b.title || "")));
+    list.forEach((item) => {
+      const lab = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = item.id;
+      cb.checked = onShelf.has(item.id);
+      lab.appendChild(cb);
+      const span = document.createElement("span");
+      span.textContent = (item.title || "Untitled") + (item.authors ? " · " + item.authors : "");
+      lab.appendChild(span);
+      shelfManageList.appendChild(lab);
+    });
+    if (!list.length) {
+      const p = document.createElement("p");
+      p.className = "muted";
+      p.textContent = "No catalogued bones yet.";
+      shelfManageList.appendChild(p);
+    }
+    shelfManageModal?.classList.remove("hidden");
+  }
+
+  document.getElementById("lib-shelf-select")?.addEventListener("change", (ev) => {
+    setActiveShelf(ev.target.value);
+  });
+  document.getElementById("lib-shelf-new-btn")?.addEventListener("click", () => openShelfNameModal("create"));
+  document.getElementById("lib-shelf-manage-btn")?.addEventListener("click", () => openShelfManageModal());
+  document.getElementById("shelf-name-modal-close")?.addEventListener("click", closeShelfNameModal);
+  document.getElementById("shelf-name-cancel")?.addEventListener("click", closeShelfNameModal);
+  document.getElementById("shelf-manage-modal-close")?.addEventListener("click", closeShelfManageModal);
+  document.getElementById("shelf-rename-btn")?.addEventListener("click", () => {
+    closeShelfManageModal();
+    openShelfNameModal("rename");
+  });
+  document.getElementById("shelf-delete-btn")?.addEventListener("click", async () => {
+    if (!activeShelfId) return;
+    const shelf = libraryShelvesCache.find((s) => s.id === activeShelfId);
+    if (!shelf) return;
+    if (!window.confirm('Delete shelf "' + shelf.name + '"? Books stay in your kennel.')) return;
+    try {
+      const data = await BP.api("/api/library/shelves/" + encodeURIComponent(activeShelfId), {
+        method: "DELETE",
+        body: "{}",
+      });
+      activeShelfId = "";
+      localStorage.removeItem(LIB_SHELF_KEY);
+      applyShelvesFromResponse(data);
+      closeShelfManageModal();
+      renderLibrary();
+      BP.showAppToast("Kennel", "Shelf deleted", "ok");
+    } catch (err) {
+      BP.showAppToast("Shelf", err.message || "Delete failed", "err");
+    }
+  });
+  document.getElementById("shelf-name-form")?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const name = (shelfNameInput?.value || "").trim();
+    if (!name) return;
+    try {
+      let data;
+      if (shelfNameModalMode === "rename" && activeShelfId) {
+        data = await BP.api("/api/library/shelves/" + encodeURIComponent(activeShelfId), {
+          method: "PATCH",
+          body: JSON.stringify({ name }),
+        });
+      } else {
+        data = await BP.api("/api/library/shelves", {
+          method: "POST",
+          body: JSON.stringify({ name }),
+        });
+        if (data.shelf?.id) {
+          activeShelfId = data.shelf.id;
+          localStorage.setItem(LIB_SHELF_KEY, activeShelfId);
+        }
+      }
+      applyShelvesFromResponse(data);
+      closeShelfNameModal();
+      renderLibrary();
+      BP.showAppToast("Kennel", shelfNameModalMode === "rename" ? "Shelf renamed" : "Shelf created", "ok");
+    } catch (err) {
+      if (shelfNameMsg) {
+        shelfNameMsg.textContent = err.message || "Save failed";
+        shelfNameMsg.className = "bp-msg err";
+      }
+    }
+  });
+  document.getElementById("shelf-manage-form")?.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    if (!activeShelfId || !shelfManageList) return;
+    const itemIds = [...shelfManageList.querySelectorAll('input[type="checkbox"]:checked')].map((el) => el.value);
+    try {
+      const data = await BP.api(
+        "/api/library/shelves/" + encodeURIComponent(activeShelfId) + "/items",
+        {
+          method: "PUT",
+          body: JSON.stringify({ item_ids: itemIds }),
+        }
+      );
+      applyShelvesFromResponse(data);
+      closeShelfManageModal();
+      renderLibrary();
+      BP.showAppToast("Kennel", "Shelf updated", "ok");
+    } catch (err) {
+      if (shelfManageMsg) {
+        shelfManageMsg.textContent = err.message || "Save failed";
+        shelfManageMsg.className = "bp-msg err";
+      }
     }
   });
 

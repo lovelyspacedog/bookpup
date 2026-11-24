@@ -65,6 +65,7 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         if shared:
             payload["shared"] = True
             payload["owner"] = shared
+            payload.pop("shelves", None)
         handler.send_json(200, payload)
         return True
     if not path.startswith("/api/library/"):
