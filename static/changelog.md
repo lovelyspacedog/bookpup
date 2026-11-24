@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.88
+
+- **Fix:** **Walk the Trail** advances after practice **Fetch** (explicit step transition, touch handler, reuse existing Fresh catch on repeat).
+
 ## 1.3.87
 
 - **Fix:** **Walk the Trail** spotlight tracks the active control after scroll (query, Sniff source, fetch row) instead of sticking on the Sniff tab.

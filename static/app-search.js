@@ -1522,6 +1522,11 @@
   function ingestWalkTrailResults(rows, query) {
     resultRows = rows;
     BP.state.activeSearchJob = "walk-trail-practice";
+    const epubOnly = document.getElementById("sniff-epub-only");
+    if (epubOnly?.checked) {
+      epubOnly.checked = false;
+      localStorage.setItem(SNIFF_EPUB_KEY, "0");
+    }
     if (resultsWrap) resultsWrap.classList.remove("hidden");
     renderResults(rows);
     if (searchMsg) {

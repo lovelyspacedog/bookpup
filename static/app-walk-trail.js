@@ -14,6 +14,36 @@
   let registerSnapshot = null;
   let fetchDone = false;
   let focusTargetEl = null;
+  const autoAdvanceFired = new Set();
+
+  function fetchStepIndex() {
+    return steps.findIndex((s) => s.id === "fetch");
+  }
+
+  function advanceFromFetch() {
+    updateTipChrome();
+    const idx = fetchStepIndex();
+    if (stepIndex < idx) return;
+    if (currentStep()?.id !== "fetch") return;
+    if (autoAdvanceFired.has("fetch-done")) return;
+    autoAdvanceFired.add("fetch-done");
+    setTimeout(() => void goNext(), 250);
+  }
+
+  function practiceRow() {
+    if (BP.state.walkTrailPracticeRow) return BP.state.walkTrailPracticeRow;
+    const tr = document.querySelector("tr[data-walk-trail-row]");
+    if (!tr) return null;
+    const title = tr.querySelector(".bp-sniff-title-text")?.textContent?.trim() || tutorialTitle;
+    return {
+      walk_trail: true,
+      title,
+      command: "!TrailBot " + title,
+      server: "TrailBot",
+      network: "IRCHighway",
+      irc_target: "irchighway:ebooks",
+    };
+  }
 
   const root = () => document.getElementById("walk-trail-root");
   const tipEl = () => document.getElementById("walk-trail-tip");
@@ -443,6 +473,7 @@
     fetchDone = false;
     tutorialItemId = "";
     registerSnapshot = null;
+    autoAdvanceFired.clear();
     clearMockIrcTimer();
     if (stepAdvanceTimer) {
       clearInterval(stepAdvanceTimer);
@@ -501,7 +532,12 @@
       if (!active) return;
       const st = currentStep();
       if (!st) return;
-      if ((st.advance === "search-done" && BP.state.walkTrailSearchDone) || (st.advance === "fetch-done" && fetchDone) || (st.advance === "tag-saved" && BP.state.walkTrailTagged)) {
+      const key = st.id + ":" + st.advance;
+      if (st.advance === "search-done" && BP.state.walkTrailSearchDone && !autoAdvanceFired.has(key)) {
+        autoAdvanceFired.add(key);
+        setTimeout(() => void goNext(), 400);
+      } else if (st.advance === "tag-saved" && BP.state.walkTrailTagged && !autoAdvanceFired.has(key)) {
+        autoAdvanceFired.add(key);
         setTimeout(() => void goNext(), 400);
       }
       updateTipChrome();
@@ -553,11 +589,12 @@
   }
 
   function onDocumentFetchClick(ev) {
-    if (!active || fetchDone || currentStep()?.id !== "fetch") return;
-    const btn = ev.target.closest?.("tr[data-walk-trail-row] .dl-row");
-    if (!btn) return;
-    const tr = btn.closest("tr");
-    const row = BP.state.walkTrailPracticeRow;
+    if (!active || fetchDone) return;
+    if (stepIndex < fetchStepIndex()) return;
+    const btn = ev.target.closest?.(".dl-row");
+    const tr = btn?.closest?.("tr[data-walk-trail-row]");
+    if (!btn || !tr) return;
+    const row = practiceRow();
     if (!row) return;
     ev.preventDefault();
     ev.stopPropagation();
@@ -565,6 +602,7 @@
   }
 
   async function handleFetch(row, tr) {
+    if (fetchDone) return;
     if (!row.walk_trail) {
       BP.showAppToast("Walk the Trail", "Fetch the practice .mobi row from this sniff.", "info");
       return;
@@ -586,13 +624,21 @@
       fetchDone = true;
       void BP.loadLibrary?.();
       void BP.refreshQueue?.();
-      updateTipChrome();
+      advanceFromFetch();
     } catch (err) {
       if (tr && BP.setFetchRowState) BP.setFetchRowState(tr, "fetch");
+      const msg = err.message || "Practice fetch failed";
+      if (/already have|duplicate|kennel/i.test(msg)) {
+        fetchDone = true;
+        void BP.loadLibrary?.();
+        advanceFromFetch();
+        return;
+      }
       if (searchMsg) {
-        searchMsg.textContent = err.message || "Practice fetch failed";
+        searchMsg.textContent = msg;
         searchMsg.className = "bp-msg err";
       }
+      BP.showAppToast("Walk the Trail", msg, "info");
     }
   }
 
@@ -642,6 +688,7 @@
       if (ev.key === "Escape" && active) exitWalkTrail();
     });
     document.addEventListener("click", onDocumentFetchClick, true);
+    document.addEventListener("touchend", onDocumentFetchClick, true);
     const relayout = () => {
       if (active) updateTipChrome();
     };

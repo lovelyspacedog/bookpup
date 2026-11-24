@@ -28,6 +28,21 @@ def _sanitize_query(query: str) -> str:
     return cleaned
 
 
+def _find_staged_practice_item(display_title: str) -> dict | None:
+    """Reuse an existing Fresh catch when fixture fingerprint matches a prior tutorial fetch."""
+    want = display_title.strip().lower()
+    for row in library.list_items():
+        if not library.is_staged(row):
+            continue
+        got = str(row.get("title") or "").strip().lower()
+        if got == want:
+            return row
+        base = want.removesuffix(".mobi")
+        if base and got == base + ".mobi":
+            return row
+    return None
+
+
 def _title_from_query(query: str, title: str | None) -> str:
     hint = " ".join(str(title or "").split()).strip()
     if hint:
@@ -71,6 +86,8 @@ def complete_tutorial_fetch(owner: str, query: str, title: str | None = None) ->
     }
     jobs.save_job(job)
     item = library.auto_stash_from_job(job)
+    if not item:
+        item = _find_staged_practice_item(display_title)
     if not item:
         raise RuntimeError("Could not stash tutorial book")
     return {
