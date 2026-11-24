@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.87
+
+- **Fix:** **Walk the Trail** spotlight tracks the active control after scroll (query, Sniff source, fetch row) instead of sticking on the Sniff tab.
+
 ## 1.3.86
 
 - **UX:** **New here?** banner explains **Walk the Trail** as step-by-step tutorial mode vs **Pup guide** reading.

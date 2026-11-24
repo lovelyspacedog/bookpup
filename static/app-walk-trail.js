@@ -144,16 +144,19 @@
   function markFocusTarget(target) {
     clearFocusTarget();
     if (!target) return;
-    const focus =
-      target.matches?.("tr[data-walk-trail-row]") ? target : target.closest?.("#results-wrap, #search-form, #irc-panel, #panel-library") || target;
-    focusTargetEl = focus;
-    focus.classList.add("bp-walk-trail-focus");
+    focusTargetEl = target;
+    target.classList.add("bp-walk-trail-focus");
   }
 
   function resolveStepTarget(st) {
     if (!st) return null;
+    if (st.id === "welcome") {
+      if (MOBILE_TIP_MQ.matches) return document.querySelector("#search-form");
+      return document.querySelector("#tab-search") || document.querySelector("#search-form");
+    }
     if (st.id === "fetch") {
       return (
+        document.querySelector("tr[data-walk-trail-row] .dl-row") ||
         document.querySelector("tr[data-walk-trail-row]") ||
         document.querySelector("#results-wrap")
       );
@@ -161,26 +164,53 @@
     return st.selector ? document.querySelector(st.selector) : null;
   }
 
-  function placeSpot(target) {
+  function layoutSpotRing(target) {
     const spot = spotEl();
     if (!spot || !target) {
       spot?.classList.add("hidden");
-      clearFocusTarget();
       return;
     }
-    const rect = target.getBoundingClientRect();
     const pad = 6;
+    const rect = target.getBoundingClientRect();
+    if (rect.width < 2 || rect.height < 2) {
+      spot.classList.add("hidden");
+      return;
+    }
     spot.classList.remove("hidden");
     spot.style.top = rect.top - pad + "px";
     spot.style.left = rect.left - pad + "px";
     spot.style.width = rect.width + pad * 2 + "px";
     spot.style.height = rect.height + pad * 2 + "px";
-    markFocusTarget(target);
+  }
+
+  let relayoutToken = 0;
+  function scheduleWalkTrailLayout(target, placement) {
+    layoutSpotRing(target);
+    positionTip(target, placement);
+    const token = ++relayoutToken;
+    const run = () => {
+      if (!active || token !== relayoutToken) return;
+      layoutSpotRing(target);
+      positionTip(target, placement);
+    };
+    requestAnimationFrame(run);
+    [50, 150, 350, 700].forEach((ms) => setTimeout(run, ms));
+  }
+
+  function placeSpot(target) {
+    if (!target) {
+      layoutSpotRing(null);
+      return;
+    }
     try {
-      target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      target.scrollIntoView({
+        block: MOBILE_TIP_MQ.matches ? "nearest" : "center",
+        inline: "nearest",
+      });
     } catch {
       /* ignore */
     }
+    scheduleWalkTrailLayout(target, currentStep()?.placement);
   }
 
   function positionTip(target, placement) {
@@ -387,11 +417,8 @@
       skipBtn.classList.toggle("hidden", st.advance !== "cleanup");
     }
     const target = resolveStepTarget(st);
+    markFocusTarget(target);
     placeSpot(target);
-    requestAnimationFrame(() => {
-      positionTip(target, st.placement);
-      requestAnimationFrame(() => positionTip(target, st.placement));
-    });
   }
 
   function showOverlay() {

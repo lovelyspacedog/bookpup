@@ -3145,14 +3145,12 @@ tr.bp-sniff-pick td {
   position: relative;
   z-index: 2601;
   pointer-events: auto;
+  outline: 2px solid var(--link, #8af);
+  outline-offset: 2px;
 }
 
-.bp-walk-trail-focus .dl-row,
-.bp-walk-trail-focus button,
-.bp-walk-trail-focus input,
-.bp-walk-trail-focus select,
-.bp-walk-trail-focus summary {
-  pointer-events: auto;
+.bp-walk-trail-focus.bp-tab {
+  outline-offset: 3px;
 }
 
 .bp-walk-trail-tip {
