@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.86
+
+- **UX:** **New here?** banner explains **Walk the Trail** as step-by-step tutorial mode vs **Pup guide** reading.
+
 ## 1.3.85
 
 - **Fix:** **Walk the Trail** — practice **Fetch** works on mobile (results above overlay; capture handler; spotlight no longer eats taps).
