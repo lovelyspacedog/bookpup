@@ -131,7 +131,7 @@
     }
   }
 
-  let queueSegFilter = "active";
+  let queueSegFilter = "all";
 
   function queueMatchesSeg(job) {
     const st = job?.state || "";

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.75
+
+- **UX:** **Fetch queue** tab opens on **All** (not **Active** only).
+
 ## 1.3.74
 
 - **Fix:** **Kennel** toolbar wraps inside the page column instead of spilling past the quota card on the right.
