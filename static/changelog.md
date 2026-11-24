@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.6
+
+- **UX:** **Install BookPup** on the sign-in page when your browser supports add-to-home-screen (still under **Your tag** too).
+
 ## 1.4.5
 
 - **Fix:** **Pup guide** page 1 — **Walk the Trail** link at the bottom for new pups (not only after finishing the tour).

@@ -3388,6 +3388,34 @@ tr.bp-sniff-pick td {
   min-height: 44px;
 }
 
+.bp-pwa-install {
+  margin: 1rem 0 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line, #2c2c44);
+}
+
+.bp-login-card .bp-pwa-install {
+  margin-top: 0.85rem;
+}
+
+.bp-pwa-install__title {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.bp-pwa-install__copy {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.bp-pwa-install__actions {
+  margin: 0;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .bp-guide-walk-trail {
   margin-top: 1rem;
   padding-top: 0.75rem;

@@ -59,6 +59,22 @@
           autocomplete="current-password"
           required
         />
+        <section
+          class="bp-pwa-install hidden"
+          data-pwa-install
+          aria-labelledby="pwa-install-login-title"
+        >
+          <h2 id="pwa-install-login-title" class="bp-pwa-install__title">Add to home screen</h2>
+          <p class="muted bp-pwa-install__copy">
+            Install BookPup like an app. Offline: this sign-in page, <strong>Pup guide</strong>, and
+            <strong>What&apos;s new</strong>. Sniff, kennel, and reader need the server.
+          </p>
+          <p class="bp-msg muted hidden" data-pwa-install-status aria-live="polite"></p>
+          <p class="bp-lib-actions bp-pwa-install__actions">
+            <button type="button" class="bp-btn primary" data-pwa-install-btn>Install BookPup</button>
+            <button type="button" class="bp-btn" data-pwa-install-dismiss>Not now</button>
+          </p>
+        </section>
         <button
           type="submit"
           class="bp-btn primary"
@@ -624,16 +640,20 @@
             In-app toasts always show when this tab is open. Desktop alerts need browser permission.
             Optional server push: set <code>ntfy_topic</code> in server config.
           </p>
-          <section class="bp-card bp-pwa-install hidden" id="pwa-install-card" aria-labelledby="pwa-install-title">
-            <h3 id="pwa-install-title">Add to home screen</h3>
-            <p class="muted">
+          <section
+            class="bp-card bp-pwa-install hidden"
+            data-pwa-install
+            aria-labelledby="pwa-install-account-title"
+          >
+            <h3 id="pwa-install-account-title" class="bp-pwa-install__title">Add to home screen</h3>
+            <p class="muted bp-pwa-install__copy">
               Install BookPup like an app for quick reopen. Offline: sign-in page, <strong>Pup guide</strong>,
               and <strong>What&apos;s new</strong>. Online: sniff, fetch, kennel, reader, and pack chat need the server.
             </p>
-            <p id="pwa-install-status" class="bp-msg muted hidden" aria-live="polite"></p>
-            <p class="bp-lib-actions">
-              <button type="button" id="pwa-install-btn" class="bp-btn primary">Install BookPup</button>
-              <button type="button" id="pwa-install-dismiss" class="bp-btn">Not now</button>
+            <p class="bp-msg muted hidden" data-pwa-install-status aria-live="polite"></p>
+            <p class="bp-lib-actions bp-pwa-install__actions">
+              <button type="button" class="bp-btn primary" data-pwa-install-btn>Install BookPup</button>
+              <button type="button" class="bp-btn" data-pwa-install-dismiss>Not now</button>
             </p>
           </section>
           <details class="bp-koreader-setup" id="koreader-setup-panel">

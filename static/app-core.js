@@ -146,6 +146,7 @@ window.BookPup = window.BookPup || {};
     BP.state.authHeader = null;
     if (appShell) appShell.classList.add("hidden");
     if (loginScreen) loginScreen.classList.remove("hidden");
+    BP.syncPwaInstallUi?.();
     BP.stopQueueTabPoll();
     if (message && loginMsg) {
       loginMsg.textContent = message;
