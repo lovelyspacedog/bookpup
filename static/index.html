@@ -7,6 +7,13 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <title>BookPup</title>
+    <meta name="theme-color" content="#0a0a12" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BookPup" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/static/pwa/icon-192.png" />
     <link rel="stylesheet" href="/static/kennel/theme.css?v=__VERSION__" />
     <link rel="stylesheet" href="/static/bookpup.css?v=__VERSION__" />
   </head>
@@ -592,6 +599,18 @@
             In-app toasts always show when this tab is open. Desktop alerts need browser permission.
             Optional server push: set <code>ntfy_topic</code> in server config.
           </p>
+          <section class="bp-card bp-pwa-install hidden" id="pwa-install-card" aria-labelledby="pwa-install-title">
+            <h3 id="pwa-install-title">Add to home screen</h3>
+            <p class="muted">
+              Install BookPup like an app for quick reopen. Offline: sign-in page, <strong>Pup guide</strong>,
+              and <strong>What&apos;s new</strong>. Online: sniff, fetch, kennel, reader, and pack chat need the server.
+            </p>
+            <p id="pwa-install-status" class="bp-msg muted hidden" aria-live="polite"></p>
+            <p class="bp-lib-actions">
+              <button type="button" id="pwa-install-btn" class="bp-btn primary">Install BookPup</button>
+              <button type="button" id="pwa-install-dismiss" class="bp-btn">Not now</button>
+            </p>
+          </section>
           <details class="bp-koreader-setup" id="koreader-setup-panel">
             <summary>KOReader setup (wireless + USB)</summary>
             <p class="bp-msg muted">
@@ -923,6 +942,7 @@
     <script src="/static/app-queue.js?v=__VERSION__" defer></script>
     <script src="/static/app-library.js?v=__VERSION__" defer></script>
     <script src="/static/app-ux.js?v=__VERSION__" defer></script>
+    <script src="/static/app-pwa.js?v=__VERSION__" defer></script>
     <script src="/static/app-boot.js?v=__VERSION__" defer></script>
   </body>
 </html>

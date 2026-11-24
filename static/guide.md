@@ -102,3 +102,10 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - **Your tag:** change display name or password (current password required).
 - **Pack roster** (admins): **Add pup**, set **Quota**, **Set login**, **Wipe**, or **Remove**. Passwords are reset, never displayed.
 - **Good habits:** only fetch what you may legally keep. Storage quota applies in **Catalogued bones**, not in **Fresh catches**. Online sources fail sometimes — retry or try another match. Soulseek uses one household identity — respect caps and ratio so the pack stays welcome. **What's new** is the version list; this guide is the walkthrough.
+
+## Page 13 — Phone & home screen
+
+- On a phone, use the browser menu **Add to Home Screen** / **Install app** (wording varies). **Your tag** may show **Install BookPup** when the browser offers a one-tap install.
+- Installed BookPup opens full screen like an app and keeps your sign-in in this browser profile.
+- **Offline:** you can still open BookPup, read the **Pup guide**, and read **What's new** from cache.
+- **Online only:** sniffing, fetching, **Kennel**, the in-browser **Reader**, **Pack chat**, and OPDS still need a live connection to the BookPup server.

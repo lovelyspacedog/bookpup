@@ -175,7 +175,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         path = parsed.path
-        if path in ("/", "/index.html") or path.startswith("/static/"):
+        if path in ("/", "/index.html", "/manifest.webmanifest", "/sw.js") or path.startswith(
+            "/static/"
+        ):
             self.dispatch(lambda: static_files.route_get_public(self, path))
             return
         if path == "/api/config":

@@ -54,5 +54,22 @@ class ServerPublicTests(unittest.TestCase):
         body = self._get_json("/api/config")
         self.assertEqual(body.get("koreader_sync_url"), "https://sync.test")
 
+    def test_manifest_webmanifest(self) -> None:
+        with urllib.request.urlopen(self.base + "/manifest.webmanifest", timeout=5) as resp:
+            self.assertEqual(resp.status, 200)
+            self.assertIn("application/manifest+json", resp.headers.get("Content-Type", ""))
+            body = json.loads(resp.read().decode())
+        self.assertEqual(body.get("display"), "standalone")
+        self.assertEqual(body.get("name"), "BookPup")
+        icons = body.get("icons") or []
+        self.assertTrue(any("192" in str(i.get("sizes", "")) for i in icons))
+
+    def test_service_worker(self) -> None:
+        with urllib.request.urlopen(self.base + "/sw.js", timeout=5) as resp:
+            self.assertEqual(resp.status, 200)
+            text = resp.read().decode()
+        self.assertIn(core.VERSION, text)
+        self.assertEqual(resp.headers.get("Service-Worker-Allowed"), "/")
+
 if __name__ == "__main__":
     unittest.main()

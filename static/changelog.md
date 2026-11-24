@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.0
+
+- **UX:** Install BookPup on your phone — PWA with home-screen icon; **Your tag** shows install help and what works offline vs online.
+- **UX:** Offline **Pup guide** and **What's new** when you have no connection (shell only — sniff, kennel, and reader still need the server).
+
 ## 1.3.110
 
 - **Fix:** **Reader** — comic one-finger pan on mobile at 100% zoom too (not only when magnified).

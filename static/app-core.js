@@ -209,6 +209,7 @@ window.BookPup = window.BookPup || {};
     BP.pollIrcFeed(true);
     BP.startPackChatPoll?.();
     BP.syncOnboardUi?.();
+    BP.syncPwaInstallUi?.();
     BP.refreshQueue?.();
   }
 

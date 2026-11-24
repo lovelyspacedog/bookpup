@@ -15,11 +15,25 @@ STATIC_MIME = {
     ".html": "text/html; charset=utf-8",
     ".md": "text/markdown; charset=utf-8",
     ".woff2": "font/woff2",
+    ".webmanifest": "application/manifest+json; charset=utf-8",
+    ".png": "image/png",
 }
 
 
+def _versioned_text(name: str) -> bytes:
+    return (STATIC_DIR / name).read_text().replace("__VERSION__", VERSION).encode()
+
+
 def index_html() -> bytes:
-    return (STATIC_DIR / "index.html").read_text().replace("__VERSION__", VERSION).encode()
+    return _versioned_text("index.html")
+
+
+def service_worker_js() -> bytes:
+    return _versioned_text("sw.js")
+
+
+def web_manifest() -> bytes:
+    return (STATIC_DIR / "manifest.webmanifest").read_bytes()
 
 
 def resolve_static(rel: str) -> Path | None:
@@ -37,6 +51,17 @@ def resolve_static(rel: str) -> Path | None:
 def route_get_public(handler: RequestHandler, path: str) -> None:
     if path in ("/", "/index.html"):
         handler.send_bytes(index_html(), "text/html; charset=utf-8")
+    elif path == "/manifest.webmanifest":
+        handler.send_bytes(web_manifest(), STATIC_MIME[".webmanifest"])
+    elif path == "/sw.js":
+        body = service_worker_js()
+        handler.send_response(200)
+        handler.send_header("Content-Type", "text/javascript; charset=utf-8")
+        handler.send_header("Content-Length", str(len(body)))
+        handler.send_header("Cache-Control", "no-cache")
+        handler.send_header("Service-Worker-Allowed", "/")
+        handler.end_headers()
+        handler.wfile.write(body)
     elif path.startswith("/static/"):
         rel = path[len("/static/") :]
         file_path = resolve_static(rel)
