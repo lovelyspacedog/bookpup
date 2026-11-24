@@ -10,4 +10,13 @@ Open a [GitHub issue](https://github.com/lovelyspacedog/bookpup/issues) for vuln
 
 ## Secrets
 
-Never commit `EXPEDITION_SECRET`, `~/.ssh/expedition_secret`, `config.json`, or `accounts.json` from a live deployment.
+Never commit deploy credentials, live `config.json`, or `accounts.json` from a deployment.
+
+| Secret / file | Use |
+|---------------|-----|
+| `BOOKPUP_DEPLOY_SECRET` / `EXPEDITION_SECRET` | SSH password for `scripts/deploy-remote.sh` or `./deploy.sh` (mode **600** or **400**) |
+| `~/.ssh/expedition_secret` | Default path for Expedition wrapper |
+| `~/.config/bookpup/config.json` | IRC, SMTP, slskd, admin password |
+| `~/.config/bookpup/accounts.json` | Household user passwords (plaintext by design for KOReader/OPDS) |
+
+Prefer **SSH keys** for `BOOKPUP_DEPLOY_HOST` deploys; use a password file only when the host requires it (e.g. Whatbox).

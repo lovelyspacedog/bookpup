@@ -1,6 +1,6 @@
 # About BookPup
 
-**BookPup** is a household web portal for searching ebook IRC channels, fetching files via DCC, and organizing per-user libraries on your [Whatbox Expedition](https://whatbox.ca/) box.
+**BookPup** is a household web portal for searching ebook IRC channels, fetching files via DCC, and organizing per-user libraries on your VPS. Source and docs: [github.com/lovelyspacedog/bookpup](https://github.com/lovelyspacedog/bookpup).
 
 ## What you can do
 
@@ -15,7 +15,7 @@ IRC bots are run by the community. BookPup only talks to channels your household
 
 ## Tech
 
-Python stdlib server on the VPS plus a static single-page app (no pip dependencies for IRC). Your data lives under `~/.config/bookpup/` on Expedition.
+Python stdlib server on the VPS plus a static single-page app (no pip dependencies for IRC). Your data lives under `~/.config/bookpup/` on the server.
 
 ## What's new
 

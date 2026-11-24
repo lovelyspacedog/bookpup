@@ -1,5 +1,5 @@
 #!/bin/bash
-# Start BookPup (localhost TCP port for Whatbox custom app)
+# Start BookPup (loopback TCP port for reverse proxy or hosting custom app)
 set -euo pipefail
 APP_DIR="${BOOKPUP_APP_DIR:-$HOME/bookpup}"
 CONFIG_DIR="$HOME/.config/bookpup"

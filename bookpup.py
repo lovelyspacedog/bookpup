@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""BookPup — IRC ebook portal for Whatbox Expedition."""
+"""BookPup — household IRC ebook portal (any Linux VPS)."""
 
 from lib.server import main
 

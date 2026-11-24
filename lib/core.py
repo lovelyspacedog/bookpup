@@ -8,8 +8,7 @@ import secrets
 import sys
 from pathlib import Path
 
-VERSION = "1.4.18"
-DEFAULT_PUBLIC_URL = "https://bookpup.tonypup.box.ca"
+VERSION = "1.5.0"
 CONFIG_DIR = Path.home() / ".config" / "bookpup"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 JOBS_DIR = CONFIG_DIR / "jobs"
@@ -83,6 +82,10 @@ def load_config() -> dict:
         CONFIG_FILE.write_text(json.dumps(config, indent=2) + "\n")
         os.chmod(CONFIG_FILE, 0o600)
         print(f"Created {CONFIG_FILE} with password: {password}", file=sys.stderr)
+        print(
+            "Set public_url in config or BOOKPUP_PUBLIC_URL for KOReader sync and sideload links.",
+            file=sys.stderr,
+        )
     config.setdefault("port", DEFAULT_PORT)
     config.setdefault("host", DEFAULT_HOST)
     config.setdefault("username", DEFAULT_USER)
@@ -96,7 +99,6 @@ def load_config() -> dict:
     config.setdefault("ai_max_input_chars", 4500)
     config.setdefault("ai_max_output_tokens", 512)
     config.setdefault("ai_prompt_version", 1)
-    config.setdefault("public_url", DEFAULT_PUBLIC_URL)
     config.setdefault("xdcc_search_enabled", True)
     config.setdefault("xdcc_search_url", "")
     config.setdefault("download_offer_timeout", DOWNLOAD_OFFER_TIMEOUT)
@@ -123,6 +125,14 @@ def bot_status_stale_seconds() -> float:
     return float(load_config().get("bot_status_stale_seconds", BOT_STATUS_STALE_SECONDS))
 
 
+def public_url_configured(config: dict | None = None) -> bool:
+    env = os.environ.get("BOOKPUP_PUBLIC_URL", "").strip()
+    if env:
+        return True
+    cfg = config if config is not None else load_config()
+    return bool(str(cfg.get("public_url") or "").strip())
+
+
 def public_base_url(config: dict | None = None) -> str:
     """HTTPS base URL for KOReader sync and outbound identity (no trailing slash)."""
     env = os.environ.get("BOOKPUP_PUBLIC_URL", "").strip()
@@ -130,12 +140,19 @@ def public_base_url(config: dict | None = None) -> str:
         url = env.rstrip("/")
     else:
         cfg = config if config is not None else load_config()
-        url = str(cfg.get("public_url") or DEFAULT_PUBLIC_URL).strip().rstrip("/")
+        url = str(cfg.get("public_url") or "").strip().rstrip("/")
     if not url:
-        url = DEFAULT_PUBLIC_URL
+        return ""
     if not url.startswith(("http://", "https://")):
         url = "https://" + url
     return url.rstrip("/")
+
+
+def user_agent() -> str:
+    base = public_base_url()
+    if base:
+        return f"BookPup/{VERSION} (household library; +{base})"
+    return f"BookPup/{VERSION} (household library)"
 
 
 def ensure_dirs() -> None:

@@ -8,14 +8,10 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from .core import VERSION, public_base_url
+from .core import user_agent
 from .covers import COVER_MAX_BYTES
 
 ISBN_RE = re.compile(r"[^0-9Xx]")
-
-
-def user_agent() -> str:
-    return f"BookPup/{VERSION} (household library; +{public_base_url()})"
 
 
 def _norm_isbn(raw: str | None) -> str | None:

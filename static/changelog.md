@@ -1,5 +1,11 @@
 # BookPup changelog
 
+## 1.5.0 — community operator
+
+- **Operator:** **docs/DEPLOY.md** for any VPS; SSH-key deploy via `scripts/deploy-remote.sh`; Whatbox keeps `./deploy.sh`.
+- **Operator:** No default `public_url` on new installs; `GET /api/health` reports `public_url_configured`.
+- **Operator:** Example `packaging/config.example.json`, production smoke `scripts/smoke_production.py`, hosting-neutral About/Pup guide copy.
+
 ## 1.4.0 — take your kennel beyond the browser
 
 Household **1.4** milestone (shipped incrementally through **v1.4.18** on Expedition):

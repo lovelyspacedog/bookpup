@@ -14,7 +14,7 @@ import uuid
 from collections.abc import Callable
 from typing import Any
 
-from .core import DEFAULT_SLSKD_URL, SLSKD_MOCK, load_config
+from .core import DEFAULT_SLSKD_URL, SLSKD_MOCK, load_config, user_agent
 
 DEFAULT_TIMEOUT = 45.0
 POLL_INTERVAL = 0.75
@@ -182,7 +182,7 @@ def _refresh_jwt() -> str:
         headers={
             "Accept": "application/json",
             "Content-Type": "application/json",
-            "User-Agent": "BookPup/1.3 (+https://bookpup.tonypup.box.ca)",
+            "User-Agent": user_agent(),
         },
         method="POST",
     )
@@ -224,7 +224,7 @@ def _request(
     data = None
     headers = {
         "Accept": "application/json",
-        "User-Agent": "BookPup/1.3 (+https://bookpup.tonypup.box.ca)",
+        "User-Agent": user_agent(),
     }
     key = api_key()
     if key:

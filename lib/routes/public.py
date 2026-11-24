@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .. import cover_search, kindle_smtp, ops_readiness, reader_ai
-from ..core import IRC_MOCK, VERSION, load_config, public_base_url
+from ..core import IRC_MOCK, VERSION, load_config, public_base_url, public_url_configured
 from ..irc_worker import worker
 from .. import slskd_client, xdcc_search
 from ._types import RequestHandler
@@ -43,6 +43,7 @@ def route_public_health(handler: RequestHandler) -> None:
             "soulseek": slskd,
             "config_dir_writable": writable,
             "public_url": public_base_url(cfg),
+            "public_url_configured": public_url_configured(cfg),
             "kindle_smtp": kindle_smtp.smtp_configured(cfg),
             **irc,
         },

@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from .core import load_config
+from .core import load_config, user_agent
 
 # IRC host per indexer network when bot API is skipped or fails (fetch resolves when needed).
 NETWORK_IRC_SERVER: dict[str, str] = {
@@ -116,7 +116,7 @@ def _http_get_json(path: str, *, cache: dict[str, str] | None = None) -> Any:
         url,
         headers={
             "Accept": "application/json",
-            "User-Agent": "BookPup/1.3 (+https://bookpup.tonypup.box.ca)",
+            "User-Agent": user_agent(),
         },
         method="GET",
     )

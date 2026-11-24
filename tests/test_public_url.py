@@ -53,6 +53,23 @@ class PublicUrlTests(unittest.TestCase):
         core._config = None
         self.assertEqual(core.public_base_url(), "https://bookpup.example.com")
 
+    def test_empty_when_unset(self) -> None:
+        core.CONFIG_FILE.write_text(
+            '{"username":"book","password":"x","irc_server":"h","irc_port":6667}'
+        )
+        core._config = None
+        self.assertEqual(core.public_base_url(), "")
+        self.assertFalse(core.public_url_configured())
+
+    def test_user_agent_without_public_url(self) -> None:
+        core.CONFIG_FILE.write_text(
+            '{"username":"book","password":"x","irc_server":"h","irc_port":6667}'
+        )
+        core._config = None
+        ua = core.user_agent()
+        self.assertIn(f"BookPup/{core.VERSION}", ua)
+        self.assertNotIn("+https://", ua)
+
 
 if __name__ == "__main__":
     unittest.main()

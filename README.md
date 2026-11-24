@@ -75,6 +75,8 @@ Each pup saves their `@kindle.com` address under **Your tag**. In Kennel, **Send
 
 ## Deploy (Whatbox / VPS)
 
+**Third-party VPS:** full checklist in [`docs/DEPLOY.md`](docs/DEPLOY.md) (SSH key deploy via `scripts/deploy-remote.sh`, nginx/systemd, `packaging/config.example.json`).
+
 1. Copy the tree to the server (rsync, git pull, etc.).
 2. Run `python3 bookpup.py` bound to `127.0.0.1` and your chosen port (default **18478**).
 3. Point your reverse proxy / Whatbox custom app at that port and set `public_url` to the public HTTPS URL.
@@ -97,15 +99,15 @@ An example **Arch PKGBUILD** (installs under `/opt/bookpup`) lives in [`packagin
 
 | Endpoint | Semantics | Use |
 |----------|-----------|-----|
-| `GET /api/health` | **Liveness** — process up and `~/.config/bookpup` writable; `ok` is **only** `config_dir_writable` (unchanged contract for deploy scripts). | Cron, Whatbox custom app, `deploy.sh` curl |
+| `GET /api/health` | **Liveness** — process up and `~/.config/bookpup` writable; `ok` is **only** `config_dir_writable` (unchanged contract for deploy scripts). Also reports `public_url_configured`. | Cron, Whatbox custom app, deploy scripts |
 | `GET /api/ready` | **Readiness** — IRC worker alive; optional Soulseek sidecar reachable when enabled; reports optional tools (`calibre`, `7z`, `unrar`) without failing liveness. | Operator dashboards, “can we sniff/fetch now?” |
 
-Optional: `deploy.sh` rsyncs the working tree and installs a cron **start** hook when `EXPEDITION_HOST` and `EXPEDITION_SECRET` are set (Whatbox-style SSH + password file). **Do not commit secrets.**
+Optional remote sync: `scripts/deploy-remote.sh` (SSH key/agent; optional password file via `BOOKPUP_DEPLOY_SECRET`). [`deploy.sh`](deploy.sh) is a Whatbox Expedition wrapper (`EXPEDITION_HOST` / `EXPEDITION_SECRET`). **Do not commit secrets.**
 
 Post-deploy smoke on the box:
 
 ```bash
-python3 ~/bookpup/scripts/smoke_expedition.py
+python3 ~/bookpup/scripts/smoke_production.py
 curl -fsS http://127.0.0.1:18478/api/ready | python3 -m json.tool
 ```
 
