@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.110
+
+- **Fix:** **Reader** — comic one-finger pan on mobile at 100% zoom too (not only when magnified).
+
 ## 1.3.109
 
 - **Fix:** **Reader** — comic CBZ/CBR pan with one finger on mobile after zoom (pinch or +/- still work).

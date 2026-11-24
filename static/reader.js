@@ -1144,10 +1144,6 @@
           document.addEventListener("touchend", endComicDrag);
           document.addEventListener("touchcancel", endComicDrag);
         }
-        function comicViewportZoomed() {
-          return paneView[0].zoom > 1.001 || paneView[1].zoom > 1.001;
-        }
-
         bodyEl.classList.add("bp-reader-body--comic");
         const wrap = document.createElement("div");
         wrap.className = "bp-reader-comic";
@@ -1268,7 +1264,7 @@
               pinchPaneIx = paneFromTarget(document.elementFromPoint(cx, cy));
               activePane = pinchPaneIx;
               pinchZoom0 = paneView[pinchPaneIx].zoom;
-            } else if (ev.touches.length === 1 && comicViewportZoomed()) {
+            } else if (ev.touches.length === 1) {
               beginComicDrag(ev.touches[0].clientX, ev.touches[0].clientY, ev.target);
             }
           },
