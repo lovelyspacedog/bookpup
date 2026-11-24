@@ -14,7 +14,6 @@
   let registerSnapshot = null;
   let fetchDone = false;
   let fetchError = "";
-  let tagStepArmed = false;
   let focusTargetEl = null;
   const autoAdvanceFired = new Set();
 
@@ -192,6 +191,17 @@
         document.querySelector("tr[data-walk-trail-row]") ||
         document.querySelector("#results-wrap")
       );
+    }
+    if (st.id === "tag") {
+      const modal = document.getElementById("register-modal");
+      if (modal && !modal.classList.contains("hidden")) {
+        return document.getElementById("reg-title") || document.getElementById("register-form");
+      }
+      if (tutorialItemId) {
+        const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
+        return card?.querySelector(".register") || card || document.getElementById("lib-section-downloads");
+      }
+      return document.getElementById("lib-section-downloads");
     }
     return st.selector ? document.querySelector(st.selector) : null;
   }
@@ -426,7 +436,7 @@
     {
       id: "kennel",
       title: "Fresh catches",
-      body: "Your practice file lands in Kennel → Fresh catches. Open the Kennel tab.",
+      body: "Your practice file is in Kennel → Fresh catches. Tap Next when you see it.",
       selector: "#tab-library",
       placement: "bottom",
       advance: "kennel-open",
@@ -434,8 +444,8 @@
     {
       id: "tag",
       title: "Tag this book",
-      body: "Open Tag on your practice catch. Change at least one field (title, author, or tags) before saving.",
-      selector: "#lib-section-downloads",
+      body: "Tap Tag on your practice catch. Change at least one field (title, author, or tags), then save.",
+      selector: "#lib-items-downloads",
       placement: "top",
       advance: "tag-saved",
     },
@@ -500,10 +510,17 @@
     const bodyEl = tip.querySelector("[data-wt-body]");
     if (titleEl) titleEl.textContent = st.title;
     if (bodyEl) {
-      bodyEl.textContent =
-        st.id === "fetch" && fetchError
-          ? fetchError + (fetchError.endsWith(".") ? " " : ". ") + "Tap Retry fetch, or try the practice row again."
-          : st.body;
+      let copy = st.body;
+      if (st.id === "fetch" && fetchError) {
+        copy =
+          fetchError + (fetchError.endsWith(".") ? " " : ". ") + "Tap Retry fetch, or try the practice row again.";
+      } else if (st.id === "tag") {
+        const modal = document.getElementById("register-modal");
+        if (modal && !modal.classList.contains("hidden")) {
+          copy = "Change at least one field (title, author, or tags), then tap Tag it.";
+        }
+      }
+      bodyEl.textContent = copy;
     }
     tip.classList.remove("hidden");
     const nextBtn = tip.querySelector("[data-wt-next]");
@@ -523,6 +540,9 @@
     if (st.id === "den") {
       ensureDenPanelOpen();
       ensureDenMockVisible();
+    }
+    if (st.id === "tag") {
+      BP.state.walkTrailExpectTag = true;
     }
     const target = resolveStepTarget(st);
     markFocusTarget(target);
@@ -550,7 +570,6 @@
     BP.state.walkTrailExpectTag = false;
     fetchDone = false;
     fetchError = "";
-    tagStepArmed = false;
     tutorialItemId = "";
     registerSnapshot = null;
     autoAdvanceFired.clear();
@@ -603,6 +622,10 @@
         updateTipChrome();
       }, 1200);
     }
+    if (next?.id === "kennel") {
+      const libBtn = BP.tabButton("library");
+      if (libBtn) BP.activateTab(libBtn);
+    }
     updateTipChrome();
   }
 
@@ -636,7 +659,6 @@
     stepIndex = 0;
     fetchDone = false;
     fetchError = "";
-    tagStepArmed = false;
     tutorialQuery = "";
     tutorialTitle = "";
     tutorialItemId = "";
@@ -761,10 +783,11 @@
     };
     BP.state.walkTrailRegisterReady = false;
     syncRegisterSubmitGate();
+    updateTipChrome();
   }
 
   function syncRegisterSubmitGate() {
-    const btn = document.getElementById("register-submit-btn");
+    const btn = document.getElementById("register-submit");
     if (!active || !BP.state.walkTrailExpectTag || !registerSnapshot) {
       if (btn) btn.disabled = false;
       return;
@@ -832,38 +855,7 @@
     }
   }
 
-  function armTagStep() {
-    if (tagStepArmed) return;
-    tagStepArmed = true;
-    if (currentStep()?.id === "kennel") {
-      const tagIdx = steps.findIndex((s) => s.id === "tag");
-      if (tagIdx >= 0) stepIndex = tagIdx;
-    }
-    BP.state.walkTrailExpectTag = true;
-    const items = (typeof BP.getLibraryItems === "function" ? BP.getLibraryItems() : []) || [];
-    const item = items.find((it) => it.id === tutorialItemId);
-    if (item && BP.openRegisterModal) {
-      BP.openRegisterModal(item);
-      const authorsEl = document.getElementById("reg-authors");
-      if (authorsEl && !authorsEl.value) authorsEl.value = "Your name";
-      onRegisterOpen(item);
-    }
-    updateTipChrome();
-  }
-
-  function watchStepHooks() {
-    const check = () => {
-      if (!active) return;
-      const st = currentStep();
-      if (st?.id === "kennel" && document.getElementById("panel-library")?.classList.contains("active")) {
-        setTimeout(armTagStep, 300);
-      }
-    };
-    setInterval(check, 500);
-  }
-
   bindShell();
-  watchStepHooks();
 
   BP.walkTrailActive = false;
   BP.startWalkTrail = startWalkTrail;

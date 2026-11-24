@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.95
+
+- **Fix:** **Walk the Trail** Kennel → Tag — no auto-open Tag modal; coach spotlights the practice **Tag** button (then the form after you open it).
+
 ## 1.3.94
 
 - **Fix:** **Walk the Trail** practice **Fetch** reuses your existing tutorial MOBI when the fixture bytes are already in the kennel (repeat tours or a new practice title).
