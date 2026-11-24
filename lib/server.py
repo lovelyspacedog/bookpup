@@ -185,9 +185,6 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/health":
             self.dispatch(lambda: public_routes.route_public_health(self))
             return
-        if path == "/api/weather":
-            self.dispatch(lambda: public_routes.route_public_weather(self))
-            return
         if opds_path(path):
             self.dispatch(lambda: opds_routes.route_opds_get(self, path))
             return

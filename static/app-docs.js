@@ -22,13 +22,9 @@
         }
       } catch {
         const ver = document.getElementById("bp-header-ver");
-        const weather = document.getElementById("bp-header-weather");
-        const bits = [ver?.textContent?.trim(), weather?.textContent?.trim()].filter(Boolean);
-        if (bits.length) {
-          html +=
-            '<p class="muted bp-about-run">' +
-            BP.escapeHtml(bits.join(weather?.textContent?.trim() ? " " : "")) +
-            "</p>";
+        const verText = ver?.textContent?.trim();
+        if (verText) {
+          html += '<p class="muted bp-about-run">' + BP.escapeHtml(verText) + "</p>";
         }
       }
       body.innerHTML = html;

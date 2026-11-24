@@ -54,13 +54,5 @@ class ServerPublicTests(unittest.TestCase):
         body = self._get_json("/api/config")
         self.assertEqual(body.get("koreader_sync_url"), "https://sync.test")
 
-    def test_weather_invalid_zip(self) -> None:
-        import urllib.error
-
-        with self.assertRaises(urllib.error.HTTPError) as ctx:
-            urllib.request.urlopen(self.base + "/api/weather?zip=bad", timeout=5)
-        self.assertEqual(ctx.exception.code, 400)
-
-
 if __name__ == "__main__":
     unittest.main()
