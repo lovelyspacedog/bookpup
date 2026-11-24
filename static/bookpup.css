@@ -103,13 +103,15 @@ body {
 }
 
 .bp-brand-logo--login {
-  width: 6rem;
-  height: 6rem;
+  width: auto;
+  height: 4.75rem;
+  max-width: 5.25rem;
 }
 
 .bp-brand-logo--header {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: auto;
+  height: 2.35rem;
+  max-width: 2.6rem;
 }
 
 .bp-header-title .bp-brand-title--header {
@@ -1943,8 +1945,8 @@ td {
   }
 
   .bp-brand-logo--header {
-    width: 2.15rem;
-    height: 2.15rem;
+    height: 2.05rem;
+    max-width: 2.35rem;
   }
 
   .bp-header-ver {

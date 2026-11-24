@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.4
+
+- **UX:** Tighter trimmed logos on sign-in and header so the mark isn’t swallowed by empty padding in the icon files.
+
 ## 1.4.3
 
 - **UX:** Larger sign-in and header logos (crisp flat mark in the header, icon beside the title on login).
