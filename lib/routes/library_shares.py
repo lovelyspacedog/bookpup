@@ -46,6 +46,38 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
 
 
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
+    if path == "/api/library/shares/invite":
+        to_user = str(body.get("to") or "").strip()
+        if not to_user:
+            raise ValueError("to required")
+        mode = body.get("mode")
+        mode_s = str(mode).strip() if mode is not None and str(mode).strip() else None
+        row = library_shares.create_owner_invite(handler._current_user, to_user, mode_s)
+        _dm(
+            to_user,
+            f"{handler._current_user} invited you to browse their kennel — check Pack chat or Kennel → Sharing.",
+        )
+        handler.send_json(201, {"ok": True, "grant": row})
+        return True
+    if path.startswith("/api/library/shares/") and path.endswith("/accept-invite"):
+        grant_id = _grant_action_id(path, "/accept-invite")
+        mode = str(body.get("mode") or "").strip() or None
+        row = library_shares.accept_invite_as_requester(grant_id, handler._current_user, mode)
+        _dm(
+            row["owner"],
+            f"{handler._current_user} accepted your kennel invite ({row.get('mode')}).",
+        )
+        handler.send_json(200, {"ok": True, "grant": row})
+        return True
+    if path.startswith("/api/library/shares/") and path.endswith("/decline-invite"):
+        grant_id = _grant_action_id(path, "/decline-invite")
+        row = library_shares.decline_invite_as_requester(grant_id, handler._current_user)
+        _dm(
+            row["owner"],
+            f"{handler._current_user} declined your kennel invite.",
+        )
+        handler.send_json(200, {"ok": True, "grant": row})
+        return True
     if path == "/api/library/shares/request":
         owner = str(body.get("owner") or "").strip()
         if not owner:

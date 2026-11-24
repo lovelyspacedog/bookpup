@@ -3333,6 +3333,62 @@ tr.bp-sniff-pick td {
   font-style: normal;
 }
 
+.bp-pack-attach-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.bp-pack-card {
+  margin: 0.35rem 0 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 0.35rem;
+  background: var(--bp-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.bp-pack-card-actions {
+  margin: 0.35rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.bp-pack-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.bp-pack-react--on {
+  outline: 1px solid var(--bp-accent, #2ee6ff);
+}
+
+.bp-pack-reply-quote {
+  font-size: 0.85rem;
+  margin: 0 0 0.15rem;
+}
+
+.bp-pack-reply-banner {
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+}
+
+.bp-pack-attach-book-list {
+  max-height: min(45vh, 18rem);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bp-pack-chat-line--reply {
+  margin-left: 0.75rem;
+  border-left: 2px solid rgba(46, 230, 255, 0.35);
+  padding-left: 0.5rem;
+}
+
 .bp-pack-chat-compose {
   display: flex;
   flex-wrap: wrap;

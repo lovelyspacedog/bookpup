@@ -477,7 +477,10 @@
                 <p id="pack-chat-mode-sub" class="bp-pack-chat-head-sub muted">Messages here go to the whole household.</p>
               </header>
               <div id="pack-chat-feed" class="bp-irc-feed bp-pack-chat-feed" aria-live="polite"></div>
+              <p id="pack-chat-reply-banner" class="bp-pack-reply-banner hidden" aria-live="polite"></p>
+              <p id="pack-chat-pending-attach" class="bp-msg muted hidden"></p>
               <div class="bp-pack-chat-compose">
+                <button type="button" id="pack-chat-attach-btn" class="bp-btn" title="Attach">Attach…</button>
                 <label for="pack-chat-input" class="visually-hidden">Message the pack</label>
                 <input type="text" id="pack-chat-input" autocomplete="off" maxlength="2000" placeholder="Message the pack…" />
                 <button type="button" id="pack-chat-send" class="bp-btn primary">Send</button>
@@ -911,6 +914,43 @@
         </p>
       </form>
     </div>
+    <div id="pack-attach-menu" class="bp-pack-attach-menu hidden" role="menu">
+      <button type="button" id="pack-attach-book" class="bp-btn" role="menuitem">Catalogued book…</button>
+      <button type="button" id="pack-attach-kennel" class="bp-btn" role="menuitem">Invite to my kennel…</button>
+    </div>
+    <div id="pack-attach-book-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2>Attach book</h2>
+        <button type="button" id="pack-attach-book-close" class="bp-btn">Close</button>
+      </header>
+      <div class="bp-card bp-register-form">
+        <p class="muted">Catalogued bones only.</p>
+        <p>
+          <label><input type="radio" name="pack-book-intent" value="recommend" checked /> Recommend</label>
+          <label><input type="radio" name="pack-book-intent" value="offer_copy" /> Send copy</label>
+        </p>
+        <div id="pack-attach-book-list" class="bp-pack-attach-book-list"></div>
+      </div>
+    </div>
+    <div id="pack-attach-invite-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
+      <header class="bp-register-head">
+        <h2>Invite to my kennel</h2>
+        <button type="button" id="pack-attach-invite-close" class="bp-btn">Close</button>
+      </header>
+      <div class="bp-card bp-register-form">
+        <label for="pack-invite-user">Pup</label>
+        <select id="pack-invite-user" class="bp-lib-select"></select>
+        <label for="pack-invite-mode">Suggested access</label>
+        <select id="pack-invite-mode" class="bp-lib-select">
+          <option value="">They choose lend or give</option>
+          <option value="lend">Lend (browse/read)</option>
+          <option value="give">Give (may copy)</option>
+        </select>
+        <p class="bp-register-actions">
+          <button type="button" id="pack-invite-save" class="bp-btn primary">Attach invite</button>
+        </p>
+      </div>
+    </div>
     <div id="shelf-manage-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-manage-modal-title">
       <header class="bp-register-head">
         <h2 id="shelf-manage-modal-title">Manage shelf</h2>
@@ -1064,6 +1104,7 @@
     <script src="/static/app-docs.js?v=__VERSION__" defer></script>
     <script src="/static/app-irc.js?v=__VERSION__" defer></script>
     <script src="/static/app-pack-chat.js?v=__VERSION__" defer></script>
+    <script src="/static/app-pack-chat-v2.js?v=__VERSION__" defer></script>
     <script src="/static/app-account.js?v=__VERSION__" defer></script>
     <script src="/static/sniff-file-types.js?v=__VERSION__" defer></script>
     <script src="/static/app-walk-trail.js?v=__VERSION__" defer></script>

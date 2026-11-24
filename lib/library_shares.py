@@ -48,6 +48,9 @@ def _load_unlocked() -> None:
                             mode_s = None
                         if mode_s == "":
                             mode_s = None
+                        initiated = str(row.get("initiated_by") or "requester").strip().lower()
+                        if initiated not in ("owner", "requester"):
+                            initiated = "requester"
                         _grants.append(
                             {
                                 "id": gid,
@@ -55,6 +58,7 @@ def _load_unlocked() -> None:
                                 "owner": owner,
                                 "status": status,
                                 "mode": mode_s,
+                                "initiated_by": initiated,
                                 "created_at": float(row.get("created_at") or 0),
                                 "responded_at": float(row.get("responded_at") or 0),
                             }
@@ -133,9 +137,13 @@ def list_for_user(username: str) -> dict[str, list[dict[str, Any]]]:
         for row in _grants:
             r = dict(row)
             if r["owner"] == who and r["status"] in ACTIVE_STATUSES:
-                incoming.append(r)
+                if r.get("initiated_by") != "owner" or r["status"] == "active":
+                    incoming.append(r)
             if r["requester"] == who and r["status"] in ACTIVE_STATUSES:
-                outgoing.append(r)
+                if r.get("initiated_by") == "owner" and r["status"] == "pending":
+                    incoming.append(r)
+                else:
+                    outgoing.append(r)
             if (
                 r["owner"] == who
                 and r["status"] == "active"
@@ -180,6 +188,7 @@ def create_request(requester: str, owner: str) -> dict[str, Any]:
         if existing:
             existing["status"] = "pending"
             existing["mode"] = None
+            existing["initiated_by"] = "requester"
             existing["created_at"] = now
             existing["responded_at"] = 0
             _persist_unlocked()
@@ -190,6 +199,47 @@ def create_request(requester: str, owner: str) -> dict[str, Any]:
             "owner": own,
             "status": "pending",
             "mode": None,
+            "initiated_by": "requester",
+            "created_at": now,
+            "responded_at": 0,
+        }
+        _next_id += 1
+        _grants.append(row)
+        _persist_unlocked()
+        return dict(row)
+
+
+def create_owner_invite(owner: str, requester: str, mode_suggested: str | None = None) -> dict[str, Any]:
+    transfer._validate_recipient(owner, requester)
+    own = str(owner or "").strip()
+    req = str(requester or "").strip()
+    mode_s: str | None = None
+    if mode_suggested is not None and str(mode_suggested).strip():
+        mode_s = str(mode_suggested).strip().lower()
+        if mode_s not in ("lend", "give"):
+            raise ValueError('mode must be "lend" or "give"')
+    _ensure_loaded()
+    now = time.time()
+    global _next_id
+    with _lock:
+        existing = _find_pair_unlocked(req, own)
+        if existing and existing.get("status") in ACTIVE_STATUSES:
+            raise ValueError("A pending or active share already exists for this pup")
+        if existing:
+            existing["status"] = "pending"
+            existing["mode"] = mode_s
+            existing["initiated_by"] = "owner"
+            existing["created_at"] = now
+            existing["responded_at"] = 0
+            _persist_unlocked()
+            return dict(existing)
+        row = {
+            "id": _next_id,
+            "requester": req,
+            "owner": own,
+            "status": "pending",
+            "mode": mode_s,
+            "initiated_by": "owner",
             "created_at": now,
             "responded_at": 0,
         }
@@ -214,8 +264,60 @@ def accept_grant(grant_id: int, owner: str, mode: str) -> dict[str, Any]:
             raise PermissionError("Forbidden")
         if row.get("status") != "pending":
             raise ValueError("Share request is not pending")
+        if row.get("initiated_by") == "owner":
+            raise ValueError("Use accept-invite as the invited pup")
         row["status"] = "active"
         row["mode"] = mode_s
+        row["responded_at"] = now
+        _persist_unlocked()
+        return dict(row)
+
+
+def accept_invite_as_requester(grant_id: int, requester: str, mode: str | None = None) -> dict[str, Any]:
+    who = str(requester or "").strip()
+    mode_in = str(mode or "").strip().lower() if mode is not None else ""
+    _ensure_loaded()
+    now = time.time()
+    with _lock:
+        row = next((g for g in _grants if int(g["id"]) == int(grant_id)), None)
+        if not row:
+            raise KeyError(str(grant_id))
+        if row["requester"] != who:
+            raise PermissionError("Forbidden")
+        if row.get("initiated_by") != "owner":
+            raise ValueError("Not an owner invite")
+        if row.get("status") != "pending":
+            raise ValueError("Invite is not pending")
+        suggested = row.get("mode")
+        mode_s = mode_in if mode_in else (str(suggested).strip().lower() if suggested else "")
+        if mode_s not in ("lend", "give"):
+            raise ValueError('mode must be "lend" or "give"')
+        if suggested and str(suggested).strip().lower() in ("lend", "give"):
+            if mode_s != str(suggested).strip().lower():
+                raise ValueError("Owner suggested a different share mode")
+        row["status"] = "active"
+        row["mode"] = mode_s
+        row["responded_at"] = now
+        _persist_unlocked()
+        return dict(row)
+
+
+def decline_invite_as_requester(grant_id: int, requester: str) -> dict[str, Any]:
+    who = str(requester or "").strip()
+    _ensure_loaded()
+    now = time.time()
+    with _lock:
+        row = next((g for g in _grants if int(g["id"]) == int(grant_id)), None)
+        if not row:
+            raise KeyError(str(grant_id))
+        if row["requester"] != who:
+            raise PermissionError("Forbidden")
+        if row.get("initiated_by") != "owner":
+            raise ValueError("Not an owner invite")
+        if row.get("status") != "pending":
+            raise ValueError("Invite is not pending")
+        row["status"] = "declined"
+        row["mode"] = None
         row["responded_at"] = now
         _persist_unlocked()
         return dict(row)

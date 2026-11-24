@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.6.0
+
+- **Pack:** **Pack chat v2** — attach **catalogued books** (recommend or offer copy) and **kennel invites**; reply quotes; **paw / heart / laugh** reactions. Owner invites accept lend/give from the chat card.
+
 ## 1.5.4
 
 - **Kennel:** **Shelves** — create named shelves, pick one to filter **Catalogued bones**, **Manage shelf…** to assign books (catalogued only).

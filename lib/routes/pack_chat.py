@@ -102,7 +102,17 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
                         handler.send_json(400, {"error": str(exc)})
                         return
             else:
-                mid = pack_chat.append_message(handler._current_user, text, to=to_user)
+                parent_raw = body.get("parent_id")
+                parent_id = int(parent_raw) if parent_raw is not None else None
+                atts = body.get("attachments")
+                att_list = atts if isinstance(atts, list) else None
+                mid = pack_chat.append_message(
+                    handler._current_user,
+                    text,
+                    to=to_user,
+                    parent_id=parent_id,
+                    attachments=att_list,
+                )
             snap = pack_chat.snapshot(
                 touch_user=handler._current_user,
                 viewer=handler._current_user,
@@ -142,6 +152,36 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
             )
 
         handler.dispatch(clear)
+        return True
+    if path.startswith("/api/pack/chat/") and path.endswith("/reactions"):
+        rest = path[: -len("/reactions")].strip("/")
+        mid_s = rest.split("/")[-1]
+        try:
+            message_id = int(mid_s)
+        except ValueError:
+            raise ValueError("Invalid message id")
+
+        def react() -> None:
+            emoji = str(body.get("emoji") or "")
+            row = pack_chat.toggle_reaction(message_id, handler._current_user, emoji)
+            handler.send_json(200, {"ok": True, "message": row})
+
+        handler.dispatch(react)
+        return True
+    if path == "/api/pack/chat/attachments/claim-copy":
+        try:
+            message_id = int(body.get("message_id"))
+            attachment_index = int(body.get("attachment_index"))
+        except (TypeError, ValueError):
+            raise ValueError("message_id and attachment_index required")
+
+        def claim() -> None:
+            payload = pack_chat.claim_attachment_copy(
+                message_id, attachment_index, handler._current_user
+            )
+            handler.send_json(200, {"ok": True, **payload})
+
+        handler.dispatch(claim)
         return True
     return False
 

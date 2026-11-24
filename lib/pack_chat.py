@@ -18,6 +18,7 @@ MAX_MESSAGES = 500
 MAX_DELETIONS_LOG = 200
 PRESENCE_TTL_SECONDS = 90
 MESSAGE_MAX_LEN = 2000
+ALLOWED_REACTIONS = frozenset({"paw", "heart", "laugh"})
 SYSTEM_SENDER = "bookpup"
 BUGBOT_SENDER = "bugbot"
 FEATURECAT_SENDER = "featurecat"
@@ -139,7 +140,9 @@ def _load_unlocked() -> None:
                         user = str(row.get("username") or "").strip()
                         text = str(row.get("text") or "")
                         ts = float(row.get("ts") or 0)
-                        if mid < 1 or not user or not text:
+                        atts = row.get("attachments")
+                        has_atts = isinstance(atts, list) and len(atts) > 0
+                        if mid < 1 or not user or (not text and not has_atts):
                             continue
                         msg: dict[str, Any] = {
                             "id": mid,
@@ -155,6 +158,23 @@ def _load_unlocked() -> None:
                         kind = row.get("kind")
                         if kind:
                             msg["kind"] = str(kind)
+                        pid = row.get("parent_id")
+                        if pid is not None:
+                            try:
+                                pid_i = int(pid)
+                                if pid_i > 0:
+                                    msg["parent_id"] = pid_i
+                            except (TypeError, ValueError):
+                                pass
+                        if has_atts:
+                            msg["attachments"] = [a for a in atts if isinstance(a, dict)]
+                        rx = row.get("reactions")
+                        if isinstance(rx, dict):
+                            msg["reactions"] = {
+                                str(k): [str(u) for u in v if str(u).strip()]
+                                for k, v in rx.items()
+                                if isinstance(v, list)
+                            }
                         _messages.append(msg)
                 _next_id = max(_next_id, int(raw.get("next_id") or 1))
                 if _messages:
@@ -192,7 +212,7 @@ def _ensure_loaded() -> None:
 def _persist_unlocked() -> None:
     core.ensure_dirs()
     payload = {
-        "version": 1,
+        "version": 2,
         "next_id": _next_id,
         "messages": list(_messages),
         "deletions": list(_deletions[-MAX_DELETIONS_LOG:]),
@@ -230,33 +250,176 @@ def _presence_list_unlocked() -> list[dict[str, Any]]:
     return out
 
 
-def append_message(username: str, text: str, *, to: str | None = None) -> int:
+def get_message(message_id: int) -> dict[str, Any]:
+    _ensure_loaded()
+    with _lock:
+        for row in _messages:
+            if int(row["id"]) == int(message_id):
+                return dict(row)
+    raise KeyError(str(message_id))
+
+
+def _thread_key(row: dict[str, Any]) -> tuple:
+    if is_pack_message(row):
+        return ("pack",)
+    sender = str(row.get("username") or "").strip()
+    dest = _message_recipient(row) or ""
+    if not dest:
+        return ("pack",)
+    return tuple(sorted([sender, dest]))
+
+
+def _thread_key_user(user: str, dest: str | None) -> tuple:
+    if not dest:
+        return ("pack",)
+    return tuple(sorted([str(user).strip(), str(dest).strip()]))
+
+
+def _validate_parent(parent_id: int | None, user: str, dest: str | None) -> int | None:
+    if parent_id is None:
+        return None
+    try:
+        pid = int(parent_id)
+    except (TypeError, ValueError):
+        raise ValueError("Invalid parent_id") from None
+    if pid < 1:
+        return None
+    parent = get_message(pid)
+    if parent.get("parent_id") is not None:
+        raise ValueError("Cannot reply to a reply")
+    if _thread_key(parent) != _thread_key_user(user, dest):
+        raise ValueError("parent_id is not in this thread")
+    if not visible_to(parent, user, is_admin=False):
+        raise PermissionError("Cannot reply to this message")
+    return pid
+
+
+def append_message(
+    username: str,
+    text: str,
+    *,
+    to: str | None = None,
+    parent_id: int | None = None,
+    attachments: list[dict[str, Any]] | None = None,
+) -> int:
     user = str(username or "").strip()
     if not user:
         raise ValueError("Username required")
     if is_virtual_sender(user):
         raise PermissionError("Forbidden")
     clean = sanitize_message(text)
-    if not clean:
-        raise ValueError("Message required")
-    if len(clean) > MESSAGE_MAX_LEN:
+    if not clean and not attachments:
+        raise ValueError("Message or attachment required")
+    if clean and len(clean) > MESSAGE_MAX_LEN:
         raise ValueError(f"Message too long (max {MESSAGE_MAX_LEN} characters)")
     dest: str | None = None
     if to is not None and str(to).strip():
         dest = _validate_dm_recipient(user, str(to).strip())
+    if dest and is_virtual_peer(dest):
+        if attachments:
+            raise ValueError("Attachments not allowed in bot threads")
+    if attachments:
+        from . import pack_chat_enrich
+
+        atts = pack_chat_enrich.validate_attachments_raw(
+            user, attachments, dm_peer=dest
+        )
+    else:
+        atts = []
+    pid = _validate_parent(parent_id, user, dest)
     _ensure_loaded()
     now = time.time()
     global _next_id
     with _lock:
         mid = _next_id
         _next_id += 1
-        row: dict[str, Any] = {"id": mid, "username": user, "text": clean, "ts": now}
+        row: dict[str, Any] = {"id": mid, "username": user, "text": clean or "", "ts": now}
         if dest:
             row["to"] = dest
+        if pid:
+            row["parent_id"] = pid
+        if atts:
+            row["attachments"] = atts
         _messages.append(row)
         _trim_messages_unlocked()
         _persist_unlocked()
         return mid
+
+
+def toggle_reaction(message_id: int, actor: str, emoji: str) -> dict[str, Any]:
+    who = str(actor or "").strip()
+    key = str(emoji or "").strip().lower()
+    if key not in ALLOWED_REACTIONS:
+        raise ValueError("Unknown reaction")
+    _ensure_loaded()
+    with _lock:
+        idx = next(
+            (i for i, m in enumerate(_messages) if int(m["id"]) == int(message_id)), None
+        )
+        if idx is None:
+            raise KeyError(str(message_id))
+        row = _messages[idx]
+        if not visible_to(row, who, is_admin=False):
+            raise PermissionError("Forbidden")
+        rx = row.get("reactions")
+        if not isinstance(rx, dict):
+            rx = {}
+        users = list(rx.get(key) or [])
+        if who in users:
+            users = [u for u in users if u != who]
+        else:
+            users = users + [who]
+        if users:
+            rx[key] = users
+        elif key in rx:
+            del rx[key]
+        row["reactions"] = rx
+        _messages[idx] = row
+        _persist_unlocked()
+        return dict(row)
+
+
+def claim_attachment_copy(message_id: int, attachment_index: int, claimer: str) -> dict[str, Any]:
+    who = str(claimer or "").strip()
+    _ensure_loaded()
+    from . import transfer
+
+    with _lock:
+        idx = next(
+            (i for i, m in enumerate(_messages) if int(m["id"]) == int(message_id)), None
+        )
+        if idx is None:
+            raise KeyError(str(message_id))
+        row = _messages[idx]
+        if not visible_to(row, who, is_admin=False):
+            raise PermissionError("Forbidden")
+        atts = row.get("attachments")
+        if not isinstance(atts, list):
+            raise ValueError("No attachments")
+        ai = int(attachment_index)
+        if ai < 0 or ai >= len(atts):
+            raise ValueError("Invalid attachment index")
+        att = atts[ai]
+        if not isinstance(att, dict) or att.get("type") != "library_book":
+            raise ValueError("Not a book attachment")
+        if str(att.get("intent")) != "offer_copy":
+            raise ValueError("Copy not offered")
+        if att.get("claimed_by"):
+            raise ValueError("Copy already claimed")
+        owner = str(att.get("owner") or "")
+        item_id = str(att.get("item_id") or "")
+        if not owner or not item_id or owner == who:
+            raise ValueError("Invalid attachment")
+    item = transfer.send_library_item(owner, who, item_id)
+    with _lock:
+        row = next(m for m in _messages if int(m["id"]) == int(message_id))
+        atts = list(row.get("attachments") or [])
+        att = dict(atts[ai])
+        att["claimed_by"] = who
+        atts[ai] = att
+        row["attachments"] = atts
+        _persist_unlocked()
+    return {"item": item, "attachment": att}
 
 
 def append_virtual_dm(
@@ -446,11 +609,17 @@ def snapshot(
     if touch_user:
         touch_presence(touch_user)
     who = str(viewer or touch_user or "").strip()
+    from . import pack_chat_enrich
+
     with _lock:
-        msgs = [
-            _row_out(m)
+        parent_cache = {int(m["id"]): m for m in _messages}
+        raw_msgs = [
+            m
             for m in _messages
             if int(m["id"]) > int(after) and (not who or visible_to(m, who, is_admin=is_admin))
+        ]
+        msgs = [
+            pack_chat_enrich.enrich_message(_row_out(m), who, parent_cache) for m in raw_msgs
         ]
         removed = [
             int(d["message_id"])

@@ -74,6 +74,13 @@ class LibrarySharesTest(unittest.TestCase):
         user_paths.set_user("alice")
         self.assertEqual(len(library.list_items()), 2)
 
+    def test_owner_invite_accept(self) -> None:
+        row = library_shares.create_owner_invite("alice", "bob", "lend")
+        self.assertEqual(row.get("initiated_by"), "owner")
+        accepted = library_shares.accept_invite_as_requester(row["id"], "bob", "lend")
+        self.assertEqual(accepted["status"], "active")
+        self.assertTrue(library_shares.can_read("bob", "alice"))
+
     def test_revoke_blocks_read(self) -> None:
         row = library_shares.create_request("alice", "bob")
         library_shares.accept_grant(row["id"], "bob", "lend")

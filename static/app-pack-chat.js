@@ -175,6 +175,20 @@
       return;
     }
     BP.state.packChatById[id] = msg;
+    if (BP.renderPackMessageRowV2) {
+      BP.renderPackMessageRowV2(msg);
+      const row = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
+      if (row && canDeleteMessage(msg)) {
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "bp-btn bp-btn--ghost bp-pack-chat-delete";
+        del.setAttribute("data-pack-delete", String(id));
+        del.setAttribute("aria-label", "Delete message");
+        del.textContent = "Remove";
+        row.appendChild(del);
+      }
+      return;
+    }
     let row = feedEl.querySelector('[data-pack-msg-id="' + id + '"]');
     if (!row) {
       row = document.createElement("div");
@@ -273,6 +287,7 @@
     }
     syncSidebarSelection();
     rerenderPackFeed();
+    BP.syncPackChatAttachUi?.();
   }
 
   function wireDmListItem(li, peer) {
@@ -444,8 +459,10 @@
       });
       if (Number(data.latest_id) > BP.state.packChatAfterId) BP.state.packChatAfterId = Number(data.latest_id);
       if (data.peers) BP.state.packChatPeers = data.peers;
-      if (data.presence) renderPresence(data.presence);
-      else if (data.peers) renderPresence([]);
+      if (data.presence) {
+        BP.state.sessionRoster = (data.presence || []).map((p) => p.username).filter(Boolean);
+        renderPresence(data.presence);
+      } else if (data.peers) renderPresence([]);
       if (changed) rerenderPackFeed();
       BP.state.packChatBootstrapped = true;
     } catch {
@@ -456,8 +473,10 @@
   async function sendPackChat() {
     if (!inputEl) return;
     const text = inputEl.value.trim();
-    if (!text) return;
-    const body = { message: text };
+    const hasAttach = !!(BP.state.packChatPendingAttach);
+    if (!text && !hasAttach) return;
+    const body = { message: text || "" };
+    if (BP.packChatSendExtras) BP.packChatSendExtras(body);
     if (BP.state.packChatMode === "dm" && BP.state.packChatDmPeer) {
       if (BP.state.packChatDmPeer === BOOKPUP_USER) {
         if (hintEl) {
@@ -478,6 +497,7 @@
         body: JSON.stringify(body),
       });
       inputEl.value = "";
+      BP.packChatAfterSend?.();
       if (hintEl) {
         hintEl.textContent = "";
         hintEl.className = "bp-msg muted";
@@ -605,4 +625,5 @@
   BP.pollPackChat = pollPackChat;
   BP.onPackChatTabActive = onPackChatTabActive;
   BP.onPackChatTabInactive = onPackChatTabInactive;
+  BP.setPackChatDmMode = setDmMode;
 })(window.BookPup);

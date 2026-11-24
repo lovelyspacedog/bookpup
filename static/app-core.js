@@ -701,6 +701,7 @@ window.BookPup = window.BookPup || {};
 
   // exports
   BP.activateTab = activateTab;
+  BP.tabButton = tabButton;
   BP.animateLoginTagline = animateLoginTagline;
   BP.api = api;
   BP.bindSearchHistoryUx = bindSearchHistoryUx;
