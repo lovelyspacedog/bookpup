@@ -281,21 +281,24 @@
                   <dd id="draft-rows">0</dd>
                 </div>
               </dl>
+              <p class="bp-saved-bookmarks-label">Bookmarks</p>
               <p id="saved-search-empty" class="bp-saved-empty muted">No bookmarks yet.</p>
               <ol id="saved-search-list" class="bp-saved-list" aria-label="Bookmarked search lists"></ol>
-              <label class="bp-saved-save-label" for="saved-search-name">Name open results</label>
-              <div class="bp-saved-search-actions">
-                <input
-                  id="saved-search-name"
-                  type="text"
-                  maxlength="80"
-                  placeholder="e.g. Glen Duncan — all nets"
-                  autocomplete="off"
-                />
-                <button type="button" id="saved-search-save" class="bp-btn">Bookmark</button>
+              <div class="bp-saved-bookmark-form">
+                <label class="bp-saved-save-label" for="saved-search-name">Name open results</label>
+                <div class="bp-saved-search-actions">
+                  <input
+                    id="saved-search-name"
+                    type="text"
+                    maxlength="80"
+                    placeholder="e.g. Glen Duncan — all nets"
+                    autocomplete="off"
+                  />
+                  <button type="button" id="saved-search-save" class="bp-btn">Bookmark</button>
+                </div>
+                <p class="bp-saved-limits muted">Up to 25 bookmarks · 2500 rows each.</p>
+                <p id="saved-search-msg" class="bp-msg muted" role="status"></p>
               </div>
-              <p class="bp-saved-limits muted">Up to 25 bookmarks · 2500 rows each.</p>
-              <p id="saved-search-msg" class="bp-msg muted" role="status"></p>
             </div>
           </details>
         </div>

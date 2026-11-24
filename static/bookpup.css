@@ -387,23 +387,34 @@ body {
 }
 
 .bp-saved-item {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title actions"
+    "schedule schedule";
+  gap: 0.4rem 0.75rem;
   align-items: center;
-  gap: 0.35rem 0.75rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--border, #444);
+  padding: 0.6rem 0.75rem;
+  margin: 0.4rem 0 0;
+  border: 1px solid var(--border, #444);
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, var(--bp-section-bg) 94%, var(--text, #ccc) 6%);
 }
 
 .bp-saved-item-title {
-  flex: 1 1 12rem;
-  font-size: 0.9rem;
+  grid-area: title;
+  font-size: 0.88rem;
+  font-weight: 500;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .bp-saved-item-actions {
+  grid-area: actions;
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
+  justify-content: flex-end;
 }
 
 .bp-saved-item-actions .bp-btn {
@@ -412,18 +423,15 @@ body {
   font-size: 0.82rem;
 }
 
-.bp-saved-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
 .bp-saved-schedule {
+  grid-area: schedule;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem 0.75rem;
-  padding-left: 0.15rem;
+  padding: 0.45rem 0 0;
+  margin-top: 0.1rem;
+  border-top: 1px solid var(--border, #444);
 }
 
 .bp-saved-schedule-check {
@@ -523,6 +531,47 @@ body {
 }
 
 .bp-saved-panel .bp-saved-search-actions input {
+  margin-top: 0;
+}
+
+.bp-saved-search-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.bp-saved-bookmarks-label {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.bp-saved-bookmark-form {
+  margin-top: 0.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border, #444);
+}
+
+/* .bp-card forces full-width buttons; saved panel needs compact inline controls */
+#results-wrap .bp-saved-panel button.bp-btn {
+  width: auto;
+  max-width: none;
+  margin-top: 0;
+}
+
+#results-wrap .bp-saved-panel .bp-saved-search-actions input {
+  flex: 1 1 12rem;
+  width: auto;
+  max-width: none;
+  margin-top: 0;
+}
+
+#results-wrap .bp-saved-panel .bp-saved-schedule-interval {
+  width: auto;
+  max-width: 11rem;
   margin-top: 0;
 }
 
@@ -1891,17 +1940,16 @@ td {
   }
 
   .bp-saved-item {
-    align-items: flex-start;
-  }
-
-  .bp-saved-item-title {
-    flex: 1 1 100%;
-    min-width: 0;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "actions"
+      "schedule";
+    align-items: stretch;
   }
 
   .bp-saved-item-actions {
-    flex: 1 1 100%;
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 
   .bp-card input,

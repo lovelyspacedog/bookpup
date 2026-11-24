@@ -2,7 +2,11 @@
 
 ## 1.3
 
-Patch line **1.3.0**–**1.3.58** (live patch on **What’s new** and `GET /api/health`).
+Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
+
+## 1.3.59
+
+- **UI:** **Open results & bookmarks** — compact Load/Remove/↑↓ row (no full-width button stack); clearer bookmark cards and form separator.
 
 ## 1.3.58
 
