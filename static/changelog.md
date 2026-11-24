@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.109
+
+- **Fix:** **Reader** — comic CBZ/CBR pan with one finger on mobile after zoom (pinch or +/- still work).
+
 ## 1.3.108
 
 - **UX:** **Walk the Trail again** only on **Pup guide** page 1 — removed from **Sniff** (including mobile dock).

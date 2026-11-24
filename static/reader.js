@@ -1109,14 +1109,43 @@
           viewport.classList.remove("bp-reader-comic-viewport--dragging");
           document.removeEventListener("mousemove", onComicDragMove);
           document.removeEventListener("mouseup", endComicDrag);
+          document.removeEventListener("touchmove", onComicDragMove);
+          document.removeEventListener("touchend", endComicDrag);
+          document.removeEventListener("touchcancel", endComicDrag);
         }
         function onComicDragMove(ev) {
           if (!comicDrag) return;
+          if (ev.type === "touchmove" && ev.touches.length !== 1) return;
           ev.preventDefault();
+          const cx =
+            ev.touches && ev.touches.length ? ev.touches[0].clientX : ev.clientX;
+          const cy =
+            ev.touches && ev.touches.length ? ev.touches[0].clientY : ev.clientY;
           const pv = paneView[comicDrag.paneIx];
-          pv.panX = comicDrag.panX0 + (ev.clientX - comicDrag.x);
-          pv.panY = comicDrag.panY0 + (ev.clientY - comicDrag.y);
+          pv.panX = comicDrag.panX0 + (cx - comicDrag.x);
+          pv.panY = comicDrag.panY0 + (cy - comicDrag.y);
           applyPaneTransform(comicDrag.paneIx);
+        }
+        function beginComicDrag(clientX, clientY, target) {
+          const ix = paneFromTarget(target);
+          activePane = ix;
+          const pv = paneView[ix];
+          comicDrag = {
+            x: clientX,
+            y: clientY,
+            panX0: pv.panX,
+            panY0: pv.panY,
+            paneIx: ix,
+          };
+          viewport.classList.add("bp-reader-comic-viewport--dragging");
+          document.addEventListener("mousemove", onComicDragMove);
+          document.addEventListener("mouseup", endComicDrag);
+          document.addEventListener("touchmove", onComicDragMove, { passive: false });
+          document.addEventListener("touchend", endComicDrag);
+          document.addEventListener("touchcancel", endComicDrag);
+        }
+        function comicViewportZoomed() {
+          return paneView[0].zoom > 1.001 || paneView[1].zoom > 1.001;
         }
 
         bodyEl.classList.add("bp-reader-body--comic");
@@ -1212,20 +1241,8 @@
         zoomFit.addEventListener("click", () => resetComicFit());
         viewport.addEventListener("mousedown", (ev) => {
           if (ev.button !== 0) return;
-          const ix = paneFromTarget(ev.target);
-          activePane = ix;
-          const pv = paneView[ix];
-          comicDrag = {
-            x: ev.clientX,
-            y: ev.clientY,
-            panX0: pv.panX,
-            panY0: pv.panY,
-            paneIx: ix,
-          };
-          viewport.classList.add("bp-reader-comic-viewport--dragging");
+          beginComicDrag(ev.clientX, ev.clientY, ev.target);
           ev.preventDefault();
-          document.addEventListener("mousemove", onComicDragMove);
-          document.addEventListener("mouseup", endComicDrag);
         });
         viewport.addEventListener(
           "wheel",
@@ -1242,6 +1259,7 @@
           "touchstart",
           (ev) => {
             if (ev.touches.length === 2) {
+              if (comicDrag) endComicDrag();
               const a = ev.touches[0];
               const b = ev.touches[1];
               pinchDist0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
@@ -1250,6 +1268,8 @@
               pinchPaneIx = paneFromTarget(document.elementFromPoint(cx, cy));
               activePane = pinchPaneIx;
               pinchZoom0 = paneView[pinchPaneIx].zoom;
+            } else if (ev.touches.length === 1 && comicViewportZoomed()) {
+              beginComicDrag(ev.touches[0].clientX, ev.touches[0].clientY, ev.target);
             }
           },
           { passive: true }
