@@ -8,6 +8,7 @@ import time
 from typing import Any
 
 from . import accounts
+from . import bot_reply
 from . import core
 from . import json_atomic
 from . import pack_chat
@@ -138,7 +139,9 @@ def ensure_intro(viewer: str) -> bool:
             return False
         _intro_seen.add(who)
         _persist_state_unlocked()
-    pack_chat.append_virtual_dm(BUGBOT_SENDER, who, INTRO_TEXT, kind="bugbot_intro")
+    bot_reply.schedule_delayed_virtual_dm(
+        BUGBOT_SENDER, who, INTRO_TEXT, kind="bugbot_intro"
+    )
     return True
 
 
@@ -166,7 +169,7 @@ def on_user_report(from_user: str, text: str, *, pack_message_id: int | None = N
         while len(_inbox_reports) > MAX_INBOX:
             _inbox_reports.pop(0)
         _persist_inbox_unlocked()
-    pack_chat.append_virtual_dm(BUGBOT_SENDER, who, ACK_TEXT, kind="bugbot_ack")
+    bot_reply.schedule_delayed_virtual_dm(BUGBOT_SENDER, who, ACK_TEXT, kind="bugbot_ack")
     return rid
 
 

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.79
+
+- **Pack:** **BugBot** and **FeatureCat** wait 2–5 seconds before intro or confirmation replies (inbox still saves immediately).
+
 ## 1.3.78
 
 - **Pack:** **FeatureCat** — feature requests in Pack chat (intro on first open, always online); admins triage on **Pack roster** → **Feature inbox**.

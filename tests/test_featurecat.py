@@ -1,3 +1,4 @@
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +11,7 @@ from lib import pack_chat
 
 class FeatureCatTest(unittest.TestCase):
     def setUp(self) -> None:
+        os.environ["BOOKPUP_BOT_REPLY_DELAY"] = "0"
         self.tmp = tempfile.TemporaryDirectory()
         core.CONFIG_DIR = Path(self.tmp.name) / "cfg"
         core.ensure_dirs()
@@ -29,6 +31,7 @@ class FeatureCatTest(unittest.TestCase):
             featurecat._inbox_next_id = 1
 
     def tearDown(self) -> None:
+        os.environ.pop("BOOKPUP_BOT_REPLY_DELAY", None)
         self.tmp.cleanup()
 
     @mock.patch(
