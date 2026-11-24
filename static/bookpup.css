@@ -2945,16 +2945,24 @@ tr.bp-sniff-pick td {
   box-shadow: inset 2px 0 0 var(--bp-accent, #6a8cff);
 }
 
+.bp-pack-presence-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .bp-pack-presence-name {
   font-weight: 500;
 }
 
 .bp-pack-peer-badge {
   display: inline-block;
+  flex-shrink: 0;
   min-width: 1.1rem;
   height: 1.1rem;
   padding: 0 0.28rem;
-  margin-left: 0.25rem;
+  margin-left: 0;
   font-size: 0.62rem;
   font-weight: 700;
   line-height: 1.1rem;

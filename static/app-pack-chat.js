@@ -55,24 +55,43 @@
     const from = String(msg.username);
     if (from === me) return "";
     if (from === SYSTEM_USER) return SYSTEM_USER;
-    if (String(msg.to || "") === me) return from;
+    if (String(msg.to || "").toLowerCase() === me.toLowerCase()) return from;
     return "";
+  }
+
+  function unreadPeerCount(peer) {
+    const key = String(peer || "").trim();
+    if (!key) return 0;
+    const map = BP.state.packChatUnreadByPeer || {};
+    if (map[key] != null) return map[key];
+    const folded = key.toLowerCase();
+    const alt = Object.keys(map).find((k) => k.toLowerCase() === folded);
+    return alt ? map[alt] : 0;
+  }
+
+  function addUnreadPeer(peer, delta) {
+    const key = String(peer || "").trim();
+    if (!key || delta < 1) return;
+    const map = BP.state.packChatUnreadByPeer;
+    const folded = key.toLowerCase();
+    const canon = Object.keys(map).find((k) => k.toLowerCase() === folded) || key;
+    map[canon] = (map[canon] || 0) + delta;
   }
 
   function applyPeerBadge(li, peer) {
     if (!li || !peer) return;
-    const n = BP.state.packChatUnreadByPeer[peer] || 0;
+    const n = unreadPeerCount(peer);
     let badge = li.querySelector(".bp-pack-peer-badge");
     if (n < 1) {
       badge?.remove();
       return;
     }
+    const nameRow = li.querySelector(".bp-pack-presence-name-row");
     if (!badge) {
       badge = document.createElement("span");
       badge.className = "bp-pack-peer-badge";
-      const nameEl = li.querySelector(".bp-pack-presence-name");
-      if (nameEl) nameEl.after(badge);
-      else li.appendChild(badge);
+      if (nameRow) nameRow.appendChild(badge);
+      else li.querySelector(".bp-pack-presence-name")?.after(badge);
     }
     badge.textContent = n > 9 ? "9+" : String(n);
     badge.setAttribute("aria-label", n + " unread private message" + (n === 1 ? "" : "s"));
@@ -87,9 +106,13 @@
   function clearPeerUnread(peer) {
     const key = String(peer || "").trim();
     if (!key) return;
-    const n = BP.state.packChatUnreadByPeer[key] || 0;
+    const map = BP.state.packChatUnreadByPeer;
+    const folded = key.toLowerCase();
+    const canon = Object.keys(map).find((k) => k.toLowerCase() === folded);
+    if (!canon) return;
+    const n = map[canon] || 0;
     if (n < 1) return;
-    delete BP.state.packChatUnreadByPeer[key];
+    delete map[canon];
     BP.state.packChatUnread = Math.max(0, (BP.state.packChatUnread || 0) - n);
     syncPackBadge();
     syncAllPeerBadges();
@@ -241,6 +264,16 @@
     syncModeUi();
   }
 
+  function appendPresenceNameRow(name) {
+    const nameRow = document.createElement("span");
+    nameRow.className = "bp-pack-presence-name-row";
+    const nameEl = document.createElement("span");
+    nameEl.className = "bp-pack-presence-name";
+    nameEl.textContent = name;
+    nameRow.appendChild(nameEl);
+    return nameRow;
+  }
+
   function renderPresence(list) {
     if (!presenceEl) return;
     const me = BP.state.sessionUsername || "";
@@ -256,14 +289,12 @@
       dot.className = "bp-pack-presence-dot" + (row.online ? " bp-pack-presence-dot--on" : "");
       dot.setAttribute("aria-hidden", "true");
       if (row.online) dot.title = "Online";
-      const nameEl = document.createElement("span");
-      nameEl.className = "bp-pack-presence-name";
-      nameEl.textContent = name;
+      const nameRow = appendPresenceNameRow(name);
       const stat = document.createElement("span");
       stat.className = "bp-pack-presence-action muted";
       stat.textContent = name !== me ? "Open PM →" : row.online ? "Online" : "Offline";
       li.appendChild(dot);
-      li.appendChild(nameEl);
+      li.appendChild(nameRow);
       li.appendChild(stat);
       if (name && name !== me) applyPeerBadge(li, name);
       presenceEl.appendChild(li);
@@ -278,14 +309,12 @@
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot";
       dot.setAttribute("aria-hidden", "true");
-      const label = document.createElement("span");
-      label.className = "bp-pack-presence-name";
-      label.textContent = name;
+      const nameRow = appendPresenceNameRow(name);
       const stat = document.createElement("span");
       stat.className = "bp-pack-presence-action muted";
       stat.textContent = "Open PM →";
       li.appendChild(dot);
-      li.appendChild(label);
+      li.appendChild(nameRow);
       li.appendChild(stat);
       applyPeerBadge(li, name);
       presenceEl.appendChild(li);
@@ -301,32 +330,35 @@
       const dot = document.createElement("span");
       dot.className = "bp-pack-presence-dot bp-pack-presence-dot--sys";
       dot.setAttribute("aria-hidden", "true");
-      const label = document.createElement("span");
-      label.className = "bp-pack-presence-name";
-      label.textContent = "BookPup";
+      const nameRow = appendPresenceNameRow("BookPup");
       const stat = document.createElement("span");
       stat.className = "bp-pack-presence-action muted";
       stat.textContent = "Open alerts →";
       li.appendChild(dot);
-      li.appendChild(label);
+      li.appendChild(nameRow);
       li.appendChild(stat);
       applyPeerBadge(li, SYSTEM_USER);
       presenceEl.appendChild(li);
     }
     syncSidebarSelection();
+    syncAllPeerBadges();
   }
 
   function bumpUnread(fromMsg) {
     if (BP.state.packChatTabActive && messageInCurrentThread(fromMsg)) return;
     const me = BP.state.sessionUsername || "";
-    if (fromMsg && String(fromMsg.username) === me) return;
-    BP.state.packChatUnread = (BP.state.packChatUnread || 0) + 1;
-    syncPackBadge();
+    const from = String(fromMsg?.username || "");
+    if (fromMsg && from.toLowerCase() === me.toLowerCase()) return;
     const peer = peerFromIncoming(fromMsg);
     if (peer) {
-      BP.state.packChatUnreadByPeer[peer] = (BP.state.packChatUnreadByPeer[peer] || 0) + 1;
+      addUnreadPeer(peer, 1);
+      BP.state.packChatUnread = (BP.state.packChatUnread || 0) + 1;
+      syncPackBadge();
       syncAllPeerBadges();
+      return;
     }
+    BP.state.packChatUnread = (BP.state.packChatUnread || 0) + 1;
+    syncPackBadge();
   }
 
   async function pollPackChat(force) {
@@ -464,7 +496,7 @@
     BP.state.packChatTabActive = true;
     BP.state.packChatUnread = 0;
     syncPackBadge();
-    syncModeUi();
+    setPackMode();
     if (!BP.state.packChatBootstrapped) void pollPackChat(true);
     else if (feedEl) feedEl.scrollTop = feedEl.scrollHeight;
   }

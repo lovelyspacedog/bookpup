@@ -4,6 +4,11 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.72
+
+- **Fix:** **Pack chat** unread badges render beside pup names (grid layout); opening the **Pack chat** tab always returns to **everyone**.
+- **Fix:** tab unread only bumps for DMs you receive (not your own sends).
+
 ## 1.3.71
 
 - **UX:** **Pack chat** sidebar — unread count badge beside each pup (and **BookPup**) with new private messages; clears when you open that thread.
