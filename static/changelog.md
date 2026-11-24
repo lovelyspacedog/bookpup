@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.5.1
+
+- **UX:** **About** dialog typography (Inter body rhythm, section headings, links) and readable markdown links.
+
 ## 1.5.0 — community operator
 
 - **Operator:** **docs/DEPLOY.md** for any VPS; SSH-key deploy via `scripts/deploy-remote.sh`; Whatbox keeps `./deploy.sh`.

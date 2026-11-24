@@ -11,7 +11,8 @@
     try {
       const res = await fetch("/static/about.md");
       if (!res.ok) throw new Error(res.statusText || "Could not load about");
-      let html = formatChangelog(await res.text());
+      const md = (await res.text()).replace(/^#\s+[^\n]+\n?/, "");
+      let html = formatChangelog(md);
       try {
         const health = await BP.fetchPublic("/api/health");
         if (health && health.version) {
@@ -60,8 +61,20 @@
 
   function formatInlineMd(text) {
     return String(text)
-      .split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+      .split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g)
       .map((part) => {
+        const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+        if (link) {
+          const href = link[2].trim();
+          if (!/^https?:\/\//i.test(href)) return BP.escapeHtml(part);
+          return (
+            '<a href="' +
+            BP.escapeHtml(href) +
+            '" target="_blank" rel="noopener noreferrer">' +
+            BP.escapeHtml(link[1]) +
+            "</a>"
+          );
+        }
         if (part.startsWith("**") && part.endsWith("**")) {
           return "<strong>" + BP.escapeHtml(part.slice(2, -2)) + "</strong>";
         }
