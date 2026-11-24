@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.3
+
+- **UX:** Larger sign-in and header logos (crisp flat mark in the header, icon beside the title on login).
+
 ## 1.4.2
 
 - **UX:** BookPup logo on the sign-in card and a small mark beside the header title.
