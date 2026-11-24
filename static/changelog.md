@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.13
+
+- **Fix:** **Email to my Kindle** and session flags read fresh `smtp_*` config after you edit `config.json` (no stale restart required for UI).
+
 ## 1.4.12
 
 - **Kennel:** **Email to my Kindle** — household Gmail SMTP (`smtp_*` in server `config.json`); sends the chosen format to each pup’s Send-to-Kindle address on **Your tag** (24 MB cap; use the link for bigger files).

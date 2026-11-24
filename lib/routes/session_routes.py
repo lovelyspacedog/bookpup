@@ -15,7 +15,7 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
         return True
     if path == "/api/session":
         usage = quota.library_usage_for(owner)
-        cfg = handler.config or load_config()
+        cfg = load_config()
         base = public_base_url(cfg)
         smtp_on = kindle_smtp.smtp_configured(cfg)
         kindle_to = accounts.kindle_email_for(owner)

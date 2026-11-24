@@ -396,7 +396,7 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         if not item_id or "/" in item_id:
             raise ValueError("Invalid library id")
         assert_own_catalog_only(shared, "send books to an e-reader from")
-        if not kindle_smtp.smtp_configured(handler.config):
+        if not kindle_smtp.smtp_configured():
             raise ValueError("Kindle email send is not configured on this server")
         to_addr = accounts.kindle_email_for(handler._current_user)
         if not to_addr:
