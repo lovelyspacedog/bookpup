@@ -116,6 +116,21 @@ class WalkTrailTests(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(first.get("library_item_id"), second.get("library_item_id"))
 
+    def test_walk_trail_complete_records_account(self) -> None:
+        _, login = self._request(
+            "POST",
+            "/api/login",
+            {"username": "book", "password": "secret"},
+        )
+        token = login["token"]
+        headers = {"Authorization": f"Bearer {token}", "X-Bookpup": "1"}
+        code, body = self._request("POST", "/api/walk-trail/complete", {}, headers=headers)
+        self.assertEqual(code, 200)
+        self.assertTrue(body.get("walk_trail_completed_at"))
+        code, session = self._request("GET", "/api/session", headers=headers)
+        self.assertEqual(code, 200)
+        self.assertTrue(session.get("walk_trail_complete"))
+
 
 if __name__ == "__main__":
     unittest.main()

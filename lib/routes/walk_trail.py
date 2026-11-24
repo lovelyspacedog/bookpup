@@ -7,6 +7,10 @@ from ._types import RequestHandler
 
 
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
+    if path == "/api/walk-trail/complete":
+        out = walk_trail.mark_trail_complete(handler._current_user)
+        handler.send_json(200, out)
+        return True
     if path != "/api/walk-trail/fetch":
         return False
     query = str(body.get("query") or "").strip()

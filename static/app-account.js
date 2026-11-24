@@ -210,8 +210,13 @@
         : irc.irc_worker_alive
           ? "IRC idle (worker up)"
           : "IRC worker not running";
+      const wt = d.walk_trail || {};
+      const trailHint =
+        (wt.incomplete_usernames || []).length > 0
+          ? ` · ${wt.incomplete_usernames.length} pup(s) still on Walk the Trail`
+          : "";
       summary.textContent =
-        `${pups.length} pup(s) · ${jobs.active || 0} active job(s) · ${jobs.failed_or_cancelled || 0} need attention · ${ircLine}`;
+        `${pups.length} pup(s) · ${jobs.active || 0} active job(s) · ${jobs.failed_or_cancelled || 0} need attention · ${ircLine}${trailHint}`;
       summary.className = "bp-msg muted";
       list.textContent = "";
       pups
@@ -220,9 +225,28 @@
         .forEach((p) => {
           const li = document.createElement("li");
           const pct = p.used_percent != null ? p.used_percent + "% kennel" : "";
-          li.textContent = `${p.username}: ${BP.bytes(p.used_bytes || 0)} / ${BP.bytes(p.quota_bytes || 0)} (${pct})`;
+          const trail =
+            p.walk_trail_complete === false
+              ? " · Walk the Trail not finished"
+              : p.walk_trail_complete
+                ? ""
+                : "";
+          li.textContent = `${p.username}: ${BP.bytes(p.used_bytes || 0)} / ${BP.bytes(p.quota_bytes || 0)} (${pct})${trail}`;
           list.appendChild(li);
         });
+      const incomplete = (wt.incomplete_usernames || []).slice();
+      if (incomplete.length) {
+        const h = document.createElement("li");
+        h.className = "bp-digest-recent-title";
+        h.textContent = "Walk the Trail";
+        list.appendChild(h);
+        const hint = document.createElement("li");
+        hint.textContent =
+          "Pups who have not finished the onboard tour: " +
+          incomplete.join(", ") +
+          ". Point them to Pup guide page 1 or Sniff onboard.";
+        list.appendChild(hint);
+      }
       const recent = (jobs.recent_7d || []).slice(0, 8);
       if (recent.length) {
         const h = document.createElement("li");

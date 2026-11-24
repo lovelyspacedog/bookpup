@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.17
+
+- **Pack:** **Pack digest** lists pups who have not finished **Walk the Trail**; finishing the tour records completion on the server (syncs across devices).
+- **UX:** Automated test locks Walk the Trail step order to the coach script (fetch → tag → Pack chat).
+
 ## 1.4.16
 
 - **Reader:** Comic **dual page** — pick active page with **1** / **2** or **[** / **]** (or tap a page); thin outline shows which pane gets zoom and pan.

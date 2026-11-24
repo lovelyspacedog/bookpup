@@ -7,6 +7,7 @@ import time
 from . import accounts
 from . import jobs
 from . import quota
+from . import walk_trail
 from .irc_worker import worker
 
 
@@ -22,6 +23,7 @@ def build_digest() -> dict:
         q = int(usage.get("quota_bytes") or 1)
         used = int(usage.get("used_bytes") or 0)
         pct = round(100.0 * used / q, 1) if q else 0.0
+        wt = accounts.walk_trail_completed_at(u)
         pups.append(
             {
                 "username": u,
@@ -30,6 +32,7 @@ def build_digest() -> dict:
                 "used_percent": pct,
                 "admin": bool(row.get("admin")),
                 "enabled": bool(row.get("enabled", True)),
+                "walk_trail_complete": wt is not None,
             }
         )
     recent: list[dict] = []
@@ -67,4 +70,5 @@ def build_digest() -> dict:
             "recent_7d": recent,
         },
         "irc": health,
+        "walk_trail": walk_trail.digest_walk_trail(),
     }

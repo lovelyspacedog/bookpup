@@ -37,6 +37,11 @@ class AdminDigestTests(unittest.TestCase):
         self.assertIn("pups", d)
         self.assertIn("irc", d)
         self.assertTrue(d["pups"])
+        self.assertIn("walk_trail", d)
+        wt = d["walk_trail"]
+        self.assertIn("incomplete_usernames", wt)
+        self.assertIn("walk_trail_complete", d["pups"][0])
+        self.assertFalse(d["pups"][0].get("walk_trail_complete"))
 
 
 if __name__ == "__main__":

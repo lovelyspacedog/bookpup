@@ -33,6 +33,7 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
                 "kindle_smtp": smtp_on,
                 "kindle_send_ready": bool(smtp_on and kindle_to),
                 "soulseek_limits": soulseek_limits.limits_for_user(owner),
+                "walk_trail_complete": accounts.walk_trail_completed_at(owner) is not None,
             },
         )
         return True

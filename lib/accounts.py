@@ -221,6 +221,36 @@ def quota_bytes(username: str) -> int:
     return int(row.get("quota_bytes") or DEFAULT_USER_QUOTA)
 
 
+def walk_trail_completed_at(username: str) -> float | None:
+    row = get_user(username)
+    if not row:
+        return None
+    ts = row.get("walk_trail_completed_at")
+    if ts is None:
+        return None
+    try:
+        return float(ts)
+    except (TypeError, ValueError):
+        return None
+
+
+def mark_walk_trail_complete(username: str) -> float:
+    """Record household pup finished Walk the Trail (server-side, for Pack digest)."""
+    import time
+
+    name = str(username or "").strip()
+    data = _load_raw()
+    users = data.get("users") or []
+    idx = next((i for i, u in enumerate(users) if str(u.get("username")) == name), None)
+    if idx is None:
+        raise KeyError(name)
+    ts = time.time()
+    users[idx]["walk_trail_completed_at"] = ts
+    data["users"] = users
+    _save(data)
+    return ts
+
+
 def public_row(row: dict, used_bytes: int = 0) -> dict:
     out = {
         "username": row.get("username"),
@@ -229,6 +259,12 @@ def public_row(row: dict, used_bytes: int = 0) -> dict:
         "quota_bytes": int(row.get("quota_bytes") or DEFAULT_USER_QUOTA),
         "used_bytes": used_bytes,
     }
+    wt = row.get("walk_trail_completed_at")
+    if wt is not None:
+        try:
+            out["walk_trail_completed_at"] = float(wt)
+        except (TypeError, ValueError):
+            pass
     over = row.get("soulseek_limits")
     if isinstance(over, dict):
         out["soulseek_limits"] = over

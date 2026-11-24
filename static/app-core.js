@@ -190,6 +190,8 @@ window.BookPup = window.BookPup || {};
       BP.state.sessionKindleSendReady = !!s.kindle_send_ready;
       BP.state.sessionKindleSmtp = !!s.kindle_smtp;
       BP.state.soulseekLimits = s.soulseek_limits || null;
+      BP.state.sessionWalkTrailComplete = !!s.walk_trail_complete;
+      BP.syncWalkTrailFromSession?.();
     } catch {
       BP.state.sessionAdmin = false;
     }

@@ -91,6 +91,41 @@ def _title_from_query(query: str, title: str | None) -> str:
     return base[:_MAX_TITLE_LEN]
 
 
+def user_completed_trail(username: str) -> bool:
+    from . import accounts
+
+    return accounts.walk_trail_completed_at(username) is not None
+
+
+def mark_trail_complete(username: str) -> dict:
+    from . import accounts
+
+    ts = accounts.mark_walk_trail_complete(username)
+    return {"ok": True, "walk_trail_completed_at": ts}
+
+
+def digest_walk_trail() -> dict:
+    from . import accounts
+
+    incomplete: list[str] = []
+    completed = 0
+    for row in accounts.list_users():
+        if not row.get("enabled", True):
+            continue
+        u = str(row.get("username") or "").strip()
+        if not u:
+            continue
+        if row.get("walk_trail_completed_at"):
+            completed += 1
+        else:
+            incomplete.append(u)
+    incomplete.sort()
+    return {
+        "completed_count": completed,
+        "incomplete_usernames": incomplete,
+    }
+
+
 def complete_tutorial_fetch(owner: str, query: str, title: str | None = None) -> dict:
     """Stage tutorial MOBI and stash into Fresh catches for owner."""
     if not _FIXTURE.is_file():

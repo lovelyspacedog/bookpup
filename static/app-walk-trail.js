@@ -74,6 +74,19 @@
     } catch {
       /* ignore */
     }
+    void BP.api("/api/walk-trail/complete", {}).catch(() => {});
+    BP.syncWalkTrailEntry?.();
+  }
+
+  function syncCompleteFromSession() {
+    if (!BP.state.sessionWalkTrailComplete) return;
+    try {
+      if (localStorage.getItem(COMPLETE_KEY) !== "1") {
+        localStorage.setItem(COMPLETE_KEY, "1");
+      }
+    } catch {
+      /* ignore */
+    }
     BP.syncWalkTrailEntry?.();
   }
 
@@ -1278,6 +1291,7 @@
   BP.walkTrailOnRegisterOpen = onRegisterOpen;
   BP.walkTrailOnRegisterSaved = onRegisterSaved;
   BP.walkTrailIsComplete = isComplete;
+  BP.syncWalkTrailFromSession = syncCompleteFromSession;
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", syncWalkTrailEntry);
