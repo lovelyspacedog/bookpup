@@ -2,99 +2,101 @@
 
 Step through with **Previous** / **Next**. Each `##` heading is one page.
 
-## Page 1 — Come inside
+## Page 1 — Welcome
 
-- BookPup is your household IRC ebook portal — not your Whatbox panel login.
-- Sign in with your **pack username** and **password**. An admin creates accounts under **Pack roster**.
-- Your session stays in this browser until you **Head out** or the server restarts.
-- Change your password under **Your tag** (everyone) or manage pups under **Pack roster** (admins).
+- **BookPup** helps your household **find** ebooks online, **download** them to your shared book server, **organize** them on your shelf, and **read** them in the browser.
+- This site is **not** your Whatbox control panel. Sign in here with the **username** and **password** an admin gave you.
+- You stay signed in in this browser until you choose **Head out** or the server restarts.
+- Admins add accounts under **Pack roster**. Everyone can change their own password under **Your tag**.
 
-## Page 2 — Sniff for books
+## Page 2 — Sniff, fetch, catalog, read
 
-- Open the **Sniff** tab. Under **Sniff source**, pick where the query runs:
-  - **Main trail · IRCHighway #ebooks** — usual first pick for novels and mainstream EPUB/MOBI.
-  - **Every ebook net** — same query on all three IRC `@search` channels at once (slower; no Soulseek or XDCC).
-  - **Warez yard · XDCC index** — HTTP metasearch across warez IRC (not limited to ebooks).
-  - **Peer trail · Soulseek (slskd)** — live Soulseek search on the household seedbox; shared Soulseek login for everyone.
-- Type author, title, or keywords. The submit button says **Sniff on IRC**, **Sniff XDCC Index**, or **Sniff Soulseek** depending on the source.
-- Soulseek takes longer than IRC (often 10–20 seconds). The status line updates while slskd gathers peer replies. A hint under the source shows **sniffs left this hour** and **fetches left today** when caps apply (admins are exempt from personal caps).
-- Past queries autocomplete in the search box (stored in your browser).
-- Watch **Fetch queue** at the bottom of Sniff or on the **Fetch queue** tab.
+BookPup’s everyday loop is four steps:
 
-## Page 3 — All networks & the results table
+| Step | Plain meaning |
+|------|----------------|
+| **Sniff** | Search the internet (and our household’s book sources) for titles that match what you typed. You get a list of matches — no file on your shelf yet. |
+| **Fetch** | Ask BookPup to **download** one of those matches. The file lands in **Fresh catches** — like a landing tray for new arrivals. |
+| **Catalog** | Open **Tag this book**, fix title/author/cover, then save. The book moves to **Catalogued bones** — your real library shelf. Only catalogued books count toward your storage limit. |
+| **Read** | From **Catalogued bones**, choose **Read** to open the book here (or download to your device). |
 
-- **All IRC networks** runs the same query on IRCHighway `#ebooks`, Undernet `#bookz`, and Rizon `#ebookz`.
-- With no rows loaded yet, the card shows only **Open results & bookmarks**; after a sniff finishes, **Filter results** and the table appear.
-- The **Network** column is the source: IRC net name, **XDCC**, or **Soulseek**. **Server** is the IRC bot tag, the XDCC bot name, or the Soulseek peer username.
-- If one IRC network fails in an **all** sniff, you still keep the others — check **Den chatter** for errors.
-- **Filter results** narrows what you see in the table; it does not shrink what gets saved.
-- Filter checkboxes: **EPUB only**, **Hide risky foreign bots** (IRC), **Hide in-kennel matches**, **Highlight best pick** per title cluster.
-- **Fetch selected** and **Queue highlighted picks** batch-fetch (small caps per batch).
+You can sniff many times, fetch several books, then catalog when you are ready. **Sniff** and **Fresh catches** do not use your quota; **Catalogued bones** do.
 
-## Page 4 — Fetch to Fresh catches
+## Page 3 — Sniff for books
 
-- **Fetch** on a row starts a download for that row’s backend:
-  - **IRC** — DCC from the bot named in the command (`!Bot …` or Undernet `!get ####`).
-  - **XDCC** — `xdcc send` to the bot on the row’s network.
-  - **Soulseek** — slskd queues a peer transfer into the seedbox download folder, then BookPup copies it into **Fresh catches**.
-- On Undernet, prefer **`!get ####`** rows when shown; BookPup can match foreign `!Bsk` / `!Horla` lines to a home-network row when possible.
-- If **!get** refuses (for example “no EPUB available”), BookPup tries **Project Gutenberg** next — EPUB first, otherwise the best format PG offers (often plain text).
-- When the file lands, BookPup adds it to **Fresh catches** automatically and shows a short toast. Open **Kennel** → **Tag** when you want metadata and cover.
-- Soulseek fetches count toward **per-user daily caps** and share a **household concurrent** limit (only a few at once for the whole pack).
+- Open **Sniff**. Type an author, title, or keywords, then press the sniff button (the label changes depending on which source you picked).
+- Under **Sniff source**, choose where to search:
+  - **Main trail** — best first stop for most novels and common ebook types.
+  - **Every ebook net** — searches all of our ebook chat sources at once (slower).
+  - **Warez yard** — wider file index beyond ebooks only.
+  - **Peer trail** — searches other people’s shared folders on Soulseek (can take 10–20 seconds; status updates while it works).
+- When results appear, use **Filter results** if you want (for example EPUB only). Filtering only changes what you **see** — it does not delete matches.
+- Hints under the search box may show **sniffs left this hour** or **fetches left today** if the household sets limits (admins are not capped personally).
+- Your recent searches can autocomplete in the box (saved in this browser).
 
-## Page 5 — Open results & bookmarks
+## Page 4 — Fetch a book
 
-- **Open results** is your working copy: the full last sniff (query, channel, filter). It syncs to your account.
-- **Bookmark** saves that full list (25 max, 2500 rows each). **Load** / **Remove** / **↑↓** on each bookmark.
-- **Scheduled sniff** on the main sniff card (collapsed **▸** row; or on a bookmark) re-runs the saved query and channel on an interval while BookPup is running. Enabling on the card matches an existing bookmark or bookmarks open results for you. New rows (not seen on that watch before) appear as a **BookPup** private message to whoever owns that bookmark (open **Pack chat** → under **Private message**, click **BookPup**). Download-finished alerts still use optional household **ntfy** when `ntfy_topic` is set. The server defers scheduled sniffs when the fetch queue is busy; IRC still idles out between jobs.
+- In the results table, **Fetch** on a row starts the download for that line.
+- **Fetch selected** or **Queue highlighted picks** grabs several at once (small batch limit).
+- When the file is ready, BookPup puts it in **Kennel** → **Fresh catches** and shows a short on-screen note.
+- Watch progress on **Sniff** (bottom) or the **Fetch queue** tab: queued → running → done or failed.
+- If a download fails, try another row or another sniff source — online sources come and go.
+- On some networks BookPup can try **Project Gutenberg** automatically when a bot says a title is not offered in the format you wanted.
+
+## Page 5 — Catalog (tag) a book
+
+- Go to **Kennel** → **Fresh catches**. Each item is a download waiting for you to name and shelve it.
+- Open **Tag** (or **Tag this book**) — set title, author, tags, and cover image.
+- Save. The book moves to **Catalogued bones**. That is **cataloging**: it is on your shelf, searchable, and ready for **Read** or sharing.
+- **Toss** removes something from **Fresh catches** if you do not want it (simple confirm).
+- In **Catalogued bones**, **Edit tags** updates metadata; **Toss** needs you to type a short random phrase so deletes are deliberate.
+
+## Page 6 — Read
+
+- **Catalogued bones** → **Read** opens the book in the browser (common types work directly; some older formats are converted once on the server).
+- **Cover** shows the jacket. Reading position and in-book bookmarks sync to your account on the server.
+- Comic-style books (CBZ and similar) can use **Dual page** in the reader; that view preference is remembered on this device.
+- **Study** (if your admin turned it on): ask questions or get a summary about the open book — the first answer can be slow on a busy server.
+
+## Page 7 — Save a search list
+
+- **Open results** is your last finished sniff — full list, query, and filters — tied to your account.
+- **Bookmark** keeps that list (up to 25 bookmarks). Use **Load**, **Remove**, or **↑↓** to manage them.
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.
-- Recent sniff queries autocomplete in the superbar (focus, typing, or **↓**); picking one fills the box — submit **Sniff** yourself when ready.
+- **Scheduled sniff** (small **▸** row on the sniff card or on a bookmark) re-runs the same search on a timer while BookPup is running. Brand-new rows can arrive as a private **BookPup** message — open **Pack chat** → **Private message** → **BookPup**. Busy download queues can delay scheduled sniffs.
 
-## Page 6 — Den chatter
+## Page 8 — Fetch queue
 
-- **Den chatter** stays hidden until a sniff or fetch needs IRC activity, Soulseek status lines, or the den log already has content — then it opens.
-- **Hide other pups** (default) filters to your session.
-- **Copy** copies the visible log. **Drop link** disconnects IRC when no sniff/fetch is running (Soulseek does not use the IRC socket).
-- **Enable Bark** shows the chat box (off by default). No `!` commands — pick one IRC network, not **All networks**.
+- **Fetch queue** lists every sniff and download job: waiting, in progress, finished, failed, or cancelled.
+- **Cancel** stops a job when possible. **Dismiss** clears finished errors from the list.
+- Jobs run **one at a time** — one long download means the next waits its turn.
+- IRC connections may rest when nothing is queued; the next job wakes them again.
 
-## Page 7 — Fetch queue
+## Page 9 — Den chatter
 
-- Lists search and download jobs: queued, running, done, failed, cancelled.
-- **Cancel** stops a job when possible. **Dismiss** removes finished error/cancelled rows from view.
-- One worker runs jobs **one at a time** — a long Soulseek or IRC fetch blocks the next job until it finishes.
-- IRC idles out after ~4 minutes with an empty queue; the next IRC job reconnects.
+- **Den chatter** is the live log when a sniff or fetch is talking to chat bots or Soulseek. It stays hidden until there is something to show.
+- **Hide other pups** (default) shows only your activity.
+- **Copy** copies the visible log. **Drop link** disconnects idle chat when you are not downloading (Soulseek does not use that chat link).
+- **Enable Bark** shows a message box for normal chat (not bot commands). Pick one network, not “all at once.”
+- This is separate from **Pack chat** (household messages between pups).
 
-## Page 8 — Kennel
+## Page 10 — Share your library
 
-- **Sharing** — ask another pup to browse your whole kennel (or approve their request). **Lend** = they can read and download; **give** = they can also **Add to my kennel** (copies, your quota unchanged). Use **Browsing** to switch between your kennel and pups who shared with you. Pack chat gets a **BookPup** note when someone requests access.
+- Under **Kennel** → **Sharing**, ask another pup to browse your shelf, or approve their request.
+- **Lend** — they can read and download your books.
+- **Give** — they can also **Add to my kennel** (a copy lands in their library; your quota is unchanged).
+- **Browsing** switches between your kennel and shelves pups shared with you.
+- Pack chat gets a **BookPup** note when someone requests access.
+- **Pass to pup…** on a catalogued book sends a copy to someone else’s kennel.
 
-- **Fresh catches** — downloads waiting for **Tag** (opens **Tag this book** for metadata + cover).
-- **Fresh catches** — **Toss** uses a simple confirm. **Catalogued bones** — **Read**, **Cover**, **Edit tags**, **Pass to pup…**, **Toss** (type the random phrase in the dialog).
-- **Import Calibre** and **Import KOReader** for bulk bring-over. Grid/list view is remembered in the browser.
+## Page 11 — Calibre & KOReader
 
-## Page 9 — KOReader sync
+- **Import Calibre** and **Import KOReader** on **Kennel** bring existing libraries in bulk (secondary path if you already use those apps).
+- **KOReader sync** (device): on the e-reader, set **Progress sync** to a custom server. Use your BookPup website address and the **same** username/password as this site. Only **Catalogued bones** sync — tag books before syncing. BookPup matches by file fingerprint.
 
-- **Catalogued bones** only (not Fresh catches). On the device: KOReader **Progress sync** → custom server.
-- Server URL: your BookPup site (e.g. `https://bookpup.tonypup.box.ca`). Same username/password as the website.
-- BookPup matches by file fingerprint — **Tag** into catalogued bones before syncing.
+## Page 12 — Pack chat, account & habits
 
-## Page 10 — Your tag & pack roster
-
-- **Pack chat** (main tab): opening the tab always lands on **Pack chat · everyone** (main household channel); pick a pup again if you need a PM. Under **Private message**, click a pup — **Open PM →** — for a one-to-one thread; a red count beside a name means new PMs from that pup (clears when you open the thread). **BookPup** — **Open alerts →** — is where scheduled-sniff notices land (same badge). **BugBot** — **Report bugs →** — explains itself the first time you open it; send one message per issue and the household admin sees it on **Pack roster** → **Bug inbox**. **FeatureCat** — **Request features →** — same pattern for feature ideas → **Feature inbox**. Type **clear** in either bot thread to wipe the chat and bring the intro back. BugBot and FeatureCat always show an online dot. Green dot on pups = online. Remove your own lines (or alerts sent to you); admins can remove any line or use **Clear pack chat** on the group channel only (PMs stay). This is not **Den chatter** (IRC/Soulseek logs on Sniff).
-- **Your tag:** rename yourself or rotate password (current password required).
-- **Pack roster** (admins): create pups with **Add pup**, **Quota** / **Set login** / **Wipe** / **Remove** on each row. Passwords are reset only, never shown.
-- Admins may set per-pup **Soulseek caps** (`soulseek_limits` on the account) if someone needs tighter sniff/fetch limits than the household default.
-- Each pup has a private folder and storage quota (files + covers).
-
-## Page 11 — Reader & Study
-
-- **Read** opens PDF, EPUB, TXT, Markdown, HTML, or CBZ/CBR/CB7 in the browser. MOBI/AZW3 and FB2, DJVU, CHM, RTF, LIT convert to EPUB once (Calibre on the server).
-- Position and bookmarks stay on the server. EPUB and comic **Dual page** are local toggles; in comic dual view each page pans and zooms separately.
-- **Study** (when enabled on the server): summarize and Q&A — first reply can be slow on shared CPU.
-
-## Page 12 — Good habits
-
-- Quota applies when books sit in **catalogued bones**, not while they are only in **Fresh catches** or still sniffing.
-- IRC is flaky by nature — retry another network or row if a fetch fails. Soulseek peers go offline; try another row or sniff again later.
-- Soulseek uses one household identity on the network — be kind to ratio and caps so the pack stays in good standing.
-- Only fetch what you may legally keep. **What's new** is the version changelog; this guide is the walkthrough.
+- **Pack chat:** household channel and private messages. **BookPup** holds scheduled-sniff alerts. **BugBot** and **FeatureCat** collect bug reports and feature ideas for admins (**Pack roster** → **Bug inbox** / **Feature inbox**). Type **clear** in a bot thread to reset it. Green dot = pup online. This is not **Den chatter**.
+- **Your tag:** change display name or password (current password required).
+- **Pack roster** (admins): **Add pup**, set **Quota**, **Set login**, **Wipe**, or **Remove**. Passwords are reset, never displayed.
+- **Good habits:** only fetch what you may legally keep. Storage quota applies in **Catalogued bones**, not in **Fresh catches**. Online sources fail sometimes — retry or try another match. Soulseek uses one household identity — respect caps and ratio so the pack stays welcome. **What's new** is the version list; this guide is the walkthrough.
