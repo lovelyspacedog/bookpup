@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.4.14
+
+- **UX:** Header **version** opens **About**; **logo** refreshes the app and lands on **Sniff**.
+
 ## 1.4.13
 
 - **Fix:** **Email to my Kindle** and session flags read fresh `smtp_*` config after you edit `config.json` (no stale restart required for UI).

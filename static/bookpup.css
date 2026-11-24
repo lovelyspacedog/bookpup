@@ -156,6 +156,10 @@ body {
   opacity: 0.88;
 }
 
+button.bp-header-ver {
+  font-weight: inherit;
+}
+
 .bp-login {
   max-width: 22rem;
   margin: 4rem auto 2rem;

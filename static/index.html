@@ -92,7 +92,7 @@
     <header class="bp-header">
       <div class="bp-header-title">
         <h1>
-          <button type="button" class="bp-title-btn bp-brand-title bp-brand-title--header" id="about-open-app" aria-haspopup="dialog">
+          <button type="button" class="bp-title-btn bp-brand-title bp-brand-title--header" id="about-open-app" aria-label="Refresh and open Sniff">
             <img
               class="bp-brand-logo bp-brand-logo--header"
               src="/static/pwa/icon-brand-header.png"
@@ -104,7 +104,7 @@
             <span class="bp-brand-name">BookPup</span>
           </button>
         </h1>
-        <span id="bp-header-ver" class="bp-header-ver muted">v__VERSION__</span>
+        <button type="button" id="bp-header-ver" class="bp-title-btn bp-header-ver muted" aria-haspopup="dialog" aria-label="About BookPup">v__VERSION__</button>
       </div>
       <button type="button" id="logout-btn" class="bp-btn bp-header-logout">Head out</button>
     </header>

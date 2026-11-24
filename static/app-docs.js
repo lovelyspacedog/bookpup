@@ -40,8 +40,14 @@
     document.getElementById("about-modal")?.classList.add("hidden");
   }
 
+  function goHomeSniff() {
+    BP.closeAboutModal?.();
+    window.location.reload();
+  }
+
   document.getElementById("about-open-login")?.addEventListener("click", () => void openAboutModal());
-  document.getElementById("about-open-app")?.addEventListener("click", () => void openAboutModal());
+  document.getElementById("about-open-app")?.addEventListener("click", () => goHomeSniff());
+  document.getElementById("bp-header-ver")?.addEventListener("click", () => void openAboutModal());
   document.getElementById("about-modal-close")?.addEventListener("click", closeAboutModal);
   document.getElementById("about-modal")?.addEventListener("click", (ev) => {
     if (ev.target === ev.currentTarget) closeAboutModal();
