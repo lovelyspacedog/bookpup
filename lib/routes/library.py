@@ -18,7 +18,8 @@ from .. import (
 )
 from ..comic import comic_module
 from ..comic_errors import ComicReadError
-from .. import device_delivery, sideload_tokens
+from .. import device_delivery, kindle_smtp, sideload_tokens
+from .. import accounts
 from ..convert import prepare_view
 from ..core import public_base_url
 from ..import_session import create_session, finish_session, write_chunk
@@ -387,6 +388,47 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
                 "download_url": download_url,
                 "expires_at": tok["expires"],
                 "expires_in_seconds": tok["expires_in_seconds"],
+            },
+        )
+        return True
+    if path.startswith("/api/library/") and path.endswith("/kindle-send"):
+        item_id = path[len("/api/library/") : -len("/kindle-send")].strip("/")
+        if not item_id or "/" in item_id:
+            raise ValueError("Invalid library id")
+        assert_own_catalog_only(shared, "send books to an e-reader from")
+        if not kindle_smtp.smtp_configured(handler.config):
+            raise ValueError("Kindle email send is not configured on this server")
+        to_addr = accounts.kindle_email_for(handler._current_user)
+        if not to_addr:
+            raise ValueError("Save your Send-to-Kindle address under Your tag first")
+        row = library.get_item_row(item_id)
+        if not library.is_registered(row):
+            raise ValueError("Only catalogued bones can be sent to an e-reader")
+        library.item_path(item_id)
+        delivery = str(body.get("format") or "source").strip().lower()
+        path_obj, mime, filename = device_delivery.resolve_delivery(item_id, delivery)
+        title = str(row.get("title") or row.get("filename") or "Book")
+        body_text = (
+            f'"{title}" from BookPup ({handler._current_user}).\n'
+            "If the book does not appear, confirm this From address is approved in "
+            "Amazon → Send to Kindle → Approved e-mail addresses."
+        )
+        kindle_smtp.send_kindle_attachment(
+            to_address=to_addr,
+            subject=f"BookPup: {title}",
+            body_text=body_text,
+            file_path=path_obj,
+            attachment_name=filename,
+            content_type=mime,
+        )
+        handler.send_json(
+            200,
+            {
+                "ok": True,
+                "to": to_addr,
+                "title": title,
+                "format": delivery,
+                "filename": filename,
             },
         )
         return True

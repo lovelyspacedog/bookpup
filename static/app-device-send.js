@@ -8,6 +8,7 @@
   const hintEl = document.getElementById("device-send-hint");
   const linkInput = document.getElementById("device-send-link");
   const kindleSteps = document.getElementById("device-send-kindle-steps");
+  const kindleBtn = document.getElementById("device-send-kindle-btn");
   const msgEl = document.getElementById("device-send-msg");
   let activeItem = null;
   let formats = [];
@@ -55,7 +56,18 @@
       });
       formatSel.onchange = updateFormatHint;
       updateFormatHint();
-      if (msgEl) msgEl.textContent = "";
+      if (kindleBtn) {
+        const ready = !!BP.state.sessionKindleSendReady;
+        kindleBtn.classList.toggle("hidden", !ready);
+        if (!ready && BP.state.sessionKindleSmtp && !BP.state.sessionKindleEmail) {
+          if (msgEl) {
+            msgEl.textContent = "Add your Send-to-Kindle address under Your tag to use Email to my Kindle.";
+            msgEl.className = "bp-msg muted";
+          }
+        } else if (msgEl) {
+          msgEl.textContent = "";
+        }
+      }
     } catch (err) {
       if (msgEl) {
         msgEl.textContent = err.message || "Could not load formats";
@@ -100,6 +112,39 @@
     ev.preventDefault();
     void createSideloadLink();
   });
+  async function emailToKindle() {
+    if (!activeItem || !formatSel) return;
+    if (msgEl) {
+      msgEl.textContent = "Sending…";
+      msgEl.className = "bp-msg muted";
+    }
+    try {
+      const data = await BP.api(
+        "/api/library/" + encodeURIComponent(activeItem.id) + "/kindle-send",
+        {
+          method: "POST",
+          body: JSON.stringify({ format: formatSel.value }),
+        }
+      );
+      BP.showAppToast(
+        "Kindle",
+        "Emailed “" + (data.title || activeItem.title) + "” to " + (data.to || "your Kindle") + ".",
+        "ok"
+      );
+      if (msgEl) {
+        msgEl.textContent = "Sent — the book should appear on your Kindle after Amazon processes the email.";
+        msgEl.className = "bp-msg";
+      }
+    } catch (err) {
+      if (msgEl) {
+        msgEl.textContent = err.message || "Could not send email";
+        msgEl.className = "bp-msg err";
+      }
+    }
+  }
+
+  kindleBtn?.addEventListener("click", () => void emailToKindle());
+
   document.getElementById("device-send-copy")?.addEventListener("click", async () => {
     const url = linkInput?.value || "";
     if (!url) return;

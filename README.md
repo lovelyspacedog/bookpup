@@ -49,13 +49,29 @@ Runtime config and libraries live under `~/.config/bookpup/`:
 
 | Path | Purpose |
 |------|---------|
-| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy, optional scheduled-sniff tuning (`sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`) |
+| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy, optional **household Gmail SMTP** for Send-to-Kindle (`smtp_*` keys below), optional scheduled-sniff tuning (`sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`) |
 | `accounts.json` | Household users (admin creates accounts in UI) |
 | `users/<name>/` | Per-user library files, covers, indexes |
 | `sessions.json` | Bearer sessions (7-day TTL) |
 | `pack_chat.json` | Household pack chat history (capped on disk) |
 
 See `GET /api/health` and `GET /api/config` (after login) for effective settings. Mock flags: `BOOKPUP_IRC_MOCK`, `BOOKPUP_XDCC_MOCK`, `BOOKPUP_SLSKD_MOCK`.
+
+### Send-to-Kindle email (one household Gmail)
+
+On **Expedition** or any VPS, add to `~/.config/bookpup/config.json` (mode `600`). Use a [Google App Password](https://myaccount.google.com/apppasswords), not your normal Gmail password. The **From** address must appear in each Amazon account’s **Send to Kindle → Approved personal document e-mail addresses**.
+
+```json
+"smtp_enabled": true,
+"smtp_host": "smtp.gmail.com",
+"smtp_port": 587,
+"smtp_starttls": true,
+"smtp_user": "household@gmail.com",
+"smtp_password": "your-16-char-app-password",
+"smtp_from": "household@gmail.com"
+```
+
+Each pup saves their `@kindle.com` address under **Your tag**. In Kennel, **Send to e-reader…** → **Email to my Kindle** (attachments up to 24 MB; larger books use the one-time link). `GET /api/health` reports `kindle_smtp: true` when configured (no secrets exposed).
 
 ## Deploy (Whatbox / VPS)
 

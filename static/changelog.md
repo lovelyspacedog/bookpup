@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.4.12
+
+- **Kennel:** **Email to my Kindle** — household Gmail SMTP (`smtp_*` in server `config.json`); sends the chosen format to each pup’s Send-to-Kindle address on **Your tag** (24 MB cap; use the link for bigger files).
+- **Fix:** `GET /api/health` reports `kindle_smtp` when relay is configured.
+
 ## 1.4.11
 
 - **Kennel:** **Send to e-reader…** on catalogued bones — pick format (original or EPUB), get a one-time HTTPS download link for Kindle, KOReader, or sideload.

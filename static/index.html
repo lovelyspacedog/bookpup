@@ -673,7 +673,7 @@
             <p class="bp-msg muted" id="account-ereader-summary">
               <strong>OPDS</strong> — catalogued bones only; use your BookPup username and password.
               <strong>KOReader</strong> — Progress sync → custom server at your BookPup URL (same login).
-              <strong>Kindle</strong> — on a catalogued bone use <strong>Send to e-reader…</strong> for a short download link; email it to your Send-to-Kindle address (save it above).
+              <strong>Kindle</strong> — <strong>Send to e-reader…</strong> → one-time link, or <strong>Email to my Kindle</strong> when the household Gmail relay is configured on the server (save your Send-to-Kindle address above).
             </p>
           </details>
           <p id="account-tab-msg" class="bp-msg muted"></p>
@@ -924,6 +924,9 @@
         <p id="device-send-hint" class="bp-msg muted"></p>
         <p class="bp-lib-actions">
           <button type="submit" class="bp-btn primary">Create download link</button>
+          <button type="button" id="device-send-kindle-btn" class="bp-btn hidden">
+            Email to my Kindle
+          </button>
           <button type="button" id="device-send-cancel" class="bp-btn">Cancel</button>
         </p>
         <label for="device-send-link">One-time link</label>

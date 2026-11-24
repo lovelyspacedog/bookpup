@@ -187,6 +187,8 @@ window.BookPup = window.BookPup || {};
       BP.state.sessionOpdsUrl = s.opds_catalog_url || s.opds_url || "";
       BP.state.sessionKindleEmail = s.kindle_email || "";
       BP.state.sessionKoreaderUrl = s.koreader_sync_url || "";
+      BP.state.sessionKindleSendReady = !!s.kindle_send_ready;
+      BP.state.sessionKindleSmtp = !!s.kindle_smtp;
       BP.state.soulseekLimits = s.soulseek_limits || null;
     } catch {
       BP.state.sessionAdmin = false;

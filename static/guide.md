@@ -94,7 +94,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 ## Page 11 — Calibre, e-readers & KOReader
 
 - **Import Calibre** and **Import KOReader** on **Kennel** bring existing libraries in bulk (secondary path if you already use those apps).
-- **Send to e-reader…** (catalogued bones only): choose **original** or **EPUB** (converted when needed), then **Create download link**. Copy the one-time URL — it expires in about an hour. Use it to download on your device, or email the file to your Send-to-Kindle address (**Your tag** → Send-to-Kindle email).
+- **Send to e-reader…** (catalogued bones only): choose **original** or **EPUB** (converted when needed). **Create download link** (one-time URL, ~1 hour) or, when your server has household Gmail set up, **Email to my Kindle** (save your `@kindle.com` address on **Your tag** first). Amazon must approve the server’s Gmail **From** address.
 - **OPDS:** URL on **Your tag** — username and password match this site; catalogued bones only.
 - **KOReader sync** (device): **Progress sync** → custom server at your BookPup URL — same username/password. Only **Catalogued bones** sync — tag books first. BookPup matches by file fingerprint.
 
