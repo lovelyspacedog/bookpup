@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.73
+
+- **Fix:** Scheduled sniff **?** tooltip describes BookPup DMs, not household ntfy.
+
 ## 1.3
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
