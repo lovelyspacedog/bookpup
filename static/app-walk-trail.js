@@ -125,21 +125,29 @@
     setTimeout(() => pushMockIrcLine("Sniff finished: practice results ready", "in"), 2200);
   }
 
+  const MOBILE_TIP_MQ = window.matchMedia("(max-width: 640px)");
+
+  function tabBarInsetPx() {
+    const shell = document.querySelector(".bp-tabbar-shell");
+    if (!shell || !MOBILE_TIP_MQ.matches) return 0;
+    return Math.ceil(shell.getBoundingClientRect().height || 0);
+  }
+
   function placeSpot(target) {
     const spot = spotEl();
     if (!spot || !target) {
       spot?.classList.add("hidden");
       return;
     }
-  const rect = target.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
     const pad = 6;
     spot.classList.remove("hidden");
-    spot.style.top = rect.top - pad + window.scrollY + "px";
-    spot.style.left = rect.left - pad + window.scrollX + "px";
+    spot.style.top = rect.top - pad + "px";
+    spot.style.left = rect.left - pad + "px";
     spot.style.width = rect.width + pad * 2 + "px";
     spot.style.height = rect.height + pad * 2 + "px";
     try {
-      target.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "smooth" });
+      target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
     } catch {
       /* ignore */
     }
@@ -150,30 +158,49 @@
     if (!tip) return;
     const margin = 12;
     tip.dataset.placement = placement || "bottom";
+    const dockMobile = MOBILE_TIP_MQ.matches;
+    tip.classList.toggle("bp-walk-trail-tip--dock", dockMobile);
+    if (dockMobile) {
+      tip.style.top = "";
+      tip.style.left = "";
+      tip.style.right = "";
+      tip.style.bottom = "";
+      tip.style.transform = "";
+      tip.style.setProperty("--bp-walk-trail-tab-inset", tabBarInsetPx() + "px");
+      return;
+    }
+    tip.style.setProperty("--bp-walk-trail-tab-inset", "0px");
     if (!target) {
       tip.style.top = "50%";
       tip.style.left = "50%";
+      tip.style.right = "";
+      tip.style.bottom = "";
       tip.style.transform = "translate(-50%, -50%)";
       return;
     }
     const rect = target.getBoundingClientRect();
     tip.style.transform = "";
+    tip.style.right = "";
+    tip.style.bottom = "";
     const tipRect = tip.getBoundingClientRect();
     let top;
     let left;
     if (placement === "top") {
-      top = rect.top + window.scrollY - tipRect.height - margin;
-      left = rect.left + window.scrollX + Math.max(0, (rect.width - tipRect.width) / 2);
+      top = rect.top - tipRect.height - margin;
+      left = rect.left + Math.max(0, (rect.width - tipRect.width) / 2);
     } else if (placement === "left") {
-      top = rect.top + window.scrollY + Math.max(0, (rect.height - tipRect.height) / 2);
-      left = rect.left + window.scrollX - tipRect.width - margin;
+      top = rect.top + Math.max(0, (rect.height - tipRect.height) / 2);
+      left = rect.left - tipRect.width - margin;
     } else {
-      top = rect.bottom + window.scrollY + margin;
-      left = rect.left + window.scrollX + Math.max(0, (rect.width - tipRect.width) / 2);
+      top = rect.bottom + margin;
+      left = rect.left + Math.max(0, (rect.width - tipRect.width) / 2);
     }
-    const maxLeft = window.scrollX + document.documentElement.clientWidth - tipRect.width - 8;
-    left = Math.min(Math.max(8 + window.scrollX, left), maxLeft);
-    tip.style.top = Math.max(8 + window.scrollY, top) + "px";
+    const pad = 8;
+    const maxTop = window.innerHeight - tipRect.height - pad;
+    const maxLeft = window.innerWidth - tipRect.width - pad;
+    top = Math.min(Math.max(pad, top), Math.max(pad, maxTop));
+    left = Math.min(Math.max(pad, left), Math.max(pad, maxLeft));
+    tip.style.top = top + "px";
     tip.style.left = left + "px";
   }
 
@@ -331,7 +358,10 @@
     }
     const target = st.selector ? document.querySelector(st.selector) : null;
     placeSpot(target);
-    requestAnimationFrame(() => positionTip(target, st.placement));
+    requestAnimationFrame(() => {
+      positionTip(target, st.placement);
+      requestAnimationFrame(() => positionTip(target, st.placement));
+    });
   }
 
   function showOverlay() {
@@ -540,9 +570,12 @@
     document.addEventListener("keydown", (ev) => {
       if (ev.key === "Escape" && active) exitWalkTrail();
     });
-    window.addEventListener("resize", () => {
+    const relayout = () => {
       if (active) updateTipChrome();
-    });
+    };
+    window.addEventListener("resize", relayout);
+    MOBILE_TIP_MQ.addEventListener("change", relayout);
+    window.visualViewport?.addEventListener("resize", relayout);
     ["reg-title", "reg-authors", "reg-tags"].forEach((id) => {
       document.getElementById(id)?.addEventListener("input", syncRegisterSubmitGate);
     });

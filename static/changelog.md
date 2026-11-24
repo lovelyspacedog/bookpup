@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.84
+
+- **Fix:** **Walk the Trail** coach card stays on screen on mobile (docked above tab bar); spotlight/tip use viewport positioning so Next and targets respond to taps.
+
 ## 1.3.83
 
 - **UX:** **Walk the Trail** — bold onboard link; step-by-step coach marks with practice sniff, mock Den chatter, tutorial MOBI fetch, tag step, optional cleanup, then Pup guide page 2. Restart from Pup guide page 1.

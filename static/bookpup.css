@@ -3116,7 +3116,7 @@ tr.bp-sniff-pick td {
 .bp-walk-trail {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 2500;
   pointer-events: none;
 }
 
@@ -3125,7 +3125,7 @@ tr.bp-sniff-pick td {
 }
 
 .bp-walk-trail-spot {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
   border: 2px solid var(--link, #8af);
   border-radius: 8px;
@@ -3134,8 +3134,9 @@ tr.bp-sniff-pick td {
 }
 
 .bp-walk-trail-tip {
-  position: absolute;
+  position: fixed;
   pointer-events: auto;
+  touch-action: manipulation;
   max-width: min(22rem, calc(100vw - 1.5rem));
   padding: 0.85rem 1rem;
   border-radius: 10px;
@@ -3143,6 +3144,19 @@ tr.bp-sniff-pick td {
   background: var(--card, #1a1a1e);
   color: var(--text, #eee);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  max-height: min(42vh, 20rem);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bp-walk-trail-tip--dock {
+  left: 0.65rem !important;
+  right: 0.65rem !important;
+  bottom: calc(var(--bp-walk-trail-tab-inset, 4.25rem) + env(safe-area-inset-bottom, 0px) + 0.35rem) !important;
+  top: auto !important;
+  max-width: none;
+  width: auto;
+  max-height: min(46vh, 22rem);
 }
 
 .bp-walk-trail-tip__title {
@@ -3166,6 +3180,7 @@ tr.bp-sniff-pick td {
 .bp-walk-trail-tip__actions .bp-btn {
   width: auto;
   margin: 0;
+  min-height: 44px;
 }
 
 .bp-guide-walk-trail {
