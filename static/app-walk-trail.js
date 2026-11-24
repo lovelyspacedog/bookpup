@@ -194,12 +194,15 @@
     }
     if (st.id === "kennel") {
       const libOpen = document.getElementById("panel-library")?.classList.contains("active");
-      if (libOpen && tutorialItemId) {
-        const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
-        return card || document.getElementById("lib-section-downloads");
-      }
       if (libOpen) return document.getElementById("lib-section-downloads");
       return document.querySelector("#tab-library");
+    }
+    if (st.id === "cleanup") {
+      if (tutorialItemId) {
+        const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
+        return card?.querySelector(".del") || card || document.getElementById("lib-section-downloads");
+      }
+      return document.getElementById("lib-section-downloads");
     }
     if (st.id === "tag") {
       const modal = document.getElementById("register-modal");
@@ -305,6 +308,16 @@
     return Math.ceil(tip.getBoundingClientRect().bottom) + 12;
   }
 
+  function scrollKennelPanelToTop() {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+    const panel = document.getElementById("panel-library");
+    if (panel) panel.scrollTop = 0;
+  }
+
   function scrollRevealBelowTopCoach(target) {
     if (!target || !MOBILE_TIP_MQ.matches) return;
     const band = coachTopBandPx();
@@ -328,8 +341,8 @@
     if (!target) return;
     if (st?.id === "sniff" && BP.state.walkTrailSearchDone) return;
     try {
-      const block =
-        st?.id === "den" || st?.id === "kennel" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
+      if (st?.id === "kennel") return;
+      const block = st?.id === "den" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
       target.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
     } catch {
       /* ignore */
@@ -347,7 +360,8 @@
       scheduleWalkTrailLayout(target, st?.placement);
       requestAnimationFrame(() => {
         if (!active || target !== resolveStepTarget(currentStep())) return;
-        scrollRevealBelowTopCoach(target);
+        if (st?.id === "kennel") scrollKennelPanelToTop();
+        else scrollRevealBelowTopCoach(target);
         scheduleWalkTrailLayout(target, st?.placement);
       });
       return;
@@ -497,10 +511,11 @@
     {
       id: "kennel",
       title: "Fresh catches",
-      body: "Your practice .mobi is in Fresh catches below. Scroll until you see it, then tap Next.",
+      body: "Kennel opens at the top — scroll down through Fresh catches until you spot your practice .mobi, then tap Next.",
       selector: "#tab-library",
       placement: "top",
       mobileTip: "top",
+      coachDockTop: true,
       advance: "kennel-open",
     },
     {
@@ -553,9 +568,11 @@
     {
       id: "cleanup",
       title: "Remove practice book?",
-      body: "Optional: toss the tutorial file so it does not stay on your shelf.",
-      selector: null,
+      body: "Optional: in Kennel → Fresh catches, toss the practice file so it does not stay on your shelf. Tap Skip to keep it.",
+      selector: "#lib-section-downloads",
       placement: "top",
+      mobileTip: "top",
+      coachDockTop: true,
       advance: "cleanup",
     },
     {
@@ -746,6 +763,10 @@
     if (next?.id === "pack" || next?.id === "pack-house" || next?.id === "pack-bots") {
       const packBtn = BP.tabButton("pack");
       if (packBtn) BP.activateTab(packBtn);
+    }
+    if (next?.id === "cleanup") {
+      const libBtn = BP.tabButton("library");
+      if (libBtn) BP.activateTab(libBtn);
     }
     updateTipChrome();
   }

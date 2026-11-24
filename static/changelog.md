@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.99
+
+- **Fix:** **Walk the Trail** Fresh catches starts at the top of Kennel (you scroll to the practice file); **Remove practice book?** returns to Kennel and highlights **Toss**.
+
 ## 1.3.98
 
 - **Fix:** **Walk the Trail** Pack chat steps — coach pins to the top; **BugBot & FeatureCat** highlights the bot rows, not the sidebar blurb over the message feed.
