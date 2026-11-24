@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.102
+
+- **UX:** **Walk the Trail** — on mobile, **Pack chat** gently scrolls through the tab; **Trail complete** drops pup/paw/celebration confetti (respects reduced motion).
+
 ## 1.3.101
 
 - **Fix:** **Walk the Trail** mobile coach placement (Den scroll, Fetch/Queue/Tag/Pack channel layout, Catalogued scroll); cleanup targets your practice book in **Catalogued bones** or Fresh catches; finish opens Pup guide page 1.

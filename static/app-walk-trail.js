@@ -20,6 +20,9 @@
   let denIntroScrolled = false;
   let fetchIntroScrolled = false;
   let catalogIntroScrolled = false;
+  let packScrollTourFrame = null;
+  let trailConfettiStarted = false;
+  const CONFETTI_EMOJI = ["🐕", "🐶", "🦮", "🐾", "🦴", "🎉", "🎊", "✨", "🐾", "🌭", "💫", "🐕‍🦺", "🎉", "🐾"];
 
   function fetchStepIndex() {
     return steps.findIndex((s) => s.id === "fetch");
@@ -273,6 +276,98 @@
     } catch {
       /* ignore */
     }
+  }
+
+  function prefersReducedMotion() {
+    try {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch {
+      return false;
+    }
+  }
+
+  function stopPackScrollTour() {
+    if (packScrollTourFrame) {
+      cancelAnimationFrame(packScrollTourFrame);
+      packScrollTourFrame = null;
+    }
+  }
+
+  function packChatScrollMax() {
+    const panel = document.getElementById("panel-pack");
+    const endEl =
+      document.getElementById("pack-chat-compose") ||
+      document.getElementById("pack-chat-feed") ||
+      panel;
+    const doc = document.documentElement;
+    const baseMax = Math.max(0, (doc.scrollHeight || 0) - window.innerHeight);
+    if (!endEl) return baseMax;
+    const rect = endEl.getBoundingClientRect();
+    const want = rect.bottom + window.scrollY - window.innerHeight + 32;
+    return Math.max(0, Math.min(baseMax, want));
+  }
+
+  function startPackChatMobileScrollTour() {
+    stopPackScrollTour();
+    if (!MOBILE_TIP_MQ.matches || !active || currentStep()?.id !== "pack" || prefersReducedMotion()) return;
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+    const duration = 6000;
+    const startAt = performance.now();
+    const maxY = packChatScrollMax();
+    function tick(now) {
+      if (!active || currentStep()?.id !== "pack") {
+        stopPackScrollTour();
+        return;
+      }
+      const t = Math.min(1, (now - startAt) / duration);
+      const eased = 1 - (1 - t) * (1 - t);
+      try {
+        window.scrollTo({ top: maxY * eased, left: 0, behavior: "instant" });
+      } catch {
+        window.scrollTo(0, maxY * eased);
+      }
+      if (t < 1) packScrollTourFrame = requestAnimationFrame(tick);
+      else packScrollTourFrame = null;
+    }
+    packScrollTourFrame = requestAnimationFrame(tick);
+  }
+
+  function confettiEl() {
+    return document.getElementById("walk-trail-confetti");
+  }
+
+  function stopTrailConfetti() {
+    const box = confettiEl();
+    if (!box) return;
+    box.classList.add("hidden");
+    box.innerHTML = "";
+    trailConfettiStarted = false;
+  }
+
+  function startTrailConfetti() {
+    if (trailConfettiStarted) return;
+    const box = confettiEl();
+    if (!box) return;
+    trailConfettiStarted = true;
+    box.innerHTML = "";
+    const count = MOBILE_TIP_MQ.matches ? 28 : 36;
+    for (let i = 0; i < count; i++) {
+      const bit = document.createElement("span");
+      bit.className = "bp-walk-trail-confetti__bit";
+      bit.textContent = CONFETTI_EMOJI[i % CONFETTI_EMOJI.length];
+      bit.style.left = Math.random() * 96 + 2 + "%";
+      const dur = 3.8 + Math.random() * 3.2;
+      bit.style.animationDuration = dur + "s";
+      bit.style.animationDelay = Math.random() * 1.8 + "s";
+      bit.style.setProperty("--bp-wt-drift", (Math.random() * 80 - 40).toFixed(0) + "px");
+      bit.style.setProperty("--bp-wt-spin", (180 + Math.random() * 320).toFixed(0) + "deg");
+      box.appendChild(bit);
+    }
+    box.classList.remove("hidden");
   }
 
   function primeCatalogScroll() {
@@ -725,6 +820,8 @@
     if (st.id === "tag") {
       BP.state.walkTrailExpectTag = true;
     }
+    if (st.id === "done") startTrailConfetti();
+    else stopTrailConfetti();
     const tossModal = document.getElementById("toss-modal");
     const tossOpen = !!(tossModal && !tossModal.classList.contains("hidden"));
     document.body.classList.toggle("bp-walk-trail-toss-modal", active && tossOpen);
@@ -763,6 +860,12 @@
     } else {
       markFocusTarget(target);
     }
+    if (st.id === "done") {
+      clearFocusTarget();
+      layoutSpotRing(null);
+      scheduleWalkTrailLayout(null, "top");
+      return;
+    }
     placeSpot(target);
   }
 
@@ -793,6 +896,8 @@
     denIntroScrolled = false;
     fetchIntroScrolled = false;
     catalogIntroScrolled = false;
+    stopPackScrollTour();
+    stopTrailConfetti();
     autoAdvanceFired.clear();
     clearMockIrcTimer();
     if (stepAdvanceTimer) {
@@ -820,6 +925,7 @@
   async function goNext(skipCleanup) {
     const st = currentStep();
     if (!st) return;
+    if (st.id === "pack") stopPackScrollTour();
     if (st.advance === "cleanup" && !skipCleanup) {
       await handleCleanupStep();
     }
@@ -863,6 +969,9 @@
     if (next?.id === "pack" || next?.id === "pack-house" || next?.id === "pack-bots") {
       const packBtn = BP.tabButton("pack");
       if (packBtn) BP.activateTab(packBtn);
+    }
+    if (next?.id === "pack") {
+      requestAnimationFrame(() => startPackChatMobileScrollTour());
     }
     if (next?.id === "cleanup") {
       const libBtn = BP.tabButton("library");
