@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.103
+
+- **UI:** **Kennel** toolbar on mobile — one logical row each for browse/sharing, export, grid/list, group, and sort; filter stays on its own line.
+
 ## 1.3.102
 
 - **UX:** **Walk the Trail** — on mobile, **Pack chat** gently scrolls through the tab; **Trail complete** drops pup/paw/celebration confetti (respects reduced motion).

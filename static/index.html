@@ -455,33 +455,43 @@
         </div>
         <p id="lib-browse-banner" class="bp-msg muted hidden" aria-live="polite"></p>
         <div class="bp-lib-toolbar">
-          <label class="bp-lib-toolbar-label muted" for="lib-browse-select">Browsing</label>
-          <select id="lib-browse-select" class="bp-lib-select">
-            <option value="">My kennel</option>
-          </select>
-          <button type="button" id="lib-sharing-btn" class="bp-btn bp-btn--badged">
-            Sharing
-            <span id="lib-sharing-badge" class="bp-tab-badge hidden" aria-hidden="true"></span>
-          </button>
-          <button type="button" id="lib-export-btn" class="bp-btn">Export catalog</button>
-          <span class="bp-lib-toolbar-label muted">View</span>
-          <button type="button" id="lib-view-grid" class="bp-btn" aria-pressed="true">Grid</button>
-          <button type="button" id="lib-view-list" class="bp-btn" aria-pressed="false">List</button>
-          <label class="bp-lib-toolbar-label muted" for="lib-group-by">Group by</label>
-          <select id="lib-group-by" class="bp-lib-select">
-            <option value="none">None</option>
-            <option value="series">Series</option>
-            <option value="author">Author</option>
-          </select>
-          <label class="bp-lib-toolbar-label muted" for="lib-sort-by">Sort by</label>
-          <select id="lib-sort-by" class="bp-lib-select">
-            <option value="saved_desc">Recently added</option>
-            <option value="title_asc">Title (A–Z)</option>
-            <option value="title_desc">Title (Z–A)</option>
-            <option value="author_asc">Author (A–Z)</option>
-            <option value="series_asc">Series</option>
-            <option value="size_desc">Size (largest)</option>
-          </select>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--browse">
+            <label class="bp-lib-toolbar-label muted" for="lib-browse-select">Browsing</label>
+            <select id="lib-browse-select" class="bp-lib-select">
+              <option value="">My kennel</option>
+            </select>
+            <button type="button" id="lib-sharing-btn" class="bp-btn bp-btn--badged">
+              Sharing
+              <span id="lib-sharing-badge" class="bp-tab-badge hidden" aria-hidden="true"></span>
+            </button>
+          </div>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--export">
+            <button type="button" id="lib-export-btn" class="bp-btn">Export catalog</button>
+          </div>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--view">
+            <span class="bp-lib-toolbar-label muted">View</span>
+            <button type="button" id="lib-view-grid" class="bp-btn" aria-pressed="true">Grid</button>
+            <button type="button" id="lib-view-list" class="bp-btn" aria-pressed="false">List</button>
+          </div>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--group">
+            <label class="bp-lib-toolbar-label muted" for="lib-group-by">Group by</label>
+            <select id="lib-group-by" class="bp-lib-select">
+              <option value="none">None</option>
+              <option value="series">Series</option>
+              <option value="author">Author</option>
+            </select>
+          </div>
+          <div class="bp-lib-toolbar-row bp-lib-toolbar-row--sort">
+            <label class="bp-lib-toolbar-label muted" for="lib-sort-by">Sort by</label>
+            <select id="lib-sort-by" class="bp-lib-select">
+              <option value="saved_desc">Recently added</option>
+              <option value="title_asc">Title (A–Z)</option>
+              <option value="title_desc">Title (Z–A)</option>
+              <option value="author_asc">Author (A–Z)</option>
+              <option value="series_asc">Series</option>
+              <option value="size_desc">Size (largest)</option>
+            </select>
+          </div>
         </div>
         <div class="bp-lib-filter-row">
           <label class="bp-lib-filter-label" for="lib-filter">Filter</label>
