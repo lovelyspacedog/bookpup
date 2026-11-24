@@ -25,7 +25,10 @@
         const weather = document.getElementById("bp-header-weather");
         const bits = [ver?.textContent?.trim(), weather?.textContent?.trim()].filter(Boolean);
         if (bits.length) {
-          html += '<p class="muted bp-about-run">' + BP.escapeHtml(bits.join("")) + "</p>";
+          html +=
+            '<p class="muted bp-about-run">' +
+            BP.escapeHtml(bits.join(weather?.textContent?.trim() ? " " : "")) +
+            "</p>";
         }
       }
       body.innerHTML = html;

@@ -232,7 +232,7 @@
         prompt?.classList.add("hidden");
         input.classList.add("hidden");
         if (out) {
-          out.textContent = " · " + data.line;
+          out.textContent = data.line;
           out.classList.remove("hidden");
         }
       } catch {
