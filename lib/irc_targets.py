@@ -28,37 +28,37 @@ SNIFF_SOURCE_COPY: dict[str, tuple[str, str, str]] = {
         "Main trail · IRCHighway #ebooks (recommended)",
         "Sends @search on IRCHighway #ebooks for novels and mainstream EPUB/MOBI. "
         "Bots reply with a DCC zip of !commands. Best first pick for most book sniffing.",
-        "Main trail",
+        "Main trail · IRCHighway #ebooks",
     ),
     SEARCH_ALL_ID: (
         "Every ebook net · all IRC @search channels",
         "Runs your query on IRCHighway #ebooks, Undernet #bookz, and Rizon #ebookz, "
         "then merges hits (Network column). Slower; no XDCC. Chat/bark disabled while this is selected.",
-        "Every ebook net",
+        "Every ebook net · IRC @search (all)",
     ),
     XDCC_INDEX_ID: (
         "Warez yard · XDCC index (xdccsearch)",
         "HTTP metasearch across warez IRC—not @search. Video, comics, archives, packs, and more "
         "(not limited to ebooks). Fetch uses XDCC send to each row's bot.",
-        "Warez yard",
+        "Warez yard · XDCC index",
     ),
     SOULSEEK_INDEX_ID: (
         "Peer trail · Soulseek (slskd)",
         "Live search on the Soulseek network via household slskd. Results share one Soulseek login; "
         "per-user sniff and fetch caps apply (admins exempt from personal caps).",
-        "Peer trail",
+        "Peer trail · Soulseek",
     ),
     "undernet:bookz": (
         "Backup trail · Undernet #bookz",
         "Undernet ebook bots via @search. Good when IRCHighway is empty; Undernet may be pickier "
         "from a VPS—prefer !get rows when offered.",
-        "Backup trail",
+        "Backup trail · Undernet #bookz",
     ),
     "rizon:ebookz": (
         "Side trail · Rizon #ebookz",
         "Rizon #ebookz @search for an extra ebook catalog. Useful for duplicates, gaps, or "
         "titles missing on IRCHighway.",
-        "Side trail",
+        "Side trail · Rizon #ebookz",
     ),
 }
 
