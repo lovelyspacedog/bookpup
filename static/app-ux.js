@@ -211,6 +211,38 @@
     });
   }
 
+  function bindHeaderZipWeather() {
+    const input = document.getElementById("bp-header-zip");
+    if (!input || input.dataset.bound === "1") return;
+    input.dataset.bound = "1";
+    const prompt = document.getElementById("bp-header-zip-prompt");
+    const out = document.getElementById("bp-header-weather");
+    const zipRe = /^\d{5}(-\d{4})?$/;
+    input.addEventListener("keydown", async (ev) => {
+      if (ev.key !== "Enter") return;
+      ev.preventDefault();
+      const raw = input.value.trim();
+      if (!zipRe.test(raw)) return;
+      const zip = raw.slice(0, 5);
+      input.disabled = true;
+      try {
+        const res = await fetch("/api/weather?zip=" + encodeURIComponent(zip));
+        const data = res.ok ? await res.json() : null;
+        if (!data || !data.line) return;
+        prompt?.classList.add("hidden");
+        input.classList.add("hidden");
+        if (out) {
+          out.textContent = " · " + data.line;
+          out.classList.remove("hidden");
+        }
+      } catch {
+        /* offline */
+      } finally {
+        input.disabled = false;
+      }
+    });
+  }
+
   function bindSniffHideKennelFilter() {
     const el = document.getElementById("sniff-hide-kennel");
     if (!el) return;
@@ -222,6 +254,7 @@
   function initUx() {
     bindOnboarding();
     bindTossModal();
+    bindHeaderZipWeather();
     bindSniffHideKennelFilter();
     syncOnboardUi();
     syncIrcPanelDefault();

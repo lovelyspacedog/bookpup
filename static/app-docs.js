@@ -21,9 +21,11 @@
             "</strong> on this server.</p>";
         }
       } catch {
-        const tag = document.querySelector(".bp-header-version");
-        if (tag) {
-          html += '<p class="muted bp-about-run">' + BP.escapeHtml(tag.textContent.trim()) + "</p>";
+        const ver = document.getElementById("bp-header-ver");
+        const weather = document.getElementById("bp-header-weather");
+        const bits = [ver?.textContent?.trim(), weather?.textContent?.trim()].filter(Boolean);
+        if (bits.length) {
+          html += '<p class="muted bp-about-run">' + BP.escapeHtml(bits.join("")) + "</p>";
         }
       }
       body.innerHTML = html;

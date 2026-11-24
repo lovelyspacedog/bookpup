@@ -98,6 +98,43 @@ body {
 
 .bp-header .muted {
   flex: 1;
+  min-width: 0;
+}
+
+.bp-header-version {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.bp-header-zip {
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  width: 5.5ch;
+  min-width: 4ch;
+  max-width: 11ch;
+  flex: 0 1 auto;
+  caret-color: var(--accent, #2ee6ff);
+}
+
+.bp-header-zip:focus {
+  outline: none;
+}
+
+.bp-header-weather {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 #logout-btn {
@@ -1588,11 +1625,43 @@ td {
   }
 
   .bp-header-version {
+    display: flex;
+    align-items: baseline;
     flex: 1 1 auto;
     min-width: 0;
     font-size: 0.72rem;
     line-height: 1.35;
     margin: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .bp-header-zip {
+    font: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    width: 5.5ch;
+    min-width: 4ch;
+    max-width: 11ch;
+    flex: 0 1 auto;
+    caret-color: var(--accent, #2ee6ff);
+  }
+
+  .bp-header-zip:focus {
+    outline: none;
+  }
+
+  .bp-header-weather {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .bp-header-logout {

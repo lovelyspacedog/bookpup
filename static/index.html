@@ -54,7 +54,20 @@
     <div id="app-shell" class="hidden bp-page">
     <header class="bp-header">
       <h1><button type="button" class="bp-title-btn" id="about-open-app" aria-haspopup="dialog">BookPup</button></h1>
-      <p class="muted bp-header-version">Household ebook hound · v__VERSION__</p>
+      <p class="muted bp-header-version">
+        <span id="bp-header-ver">v__VERSION__</span
+        ><span id="bp-header-zip-prompt"> · Enter ZIP: </span
+        ><input
+          type="text"
+          id="bp-header-zip"
+          class="bp-header-zip"
+          inputmode="numeric"
+          autocomplete="postal-code"
+          maxlength="10"
+          spellcheck="false"
+          aria-label="US ZIP code for weather"
+        /><span id="bp-header-weather" class="bp-header-weather hidden" aria-live="polite"></span>
+      </p>
       <button type="button" id="logout-btn" class="bp-btn bp-header-logout">Head out</button>
     </header>
     <div class="bp-tabbar-shell">
