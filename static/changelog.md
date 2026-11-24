@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.97
+
+- **UX:** **Walk the Trail** — Fetch queue stays on Queue; Fresh catches scrolls to your practice file; new **Pack chat** steps (household channel, DMs, BugBot/FeatureCat); finish opens Pup guide page 12.
+
 ## 1.3.96
 
 - **Fix:** **Walk the Trail** Tag step — form sits above the coach overlay, uses a short tutorial field set, and you can scroll to **Tag it**.

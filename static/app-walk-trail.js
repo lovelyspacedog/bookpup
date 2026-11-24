@@ -192,6 +192,15 @@
         document.querySelector("#results-wrap")
       );
     }
+    if (st.id === "kennel") {
+      const libOpen = document.getElementById("panel-library")?.classList.contains("active");
+      if (libOpen && tutorialItemId) {
+        const card = document.querySelector('.bp-lib-card[data-lib-item-id="' + tutorialItemId + '"]');
+        return card || document.getElementById("lib-section-downloads");
+      }
+      if (libOpen) return document.getElementById("lib-section-downloads");
+      return document.querySelector("#tab-library");
+    }
     if (st.id === "tag") {
       const modal = document.getElementById("register-modal");
       if (modal && !modal.classList.contains("hidden")) {
@@ -268,7 +277,8 @@
     if (!target) return;
     if (st?.id === "sniff" && BP.state.walkTrailSearchDone) return;
     try {
-      const block = st?.id === "den" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
+      const block =
+        st?.id === "den" || st?.id === "kennel" ? "start" : MOBILE_TIP_MQ.matches ? "nearest" : "center";
       target.scrollIntoView({ block, inline: "nearest", behavior: "instant" });
     } catch {
       /* ignore */
@@ -427,7 +437,7 @@
     {
       id: "queue",
       title: "Fetch queue",
-      body: "Real fetches show progress here. Practice uses a shortcut — still peek at the tab.",
+      body: "Real fetches show progress here. Practice uses a shortcut — peek at this tab, then tap Next.",
       selector: "#tab-queue",
       placement: "bottom",
       mobileTip: "top",
@@ -436,9 +446,10 @@
     {
       id: "kennel",
       title: "Fresh catches",
-      body: "Your practice file is in Kennel → Fresh catches. Tap Next when you see it.",
+      body: "Your practice .mobi is in Fresh catches below. Scroll until you see it, then tap Next.",
       selector: "#tab-library",
-      placement: "bottom",
+      placement: "top",
+      mobileTip: "top",
       advance: "kennel-open",
     },
     {
@@ -459,6 +470,33 @@
       advance: "manual",
     },
     {
+      id: "pack",
+      title: "Pack chat",
+      body: "Household chat lives here — not IRC Den chatter. We opened Pack chat; tap Next when you are ready.",
+      selector: "#tab-pack",
+      placement: "bottom",
+      mobileTip: "top",
+      advance: "pack-open",
+    },
+    {
+      id: "pack-house",
+      title: "Pack channel",
+      body: "Pack chat · everyone reaches the whole household. Pups in the sidebar are for private messages.",
+      selector: "#pack-chat-mode-pack",
+      placement: "bottom",
+      mobileTip: "top",
+      advance: "manual",
+    },
+    {
+      id: "pack-bots",
+      title: "BugBot & FeatureCat",
+      body: "Open BugBot or FeatureCat in the sidebar to report bugs or ideas. Admins see them on Pack roster. Type clear in a bot thread to reset.",
+      selector: "#pack-chat-sidebar-hint",
+      placement: "bottom",
+      mobileTip: "top",
+      advance: "manual",
+    },
+    {
       id: "cleanup",
       title: "Remove practice book?",
       body: "Optional: toss the tutorial file so it does not stay on your shelf.",
@@ -469,7 +507,7 @@
     {
       id: "done",
       title: "Trail complete",
-      body: "Opening Pup guide page 2 for the everyday loop summary.",
+      body: "Opening Pup guide page 12 for Pack chat and everyday habits.",
       selector: null,
       placement: "top",
       advance: "finish",
@@ -496,6 +534,9 @@
     if (st.advance === "fetch-done") return fetchDone;
     if (st.advance === "kennel-open") {
       return document.getElementById("panel-library")?.classList.contains("active");
+    }
+    if (st.advance === "pack-open") {
+      return document.getElementById("panel-pack")?.classList.contains("active");
     }
     if (st.advance === "tag-saved") return !!BP.state.walkTrailTagged;
     if (st.advance === "cleanup") return true;
@@ -626,7 +667,7 @@
     if (st.advance === "finish") {
       markComplete();
       teardownWalk(true);
-      BP.openGuidePage?.(1);
+      BP.openGuidePage?.(11);
       return;
     }
     if (stepIndex >= steps.length - 1) {
@@ -639,15 +680,14 @@
     if (next?.id === "queue") {
       const qbtn = BP.tabButton("queue");
       if (qbtn) BP.activateTab(qbtn);
-      setTimeout(() => {
-        const sbtn = BP.tabButton("search");
-        if (sbtn) BP.activateTab(sbtn);
-        updateTipChrome();
-      }, 1200);
     }
     if (next?.id === "kennel") {
       const libBtn = BP.tabButton("library");
       if (libBtn) BP.activateTab(libBtn);
+    }
+    if (next?.id === "pack" || next?.id === "pack-house" || next?.id === "pack-bots") {
+      const packBtn = BP.tabButton("pack");
+      if (packBtn) BP.activateTab(packBtn);
     }
     updateTipChrome();
   }
