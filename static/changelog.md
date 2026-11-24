@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.62
+
+- **UX:** **Pack chat** tab — household group chat with who’s online; delete your own messages; admins can remove any message or clear the thread (not IRC **Den chatter**).
+
 ## 1.3.61
 
 - **Sniff:** **Scheduled sniff** on the sniff card collapses by default (compact summary; **On · …** when active).

@@ -78,6 +78,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 ## Page 10 — Your tag & pack roster
 
+- **Pack chat** (main tab): message everyone in the household; pups show **Online** or **Offline** while signed in. Remove your own lines; admins can remove any line or clear the thread. This is not **Den chatter** (IRC/Soulseek logs on Sniff).
 - **Your tag:** rename yourself or rotate password (current password required).
 - **Pack roster** (admins): create pups, **Set quota**, **Set login**, **Remove**. Passwords are reset only, never shown.
 - Admins may set per-pup **Soulseek caps** (`soulseek_limits` on the account) if someone needs tighter sniff/fetch limits than the household default.

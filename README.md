@@ -12,7 +12,7 @@ Household web portal for **[Whatbox Expedition](https://whatbox.ca/)** (or any V
 - **Sniff** — IRCHighway `#ebooks`, Undernet `#bookz`, Rizon `#ebookz`, XDCC index, optional Soulseek via [slskd](https://github.com/slskd/slskd)
 - **Fetch queue** — DCC staging, batch fetch, Project Gutenberg fallback for some Undernet refusals
 - **Kennel** — library catalog, covers, reader (PDF/EPUB/TXT/comics + Calibre conversion path), OPDS, KOReader wireless sync
-- **Pack** — multi-user accounts, per-user quotas, admin roster, send-to-household-member
+- **Pack** — multi-user accounts, per-user quotas, admin roster, send-to-household-member, **Pack chat** (household group messages)
 
 In-app help: **Guide** and **What's new** tabs after you sign in.
 
@@ -48,6 +48,7 @@ Runtime config and libraries live under `~/.config/bookpup/`:
 | `accounts.json` | Household users (admin creates accounts in UI) |
 | `users/<name>/` | Per-user library files, covers, indexes |
 | `sessions.json` | Bearer sessions (7-day TTL) |
+| `pack_chat.json` | Household pack chat history (capped on disk) |
 
 See `GET /api/health` and `GET /api/config` (after login) for effective settings. Mock flags: `BOOKPUP_IRC_MOCK`, `BOOKPUP_XDCC_MOCK`, `BOOKPUP_SLSKD_MOCK`.
 
@@ -77,6 +78,7 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 | Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select |
 | Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |
+| Pack chat | `GET /api/pack/chat?after=&del_after=`, `POST /api/pack/chat`, `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin) |
 | Public | `GET /api/health`, `GET /api/irc/targets` |
 
 Frontend loads `static/app-*.js` in order; shared state is on `window.BookPup`.

@@ -21,6 +21,13 @@ window.BookPup = window.BookPup || {};
     ircAfterId: 0,
     searchTabActive: true,
     ircPollTimer: null,
+    packChatAfterId: 0,
+    packChatDelAfter: 0,
+    packChatById: {},
+    packChatUnread: 0,
+    packChatTabActive: false,
+    packChatBootstrapped: false,
+    packChatPollTimer: null,
   };
 
   function bytes(n) {
@@ -198,6 +205,7 @@ window.BookPup = window.BookPup || {};
     BP.loadIrcFeedFloor();
     if (!BP.state.ircPollTimer) BP.startIrcPoll();
     BP.pollIrcFeed(true);
+    BP.startPackChatPoll?.();
     BP.syncOnboardUi?.();
     BP.refreshQueue?.();
   }
@@ -257,6 +265,7 @@ window.BookPup = window.BookPup || {};
       /* ignore */
     }
     BP.resetIrcFeedLocal();
+    BP.resetPackChatLocal?.();
     showLogin();
   }
 
@@ -537,7 +546,9 @@ window.BookPup = window.BookPup || {};
       moreBtn.classList.toggle("active", TAB_OVERFLOW.has(tab));
       if (!TAB_OVERFLOW.has(tab)) closeTabMoreMenu();
     }
+    if (BP.state.packChatTabActive && tab !== "pack") BP.onPackChatTabInactive?.();
     BP.state.searchTabActive = tab === "search";
+    if (tab === "pack") BP.onPackChatTabActive?.();
     if (BP.state.searchTabActive) {
       BP.clearSniffQueryInput();
       if (!BP.state.ircPollTimer) BP.startIrcPoll();

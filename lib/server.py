@@ -26,6 +26,7 @@ from .routes import (
     opds as opds_routes,
     public as public_routes,
     reader_ai_routes,
+    pack_chat as pack_chat_routes,
     search as search_routes,
     session_routes,
     staging as staging_routes,
@@ -212,6 +213,7 @@ class Handler(BaseHTTPRequestHandler):
             library_routes,
             jobs_routes,
             irc_routes,
+            pack_chat_routes,
             search_routes,
         ):
             if mod.handle_get(self, path, qs):
@@ -245,6 +247,7 @@ class Handler(BaseHTTPRequestHandler):
         body = self.read_json(length)
         for mod in (
             irc_routes,
+            pack_chat_routes,
             search_routes,
             jobs_routes,
             auth_routes,
@@ -261,7 +264,7 @@ class Handler(BaseHTTPRequestHandler):
         if not self.require_auth() or not self.require_csrf():
             return
         path = urlparse(self.path).path
-        for mod in (admin, search_routes, library_routes):
+        for mod in (admin, search_routes, library_routes, pack_chat_routes):
             if mod.handle_delete(self, path):
                 return
         self.send_json(404, {"error": "Not found"})

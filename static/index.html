@@ -89,6 +89,10 @@
         <span class="bp-tab-label bp-tab-label--short">Queue</span>
         <span id="queue-tab-badge" class="bp-tab-badge hidden" aria-label="Jobs in queue"></span>
       </button>
+      <button type="button" class="bp-tab bp-tab--badged" role="tab" id="tab-pack" aria-selected="false" aria-controls="panel-pack" data-tab="pack">
+        Pack chat
+        <span id="pack-tab-badge" class="bp-tab-badge hidden" aria-label="Unread pack messages"></span>
+      </button>
       <button type="button" class="bp-tab hidden bp-tab--overflow" role="tab" id="accounts-tab" aria-selected="false" aria-controls="panel-accounts" data-tab="accounts">Your tag</button>
       <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-guide" aria-selected="false" aria-controls="panel-guide" data-tab="guide">Pup guide</button>
       <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-changelog" aria-selected="false" aria-controls="panel-changelog" data-tab="changelog">What&apos;s new</button>
@@ -407,6 +411,28 @@
             </thead>
             <tbody></tbody>
           </table>
+        </div>
+      </section>
+      <section id="panel-pack" class="bp-panel" role="tabpanel" aria-labelledby="tab-pack" tabindex="0">
+        <div class="bp-card bp-pack-chat">
+          <div class="bp-pack-chat-layout">
+            <aside class="bp-pack-presence" aria-label="Pack online">
+              <h2 class="bp-pack-presence-title">Pack</h2>
+              <ul id="pack-presence-list" class="bp-pack-presence-list"></ul>
+            </aside>
+            <div class="bp-pack-chat-main">
+              <div id="pack-chat-feed" class="bp-irc-feed bp-pack-chat-feed" aria-live="polite"></div>
+              <div class="bp-pack-chat-compose">
+                <label for="pack-chat-input" class="visually-hidden">Message the pack</label>
+                <input type="text" id="pack-chat-input" autocomplete="off" maxlength="2000" placeholder="Message the pack…" />
+                <button type="button" id="pack-chat-send" class="bp-btn primary">Send</button>
+              </div>
+              <p id="pack-chat-msg" class="bp-msg muted"></p>
+              <div class="bp-pack-chat-toolbar">
+                <button type="button" id="pack-chat-clear" class="bp-btn hidden">Clear pack chat</button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
       <section id="panel-library" class="bp-panel">
@@ -815,6 +841,7 @@
     <script src="/static/app-core.js?v=__VERSION__" defer></script>
     <script src="/static/app-docs.js?v=__VERSION__" defer></script>
     <script src="/static/app-irc.js?v=__VERSION__" defer></script>
+    <script src="/static/app-pack-chat.js?v=__VERSION__" defer></script>
     <script src="/static/app-account.js?v=__VERSION__" defer></script>
     <script src="/static/sniff-file-types.js?v=__VERSION__" defer></script>
     <script src="/static/app-search.js?v=__VERSION__" defer></script>

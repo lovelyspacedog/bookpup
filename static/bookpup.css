@@ -2953,3 +2953,82 @@ tr.bp-sniff-pick td {
   border-radius: 4px;
   padding: 0.5rem;
 }
+
+.bp-pack-chat-layout {
+  display: grid;
+  grid-template-columns: minmax(7rem, 11rem) 1fr;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.bp-pack-presence-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.bp-pack-presence-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bp-pack-presence-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.35rem 0.5rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.bp-pack-presence-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--bp-muted, #888);
+}
+
+.bp-pack-presence-dot--on {
+  background: var(--bp-ok, #3d9a5c);
+}
+
+.bp-pack-presence-stat {
+  font-size: 0.75rem;
+}
+
+.bp-pack-chat-feed {
+  min-height: 14rem;
+  max-height: min(50vh, 28rem);
+  margin-bottom: 0.75rem;
+}
+
+.bp-pack-chat-compose {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bp-pack-chat-compose input[type="text"] {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.bp-pack-chat-line .bp-pack-chat-delete {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.35rem;
+  margin-left: 0.25rem;
+  vertical-align: baseline;
+}
+
+.bp-pack-chat-toolbar {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .bp-pack-chat-layout {
+    grid-template-columns: 1fr;
+  }
+}
