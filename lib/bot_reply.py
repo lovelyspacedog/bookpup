@@ -9,6 +9,8 @@ import time
 
 from . import pack_chat
 
+CLEAR_COMMAND = "clear"
+
 _REPLY_DELAY_MIN_S = 2.0
 _REPLY_DELAY_MAX_S = 5.0
 
@@ -23,6 +25,10 @@ def _deliver(from_bot: str, to_user: str, text: str, *, kind: str, delay: float)
     if delay > 0:
         time.sleep(delay)
     pack_chat.append_virtual_dm(from_bot, to_user, text, kind=kind)
+
+
+def is_clear_command(text: str) -> bool:
+    return pack_chat.sanitize_message(text).lower() == CLEAR_COMMAND
 
 
 def schedule_delayed_virtual_dm(

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.3.80
+
+- **Pack:** **BugBot** / **FeatureCat** intros are instant; only confirmations wait 2–5 s. Type **clear** in either bot thread to wipe the chat and show the intro again (tip on each confirmation).
+
 ## 1.3.79
 
 - **Pack:** **BugBot** and **FeatureCat** wait 2–5 seconds before intro or confirmation replies (inbox still saves immediately).

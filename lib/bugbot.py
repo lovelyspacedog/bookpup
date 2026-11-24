@@ -25,7 +25,10 @@ INTRO_TEXT = (
     "Your household admin sees reports on Pack roster → Bug inbox. "
     "I'll reply here when your report is saved."
 )
-ACK_TEXT = "Got it — your report is in the admin bug inbox. Thanks for helping improve BookPup."
+ACK_TEXT = (
+    "Got it — your report is in the admin bug inbox. Thanks for helping improve BookPup. "
+    "Tip: type clear to wipe this thread and show the intro again."
+)
 
 _lock = threading.Lock()
 _state_loaded = False
@@ -139,10 +142,16 @@ def ensure_intro(viewer: str) -> bool:
             return False
         _intro_seen.add(who)
         _persist_state_unlocked()
-    bot_reply.schedule_delayed_virtual_dm(
-        BUGBOT_SENDER, who, INTRO_TEXT, kind="bugbot_intro"
-    )
+    pack_chat.append_virtual_dm(BUGBOT_SENDER, who, INTRO_TEXT, kind="bugbot_intro")
     return True
+
+
+def on_clear_thread(viewer: str) -> None:
+    who = str(viewer or "").strip()
+    if not who:
+        raise ValueError("Username required")
+    pack_chat.clear_bot_dm_thread(who, BUGBOT_SENDER)
+    pack_chat.append_virtual_dm(BUGBOT_SENDER, who, INTRO_TEXT, kind="bugbot_intro")
 
 
 def on_user_report(from_user: str, text: str, *, pack_message_id: int | None = None) -> int:

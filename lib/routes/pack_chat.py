@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .. import bot_reply
 from .. import bugbot
 from .. import featurecat
 from .. import pack_chat
@@ -75,21 +76,31 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         def send() -> None:
             to_key = (to_user or "").lower()
             if to_key == pack_chat.BUGBOT_SENDER:
-                mid = pack_chat.append_message(handler._current_user, text, to=to_user)
-                try:
-                    bugbot.on_user_report(handler._current_user, text, pack_message_id=mid)
-                except ValueError as exc:
-                    handler.send_json(400, {"error": str(exc)})
-                    return
+                if bot_reply.is_clear_command(text):
+                    bugbot.on_clear_thread(handler._current_user)
+                    mid = 0
+                else:
+                    mid = pack_chat.append_message(handler._current_user, text, to=to_user)
+                    try:
+                        bugbot.on_user_report(
+                            handler._current_user, text, pack_message_id=mid
+                        )
+                    except ValueError as exc:
+                        handler.send_json(400, {"error": str(exc)})
+                        return
             elif to_key == pack_chat.FEATURECAT_SENDER:
-                mid = pack_chat.append_message(handler._current_user, text, to=to_user)
-                try:
-                    featurecat.on_user_submission(
-                        handler._current_user, text, pack_message_id=mid
-                    )
-                except ValueError as exc:
-                    handler.send_json(400, {"error": str(exc)})
-                    return
+                if bot_reply.is_clear_command(text):
+                    featurecat.on_clear_thread(handler._current_user)
+                    mid = 0
+                else:
+                    mid = pack_chat.append_message(handler._current_user, text, to=to_user)
+                    try:
+                        featurecat.on_user_submission(
+                            handler._current_user, text, pack_message_id=mid
+                        )
+                    except ValueError as exc:
+                        handler.send_json(400, {"error": str(exc)})
+                        return
             else:
                 mid = pack_chat.append_message(handler._current_user, text, to=to_user)
             snap = pack_chat.snapshot(

@@ -25,7 +25,10 @@ INTRO_TEXT = (
     "Your household admin sees requests on Pack roster → Feature inbox. "
     "I'll reply here when your idea is saved."
 )
-ACK_TEXT = "Got it — your feature idea is in the admin feature inbox. Thanks for pitching in."
+ACK_TEXT = (
+    "Got it — your feature idea is in the admin feature inbox. Thanks for pitching in. "
+    "Tip: type clear to wipe this thread and show the intro again."
+)
 
 _lock = threading.Lock()
 _state_loaded = False
@@ -138,10 +141,20 @@ def ensure_intro(viewer: str) -> bool:
             return False
         _intro_seen.add(who)
         _persist_state_unlocked()
-    bot_reply.schedule_delayed_virtual_dm(
+    pack_chat.append_virtual_dm(
         FEATURECAT_SENDER, who, INTRO_TEXT, kind="featurecat_intro"
     )
     return True
+
+
+def on_clear_thread(viewer: str) -> None:
+    who = str(viewer or "").strip()
+    if not who:
+        raise ValueError("Username required")
+    pack_chat.clear_bot_dm_thread(who, FEATURECAT_SENDER)
+    pack_chat.append_virtual_dm(
+        FEATURECAT_SENDER, who, INTRO_TEXT, kind="featurecat_intro"
+    )
 
 
 def on_user_submission(

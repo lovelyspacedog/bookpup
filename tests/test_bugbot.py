@@ -65,6 +65,21 @@ class BugBotTest(unittest.TestCase):
         "lib.pack_chat.accounts.get_user",
         return_value={"username": "alice", "enabled": True},
     )
+    @mock.patch("lib.bugbot.accounts.get_user", return_value={"username": "alice", "enabled": True})
+    def test_clear_reposts_intro(self, _mock_bug: mock.MagicMock, _mock_pc: mock.MagicMock) -> None:
+        bugbot.ensure_intro("alice")
+        with mock.patch("lib.pack_chat.transfer._validate_recipient"):
+            pack_chat.append_message("alice", "oops", to=pack_chat.BUGBOT_SENDER)
+        bugbot.on_clear_thread("alice")
+        snap = pack_chat.snapshot(after=0, viewer="alice")
+        texts = [m["text"] for m in snap["messages"]]
+        self.assertEqual(texts, [bugbot.INTRO_TEXT])
+        self.assertNotIn("oops", texts)
+
+    @mock.patch(
+        "lib.pack_chat.accounts.get_user",
+        return_value={"username": "alice", "enabled": True},
+    )
     @mock.patch("lib.pack_chat.transfer._validate_recipient")
     def test_dm_thread_visible(self, _mock_val: mock.MagicMock, _mock_user: mock.MagicMock) -> None:
         pack_chat.append_virtual_dm(pack_chat.BUGBOT_SENDER, "alice", "intro", kind="bugbot_intro")

@@ -332,6 +332,48 @@ def delete_message(message_id: int, actor: str, *, is_admin: bool) -> None:
         _persist_unlocked()
 
 
+def _is_dm_with_bot(row: dict[str, Any], viewer: str, bot: str) -> bool:
+    if is_pack_message(row):
+        return False
+    sender = str(row.get("username") or "").strip()
+    dest = _message_recipient(row) or ""
+    if sender == viewer and dest == bot:
+        return True
+    if sender == bot and dest == viewer:
+        return True
+    return False
+
+
+def clear_bot_dm_thread(viewer: str, bot: str) -> list[int]:
+    """Remove all DMs between viewer and a virtual bot (viewer-only)."""
+    who = str(viewer or "").strip()
+    peer = _canonical_virtual_peer(bot)
+    if not peer or peer == SYSTEM_SENDER:
+        raise ValueError("Invalid bot")
+    if not who:
+        raise ValueError("Username required")
+    _ensure_loaded()
+    with _lock:
+        ids: list[int] = []
+        global _del_seq
+        now = time.time()
+        keep: list[dict[str, Any]] = []
+        for row in _messages:
+            if _is_dm_with_bot(row, who, peer):
+                mid = int(row["id"])
+                ids.append(mid)
+                _del_seq += 1
+                _deletions.append({"del_seq": _del_seq, "message_id": mid, "ts": now})
+            else:
+                keep.append(row)
+        if ids:
+            _messages[:] = keep
+            if len(_deletions) > MAX_DELETIONS_LOG:
+                _deletions[:] = _deletions[-MAX_DELETIONS_LOG:]
+            _persist_unlocked()
+        return ids
+
+
 def clear_messages() -> list[int]:
     """Remove pack-channel messages only (admin). Returns deleted message ids."""
     _ensure_loaded()
