@@ -22,6 +22,8 @@
   let catalogIntroScrolled = false;
   let packScrollTourFrame = null;
   let packScrollTourStarted = false;
+  let packHouseIntroScrolled = false;
+  let packBotsIntroScrolled = false;
   let trailConfettiStarted = false;
   const CONFETTI_EMOJI = ["🐕", "🐶", "🦮", "🐾", "🦴", "🎉", "🎊", "✨", "🐾", "🌭", "💫", "🐕‍🦺", "🎉", "🐾"];
 
@@ -315,6 +317,38 @@
     return Math.max(0, Math.min(baseMax, want));
   }
 
+  function primePackHouseMobileScroll() {
+    if (!MOBILE_TIP_MQ.matches || packHouseIntroScrolled) return;
+    packHouseIntroScrolled = true;
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+    const btn = document.getElementById("pack-chat-mode-pack");
+    try {
+      btn?.scrollIntoView({ block: "start", behavior: "instant", inline: "nearest" });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function primePackBotsMobileScroll() {
+    if (!MOBILE_TIP_MQ.matches || packBotsIntroScrolled) return;
+    packBotsIntroScrolled = true;
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+    const list = document.getElementById("pack-presence-list");
+    try {
+      list?.scrollIntoView({ block: "start", behavior: "instant", inline: "nearest" });
+    } catch {
+      /* ignore */
+    }
+  }
+
   function startPackChatMobileScrollTour() {
     if (packScrollTourStarted || packScrollTourFrame) return;
     if (!MOBILE_TIP_MQ.matches || !active || currentStep()?.id !== "pack" || prefersReducedMotion()) return;
@@ -524,8 +558,7 @@
     const dockTopCoach = usesTopCoachDock(st);
     if (dockTopCoach) {
       scheduleWalkTrailLayout(target, st?.placement);
-      const skipMobileScroll =
-        MOBILE_TIP_MQ.matches && (st?.id === "pack" || st?.id === "pack-house" || st?.id === "pack-bots");
+      const skipMobileScroll = MOBILE_TIP_MQ.matches && st?.id === "pack";
       if (skipMobileScroll) return;
       requestAnimationFrame(() => {
         if (!active || target !== resolveStepTarget(currentStep())) return;
@@ -563,7 +596,10 @@
     const dockBottom = usesBottomCoachDock(st);
     tip.classList.toggle("bp-walk-trail-tip--dock", (dockMobile && !dockTop && !dockBottom) || dockBottom);
     tip.classList.toggle("bp-walk-trail-tip--dock-top", dockTop);
-    tip.classList.toggle("bp-walk-trail-tip--dock-top-loose", dockTop && !!st?.mobileTipTopLoose);
+    tip.classList.toggle(
+      "bp-walk-trail-tip--dock-top-loose",
+      dockTop && !!st?.mobileTipTopLoose && MOBILE_TIP_MQ.matches
+    );
     if (dockBottom || dockMobile || st?.coachDockTop) {
       tip.style.top = "";
       tip.style.left = "";
@@ -829,6 +865,18 @@
       ensureDenMockVisible();
       requestAnimationFrame(() => primeDenMobileScroll());
     }
+    if (st.id === "pack-house") {
+      requestAnimationFrame(() => {
+        primePackHouseMobileScroll();
+        scheduleWalkTrailLayout(resolveStepTarget(st), st.placement);
+      });
+    }
+    if (st.id === "pack-bots") {
+      requestAnimationFrame(() => {
+        primePackBotsMobileScroll();
+        scheduleWalkTrailLayout(resolveStepTarget(st), st.placement);
+      });
+    }
     if (st.id === "tag") {
       BP.state.walkTrailExpectTag = true;
     }
@@ -908,6 +956,8 @@
     denIntroScrolled = false;
     fetchIntroScrolled = false;
     catalogIntroScrolled = false;
+    packHouseIntroScrolled = false;
+    packBotsIntroScrolled = false;
     stopPackScrollTour();
     stopTrailConfetti();
     autoAdvanceFired.clear();
@@ -987,6 +1037,8 @@
       if (libBtn) BP.activateTab(libBtn);
     }
     updateTipChrome();
+    if (next?.id === "pack-house") packHouseIntroScrolled = false;
+    if (next?.id === "pack-bots") packBotsIntroScrolled = false;
     if (next?.id === "pack") {
       packScrollTourStarted = false;
       requestAnimationFrame(() => {
