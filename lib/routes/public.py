@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import urllib.error
 from urllib.parse import parse_qs, urlparse
 
@@ -9,7 +10,7 @@ from .. import cover_search, reader_ai
 from ..core import CONFIG_DIR, IRC_MOCK, VERSION, load_config, public_base_url
 from ..irc_worker import worker
 from .. import slskd_client, xdcc_search
-from ..wttr import fetch_wttr_line, normalize_us_zip
+from ..wttr import fetch_wttr_forecast, normalize_us_zip
 from ._types import RequestHandler
 
 
@@ -62,11 +63,11 @@ def route_public_weather(handler: RequestHandler) -> None:
         handler.send_json(400, {"error": "invalid zip"})
         return
     try:
-        line = fetch_wttr_line(zip5)
-    except (urllib.error.URLError, OSError, TimeoutError):
+        forecast = fetch_wttr_forecast(zip5)
+    except (urllib.error.URLError, OSError, TimeoutError, ValueError, json.JSONDecodeError):
         handler.send_json(502, {"error": "weather unavailable"})
         return
-    handler.send_json(200, {"zip": zip5, "line": line})
+    handler.send_json(200, {"zip": zip5, **forecast})
 
 
 def route_public_capabilities(handler: RequestHandler) -> None:

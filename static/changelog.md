@@ -2,10 +2,12 @@
 
 ## 1.3
 
-Patch line **1.3.0**–**1.3.54** (live patch on **What’s new** and `GET /api/health`).
+Patch line **1.3.0**–**1.3.56** (live patch on **What’s new** and `GET /api/health`).
 
 - **UX:** signed-in header shows **vX.Y.Z · Enter ZIP:** with a borderless field; **Enter** fetches a one-line [wttr.in](https://wttr.in) forecast for a US ZIP (`GET /api/weather`).
 - **UX:** header version sits smaller and lower beside **ZIP:** (spaced entry); forecast keeps the version visible.
+- **UX:** header weather centers after lookup; forecast uses wttr city name instead of ZIP.
+- **UX:** click header forecast to toggle °F/°C; double-click clears it and brings back **ZIP:** entry.
 
 - **Security:** staging downloads scoped to job owner; `..` blocked in staging ids; library quota includes covers; SSRF guards on cover-from-URL and optional `ntfy_server`; atomic JSON for accounts, catalog, and reading state; safer zip extract; login field no longer prefilled from server.
 - **UI:** readable native select menus; **About BookPup** from the header/logo; sniff toolbar sticks above the table, compact fetch buttons, bookmarks below results; **New here?** banner; **Den chatter** hidden until IRC activity; empty sniff card shows **Open results & bookmarks** only; cover/tag lookups show spinners; **What to sniff for** superbar (recent queries, **Clear** outside the field).

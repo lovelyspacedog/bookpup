@@ -217,7 +217,56 @@
     input.dataset.bound = "1";
     const prompt = document.getElementById("bp-header-zip-prompt");
     const out = document.getElementById("bp-header-weather");
+    const versionRow = document.getElementById("bp-header-version");
     const zipRe = /^\d{5}(-\d{4})?$/;
+    let forecast = null;
+    let unit = "F";
+    let clickTimer = null;
+
+    function formatForecastLine() {
+      if (!forecast || !out) return;
+      const temp = unit === "C" ? forecast.temp_c : forecast.temp_f;
+      const sign = temp.startsWith("-") ? "" : "+";
+      out.textContent = forecast.city + ": " + forecast.emoji + "  " + sign + temp + "°" + unit;
+    }
+
+    function showForecast(data) {
+      forecast = {
+        city: data.city,
+        emoji: data.emoji,
+        temp_f: data.temp_f,
+        temp_c: data.temp_c,
+      };
+      unit = "F";
+      prompt?.classList.add("hidden");
+      input.classList.add("hidden");
+      versionRow?.classList.add("bp-header-version--forecast");
+      out?.classList.remove("hidden");
+      out?.setAttribute("role", "button");
+      out?.setAttribute("tabindex", "0");
+      out?.setAttribute(
+        "title",
+        "Click to switch °F / °C. Double-click to enter a new ZIP."
+      );
+      formatForecastLine();
+    }
+
+    function resetHeaderWeather() {
+      forecast = null;
+      unit = "F";
+      prompt?.classList.remove("hidden");
+      input.classList.remove("hidden");
+      input.value = "";
+      input.disabled = false;
+      versionRow?.classList.remove("bp-header-version--forecast");
+      out?.classList.add("hidden");
+      out?.removeAttribute("role");
+      out?.removeAttribute("tabindex");
+      out?.removeAttribute("title");
+      out.textContent = "";
+      input.focus();
+    }
+
     input.addEventListener("keydown", async (ev) => {
       if (ev.key !== "Enter") return;
       ev.preventDefault();
@@ -228,17 +277,40 @@
       try {
         const res = await fetch("/api/weather?zip=" + encodeURIComponent(zip));
         const data = res.ok ? await res.json() : null;
-        if (!data || !data.line) return;
-        prompt?.classList.add("hidden");
-        input.classList.add("hidden");
-        if (out) {
-          out.textContent = data.line;
-          out.classList.remove("hidden");
-        }
+        if (!data || !data.city || !data.temp_f || !data.temp_c) return;
+        showForecast(data);
       } catch {
         /* offline */
       } finally {
         input.disabled = false;
+      }
+    });
+
+    out?.addEventListener("click", () => {
+      if (!forecast || out.classList.contains("hidden")) return;
+      if (clickTimer) clearTimeout(clickTimer);
+      clickTimer = setTimeout(() => {
+        clickTimer = null;
+        unit = unit === "F" ? "C" : "F";
+        formatForecastLine();
+      }, 260);
+    });
+
+    out?.addEventListener("dblclick", (ev) => {
+      ev.preventDefault();
+      if (clickTimer) {
+        clearTimeout(clickTimer);
+        clickTimer = null;
+      }
+      resetHeaderWeather();
+    });
+
+    out?.addEventListener("keydown", (ev) => {
+      if (!forecast || out.classList.contains("hidden")) return;
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        unit = unit === "F" ? "C" : "F";
+        formatForecastLine();
       }
     });
   }
