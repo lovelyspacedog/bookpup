@@ -46,7 +46,7 @@ Step through with **Previous** / **Next**. Each `##` heading is one page.
 
 - **Open results** is your working copy: the full last sniff (query, channel, filter). It syncs to your account.
 - **Bookmark** saves that full list (25 max, 2500 rows each). **Load** / **Remove** / **↑↓** on each bookmark.
-- **Schedule sniff** on a bookmark re-runs its saved query and channel on an interval while BookPup is running. New rows (not seen on that watch before) can push to household **ntfy** if `ntfy_topic` is set in config. The server defers scheduled sniffs when the fetch queue is busy; IRC still idles out between jobs.
+- **Schedule sniff** on the main sniff card (or on a bookmark) re-runs the saved query and channel on an interval while BookPup is running. Enabling on the card matches an existing bookmark or bookmarks open results for you. New rows (not seen on that watch before) can push to household **ntfy** if `ntfy_topic` is set in config. The server defers scheduled sniffs when the fetch queue is busy; IRC still idles out between jobs.
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.
 - Recent sniff queries autocomplete in the superbar (focus, typing, or **↓**); picking one fills the box — submit **Sniff** yourself when ready.
 

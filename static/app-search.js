@@ -17,6 +17,11 @@
   const savedSearchName = document.getElementById("saved-search-name");
   const savedSearchSaveBtn = document.getElementById("saved-search-save");
   const savedSearchMsg = document.getElementById("saved-search-msg");
+  const formSchedEnabled = document.getElementById("sniff-form-schedule-enabled");
+  const formSchedInterval = document.getElementById("sniff-form-schedule-interval");
+  const formSchedStatus = document.getElementById("sniff-form-schedule-status");
+  const formSchedHelp = document.getElementById("sniff-schedule-help");
+  const formSchedHelpWrap = document.getElementById("sniff-schedule-help-wrap");
   let resultRows = [];
   const SNIFF_BATCH_MAX = 5;
   const SNIFF_PAGE_SIZE_KEY = "bookpupSniffPageSize";
@@ -81,6 +86,7 @@
     if (draftRowsEl) {
       draftRowsEl.textContent = String(n);
     }
+    updateFormSchedule();
   }
 
   function applyDraft(draft) {
@@ -168,12 +174,119 @@
         savedSearchMsg.textContent = body.enabled ? "Scheduled sniff enabled." : "Scheduled sniff off.";
         savedSearchMsg.className = "bp-msg muted";
       }
+      if (formSchedStatus && !formSchedStatus.classList.contains("err")) {
+        formSchedStatus.className = "bp-msg muted bp-form-schedule-status";
+      }
     } catch (err) {
       if (savedSearchMsg) {
         savedSearchMsg.textContent = err.message;
         savedSearchMsg.className = "bp-msg err";
       }
+      if (formSchedStatus) {
+        formSchedStatus.textContent = err.message;
+        formSchedStatus.className = "bp-msg err bp-form-schedule-status";
+      }
       void loadSearchWorkspace();
+    }
+  }
+
+  function findMatchingBookmark() {
+    const q = document.getElementById("query")?.value?.trim() || "";
+    const ch = document.getElementById("channel")?.value || "";
+    if (!q) return null;
+    const matches = workspaceSaved.filter((s) => s.query === q && s.channel === ch);
+    if (!matches.length) return null;
+    return matches.reduce((a, b) => ((b.saved_at || 0) > (a.saved_at || 0) ? b : a));
+  }
+
+  function scheduleStatusParts(sched) {
+    const parts = [];
+    if (sched?.enabled) {
+      if (sched.running) parts.push("Running…");
+      else if (sched.next_run_at) parts.push("Next ~" + formatScheduleWhen(sched.next_run_at));
+      if (sched.last_run_at) parts.push("Last " + formatScheduleWhen(sched.last_run_at));
+    }
+    if (sched?.last_error) parts.push(sched.last_error);
+    return parts;
+  }
+
+  let suppressFormSchedEvents = false;
+
+  function updateFormSchedule() {
+    if (!formSchedEnabled) return;
+    const match = findMatchingBookmark();
+    const sched = match?.schedule || {};
+    const hasRows = resultRows.length > 0;
+    suppressFormSchedEvents = true;
+    formSchedEnabled.checked = !!(sched.enabled && match);
+    formSchedEnabled.disabled = !hasRows;
+    formSchedInterval.disabled = !hasRows || !formSchedEnabled.checked;
+    const wantH = sched.interval_hours || 24;
+    formSchedInterval.value = String(
+      SCHEDULE_INTERVALS.some((o) => o.hours === wantH) ? wantH : 24
+    );
+    suppressFormSchedEvents = false;
+    if (formSchedStatus?.classList.contains("err")) return;
+    if (formSchedStatus) formSchedStatus.className = "bp-msg muted bp-form-schedule-status";
+    if (!hasRows) {
+      if (formSchedStatus) {
+        formSchedStatus.textContent = "Sniff first — schedule needs open results to bookmark.";
+      }
+      return;
+    }
+    const parts = scheduleStatusParts(sched);
+    if (!match) {
+      if (formSchedStatus) {
+        formSchedStatus.textContent =
+          "No bookmark for this query yet — enabling creates one automatically.";
+      }
+      return;
+    }
+    if (formSchedStatus) {
+      const nameBit = match.name ? `Bookmark “${match.name}”.` : "";
+      formSchedStatus.textContent = [nameBit, parts.join(" · ")].filter(Boolean).join(" ");
+    }
+  }
+
+  async function ensureBookmarkForFormSchedule() {
+    const match = findMatchingBookmark();
+    if (match) return match.id;
+    const q = document.getElementById("query")?.value?.trim() || "";
+    if (!resultRows.length) throw new Error("Open results have no rows to bookmark.");
+    await pushDraftPatch({
+      query: q,
+      channel: document.getElementById("channel")?.value || "",
+      filter: filterInput?.value || "",
+      results: resultRows,
+      job_id: BP.state.activeSearchJob || undefined,
+    });
+    const autoName = (q.slice(0, 60) || "Scheduled sniff").trim();
+    const data = await BP.api("/api/search/saved", {
+      method: "POST",
+      body: JSON.stringify({ name: autoName }),
+    });
+    renderSavedSearchList(data.workspace?.saved);
+    return data.id;
+  }
+
+  async function patchFormSchedule(body) {
+    try {
+      let id = findMatchingBookmark()?.id;
+      if (!id && body.enabled) {
+        id = await ensureBookmarkForFormSchedule();
+      }
+      if (!id) return;
+      await patchSavedSchedule(id, body);
+      updateFormSchedule();
+    } catch (err) {
+      if (formSchedStatus) {
+        formSchedStatus.textContent = err.message;
+        formSchedStatus.className = "bp-msg err bp-form-schedule-status";
+      }
+      suppressFormSchedEvents = true;
+      if (formSchedEnabled) formSchedEnabled.checked = false;
+      if (formSchedInterval) formSchedInterval.disabled = true;
+      suppressFormSchedEvents = false;
     }
   }
 
@@ -271,6 +384,7 @@
       savedSearchList.appendChild(li);
     });
     updateResultsPanelVisibility();
+    updateFormSchedule();
   }
 
   let workspaceLoadToken = 0;
@@ -1309,6 +1423,44 @@
     syncDraftFromUi(false);
   });
 
+  document.getElementById("query")?.addEventListener("input", () => updateFormSchedule());
+  document.getElementById("channel")?.addEventListener("change", () => updateFormSchedule());
+
+  formSchedEnabled?.addEventListener("change", () => {
+    if (suppressFormSchedEvents) return;
+    if (formSchedInterval) formSchedInterval.disabled = !formSchedEnabled.checked;
+    void patchFormSchedule({
+      enabled: formSchedEnabled.checked,
+      interval_hours: parseInt(formSchedInterval?.value, 10) || 24,
+    });
+  });
+  formSchedInterval?.addEventListener("change", () => {
+    if (suppressFormSchedEvents || !formSchedEnabled?.checked) return;
+    void patchFormSchedule({
+      enabled: true,
+      interval_hours: parseInt(formSchedInterval.value, 10) || 24,
+    });
+  });
+  formSchedHelp?.addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    const open = formSchedHelpWrap?.classList.toggle("is-open");
+    formSchedHelp.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+  document.addEventListener("click", (ev) => {
+    if (!formSchedHelpWrap?.classList.contains("is-open")) return;
+    if (formSchedHelpWrap.contains(ev.target)) return;
+    formSchedHelpWrap.classList.remove("is-open");
+    formSchedHelp?.setAttribute("aria-expanded", "false");
+  });
+  formSchedHelp?.addEventListener("blur", () => {
+    window.setTimeout(() => {
+      if (formSchedHelpWrap && !formSchedHelpWrap.matches(":focus-within")) {
+        formSchedHelpWrap.classList.remove("is-open");
+        formSchedHelp?.setAttribute("aria-expanded", "false");
+      }
+    }, 120);
+  });
+
   document.getElementById("sniff-results-wipe")?.addEventListener("click", () => {
     wipeFilteredSniffResults();
   });
@@ -1360,6 +1512,7 @@
     if (filterInput) filterInput.value = "";
     resultRows = [];
     renderResults([]);
+    updateFormSchedule();
     if (resultsWrap) resultsWrap.classList.remove("hidden");
     try {
       const queryEl = document.getElementById("query");

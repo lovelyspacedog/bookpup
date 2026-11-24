@@ -450,6 +450,109 @@ body {
   font-size: 0.8rem;
 }
 
+.bp-form-schedule {
+  margin: 0.65rem 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--border, #444) 85%, transparent);
+  background: color-mix(in srgb, var(--bp-section-bg) 92%, var(--text, #ccc) 8%);
+}
+
+.bp-form-schedule__head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.45rem;
+}
+
+.bp-form-schedule__label {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.bp-help-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bp-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text, #ccc);
+  border: 1px solid color-mix(in srgb, var(--border, #555) 90%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--bp-section-bg) 80%, transparent);
+  cursor: help;
+}
+
+.bp-help:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent, #8cf) 70%, transparent);
+  outline-offset: 2px;
+}
+
+.bp-help-tip {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(100% + 0.4rem);
+  transform: translateX(-50%);
+  width: max(12rem, 52vw);
+  max-width: 18rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  line-height: 1.35;
+  text-align: left;
+  color: var(--text, #ddd);
+  border: 1px solid var(--border, #555);
+  border-radius: 0.35rem;
+  background: var(--raised, #1e1e28);
+  box-shadow: var(--bp-section-shadow, 0 4px 14px rgb(0 0 0 / 0.35));
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease, visibility 0.12s ease;
+}
+
+.bp-help-wrap:hover .bp-help-tip,
+.bp-help-wrap:focus-within .bp-help-tip,
+.bp-help-wrap.is-open .bp-help-tip {
+  visibility: visible;
+  opacity: 1;
+}
+
+.bp-form-schedule__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.bp-form-schedule-check {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.bp-form-schedule-interval {
+  font-size: 0.88rem;
+  max-width: 11rem;
+}
+
+.bp-form-schedule-status {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+}
+
 .bp-saved-search-actions {
   display: flex;
   flex-wrap: wrap;

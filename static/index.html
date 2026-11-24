@@ -162,6 +162,40 @@
             <option value="rizon:ebookz">Side trail · Rizon #ebookz</option>
           </select>
           <p class="bp-msg muted bp-channel-hint" id="channel-hint">Sends @search on IRCHighway #ebooks for novels and mainstream EPUB/MOBI. Best first pick for most book sniffing.</p>
+          <div class="bp-form-schedule" id="sniff-form-schedule">
+            <div class="bp-form-schedule__head">
+              <span class="bp-form-schedule__label" id="sniff-form-schedule-label">Schedule sniff</span>
+              <span class="bp-help-wrap" id="sniff-schedule-help-wrap">
+                <button
+                  type="button"
+                  class="bp-help"
+                  id="sniff-schedule-help"
+                  aria-label="What does schedule sniff do?"
+                  aria-expanded="false"
+                  aria-controls="sniff-schedule-tip"
+                >
+                  ?
+                </button>
+                <span id="sniff-schedule-tip" class="bp-help-tip" role="tooltip">
+                  Re-runs this query and channel on a timer while BookPup is running. Uses a bookmark of your open
+                  results (one is created for you if needed). Brand-new rows can ping household ntfy when configured.
+                </span>
+              </span>
+            </div>
+            <div class="bp-form-schedule__controls">
+              <label class="bp-check bp-form-schedule-check" for="sniff-form-schedule-enabled">
+                <input type="checkbox" id="sniff-form-schedule-enabled" disabled />
+                Enable
+              </label>
+              <select id="sniff-form-schedule-interval" class="bp-form-schedule-interval" disabled aria-labelledby="sniff-form-schedule-label">
+                <option value="6">Every 6 hours</option>
+                <option value="12">Every 12 hours</option>
+                <option value="24" selected>Daily</option>
+                <option value="168">Weekly</option>
+              </select>
+            </div>
+            <p id="sniff-form-schedule-status" class="bp-msg muted bp-form-schedule-status" role="status"></p>
+          </div>
           <button type="submit" id="search-submit-btn">Sniff on IRC</button>
           <p id="search-msg" class="bp-msg muted"></p>
         </form>

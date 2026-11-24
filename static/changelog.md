@@ -4,6 +4,10 @@
 
 Patch line **1.3.0**–**1.3.59** (live patch on **What’s new** and `GET /api/health`).
 
+## 1.3.60
+
+- **Sniff:** **Schedule sniff** on the main sniff card (Enable + interval, **?** tooltip); ties to a matching bookmark or creates one when you turn it on.
+
 ## 1.3.59
 
 - **UI:** **Open results & bookmarks** — compact Load/Remove/↑↓ row (no full-width button stack); clearer bookmark cards and form separator.
