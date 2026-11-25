@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.29
+
+- **Dig:** Optional in-process refresh of **Popular on the trail** from `dig_bestsellers_url` in config (HTTPS JSON, default every 168h). Live file `~/.config/bookpup/dig-bestsellers-live.json`; bundled list remains fallback.
+
 ## 1.7.28
 
 - **Dig:** New tab between **Sniff** and **Kennel** — catalog picks, Open Library suggestions, and bundled popular titles; **Sniff this** on each row.

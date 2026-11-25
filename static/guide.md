@@ -41,7 +41,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - Open **Dig** (between **Sniff** and **Kennel**) when you want suggestions without inventing a query.
 - **From your kennel** — more by authors, tags, and series you already tagged.
 - **Along the trail** — related titles from Open Library (needs the server online).
-- **Popular on the trail** — a curated bestseller-style list bundled with BookPup (edit before deploy if you maintain the list).
+- **Popular on the trail** — bundled list plus optional auto-refresh: set `dig_bestsellers_url` in server config to an HTTPS JSON feed (same shape as `static/data/dig-bestsellers.json`).
 - Each row has **Sniff this** — jumps to **Sniff** and runs that query. **In kennel** means you already have a close match catalogued.
 
 ## Page 5 — Fetch a book

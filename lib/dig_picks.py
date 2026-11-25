@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .core import CONFIG_DIR
+from .dig_bestsellers_refresh import LIVE_BESTSELLERS_PATH
 from .library import is_registered, list_registered_items
 from .metadata_search import _dedupe_key, _search_openlibrary
 from .routes import static_files
@@ -164,9 +165,21 @@ def catalog_picks(registered: list[dict]) -> tuple[list[dict], list[str]]:
     return items[:CATALOG_MAX], warnings
 
 
+def invalidate_bestsellers_cache() -> None:
+    global _bestsellers_mtime, _bestsellers_data
+    _bestsellers_mtime = 0.0
+    _bestsellers_data = None
+
+
+def _bestsellers_source_path() -> Path:
+    if LIVE_BESTSELLERS_PATH.is_file():
+        return LIVE_BESTSELLERS_PATH
+    return BESTSELLERS_PATH
+
+
 def _load_bestsellers_file() -> dict[str, Any]:
     global _bestsellers_mtime, _bestsellers_data
-    path = BESTSELLERS_PATH
+    path = _bestsellers_source_path()
     if not path.is_file():
         return {"updated": "", "attribution": "", "items": []}
     mtime = path.stat().st_mtime

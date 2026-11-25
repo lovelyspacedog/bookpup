@@ -27,5 +27,9 @@
   "smtp_from": "",
   "ntfy_topic": "",
   "ntfy_server": "https://ntfy.sh",
-  "ai_enabled": false
+  "ai_enabled": false,
+  "dig_bestsellers_url": "",
+  "dig_bestsellers_refresh_hours": 168,
+  "dig_bestsellers_refresh_enabled": true,
+  "dig_bestsellers_tick_seconds": 300
 }

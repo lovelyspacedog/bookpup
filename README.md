@@ -19,7 +19,7 @@ Household web portal for **[Whatbox Expedition](https://whatbox.ca/)** (or any V
 - **Your tag** / **Pack roster** — household accounts and per-pup kennel quotas (admins manage pups on **Pack roster**)
 - **Pack chat** — household group messages, PMs, BugBot, FeatureCat
 
-In-app help: **Pup guide** (overflow **More** menu) includes **Guide** and **What's new**. **Dig** tab suggests books to sniff (catalog taste, Open Library, bundled list in `static/data/dig-bestsellers.json`).
+In-app help: **Pup guide** (overflow **More** menu) includes **Guide** and **What's new**. **Dig** tab suggests books to sniff (catalog taste, Open Library, popular list from `static/data/dig-bestsellers.json` or auto-refreshed `dig-bestsellers-live.json` when `dig_bestsellers_url` is set in config).
 
 ## Requirements
 
