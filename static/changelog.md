@@ -1,167 +1,37 @@
 # BookPup changelog
 
-## 1.6.8
+## 1.7.0
 
-- **Fix — Sniff:** DCC receives reject offers above 512 MB (or the job owner’s remaining kennel space); search DCC zips capped at 32 MB.
-- **Fix — Security:** Login rate-limit failures persist in `login_throttle.json` across process restarts.
+- **UX:** **What's new** — **1.4.x**, **1.5.x**, and **1.6.x** patch notes rolled into abridged history blocks (same style as **1.3**).
 
-## 1.6.7
+## 1.6
 
-- **Fix — Pack:** Claim-copy reserves attachment under lock so concurrent claims cannot duplicate books.
-- **Fix — Kennel:** Quota usage includes `derived/` cache; chunked import pre-checks declared upload size against cap.
-- **Fix — KOReader:** `POST /users/create` accepts household `accounts.json` pups (MD5 key).
-- **Fix — Security:** Disabled accounts revoke bearer sessions; sideload `HEAD` no longer leaks file metadata; README API table matches auth.
+Patch lines **1.6.0**–**1.6.8** (history only — live patch is current `VERSION` on **What's new** and `GET /api/health`).
 
-## 1.6.6
+- **Pack:** **Pack chat v2** — attach **catalogued books** (recommend or offer copy) and **kennel invites**; reply quotes; **paw / heart / laugh** reactions; owner invites accept lend/give from the chat card; tighter compose row, pending attachment chip, compact reaction pills and footer **Reply** / **Remove**.
+- **Kennel:** Chunked **Upload file** over ~3 MB (proxy-safe); quota usage includes `derived/` cache; empty **shelf** filter copy; toss modal hooks for automation and no longer toggles reader layout.
+- **Reader:** MOBI→EPUB derived cache **v2**/**v3** — strip justify/letter-spacing, collapse spaced NCX titles; Study **Copy study notes** tries `execCommand` when the Clipboard API is blocked.
+- **Fix — Sniff/Fetch:** Zero-match searches clear open results; DCC rejects offers above 512 MB (or remaining kennel space) with 32 MB zip cap on search; re-fetch avoids `File exists`; cancelled downloads drop partial **Fresh catches** and staged files.
+- **Fix — Pack/KOReader/Security:** Claim-copy reserves attachment under lock; `POST /users/create` accepts household `accounts.json` pups; disabled accounts revoke bearer sessions; sideload `HEAD` no longer leaks metadata; login rate-limit persists in `login_throttle.json` across restart; README API table matches auth.
+- **Ops/Docs:** `HEAD` **200** on manifest, service worker, and sideload links; `GET /api/search/saved`; `GET /api/ready` ensures IRC worker thread; README **Manual QA & browser automation**.
 
-- **Reader:** MOBI→EPUB rebuild **v3** — collapse spaced NCX/`dc:title` labels (e.g. *D ISCOVERY*); Study **Copy study notes** tries `execCommand` when Clipboard API is blocked.
-- **Docs:** README **Manual QA & browser automation** (Cursor embed workarounds + optional testpup cleanup).
+## 1.5 — community operator
 
-## 1.6.5
+Patch lines **1.5.0**–**1.5.4** (history only — live patch is current `VERSION` on **What's new** and `GET /api/health`).
 
-- **Kennel:** **Upload file** over ~3 MB uses chunked session (same as Calibre import) so slow links avoid proxy timeout (**O3**).
-- **Reader:** MOBI unpack strips justify/letter-spacing from HTML; derived EPUB cache version **2** rebuilds converted books.
-- **UX:** Toss modal exposes `data-toss-phrase` / `data-toss-light` for automation hooks.
+- **Operator:** **docs/DEPLOY.md** for any VPS; SSH-key deploy via `scripts/deploy-remote.sh`; Whatbox keeps `./deploy.sh`; no default `public_url` on new installs; `GET /api/health` reports `public_url_configured`; example `packaging/config.example.json`, production smoke `scripts/smoke_production.py`, hosting-neutral About/Pup guide copy.
+- **UX:** **About** dialog and **Pup guide** readable Inter typography; guide markdown tables (e.g. Page 2 loop) render instead of raw pipe text.
+- **Kennel:** **Shelves** — create named shelves, filter **Catalogued bones**, **Manage shelf…** to assign catalogued books.
 
-## 1.6.4
+## 1.4 — take your kennel beyond the browser
 
-- **Fix — Sniff:** Zero-match searches clear open results and status instead of sticking on *Querying…*; workspace draft syncs to **0** rows.
-- **Fix — Fetch:** Re-fetch same filename no longer dies on `File exists`; cancelled downloads drop partial **Fresh catches** and staged raw files.
-- **Fix — Kennel:** Empty **shelf** filter shows shelf-specific copy; toss modal no longer toggles reader layout class.
-- **Fix — Reader:** Converted MOBI EPUB gets tighter letter-spacing so section titles do not show broken gaps.
-- **Ops:** `HEAD` returns **200** on manifest, service worker, and sideload links; `GET /api/search/saved` lists bookmarks; `GET /api/ready` ensures IRC worker thread is started.
+Patch lines **1.4.0**–**1.4.18** (history only — live patch is current `VERSION` on **What's new** and `GET /api/health`).
 
-## 1.6.3
-
-- **Pack:** Compose row layout (Attach · message · Send); pending attachment chip with **Remove**; **Attach** becomes **Unattach** while something is queued.
-
-## 1.6.2
-
-- **Pack:** Reaction chips sized to message text — fixed full-width **.bp-card** button rule stretching in-chat controls.
-
-## 1.6.1
-
-- **Pack:** Tighter in-chat layout — reactions as compact pills on one row; **Reply** / **Remove** as footer links (no tall side stack).
-
-## 1.6.0
-
-- **Pack:** **Pack chat v2** — attach **catalogued books** (recommend or offer copy) and **kennel invites**; reply quotes; **paw / heart / laugh** reactions. Owner invites accept lend/give from the chat card.
-
-## 1.5.4
-
-- **Kennel:** **Shelves** — create named shelves, pick one to filter **Catalogued bones**, **Manage shelf…** to assign books (catalogued only).
-
-## 1.5.3
-
-- **UX:** **Pup guide** renders markdown tables (Page 2 loop) instead of raw pipe text.
-
-## 1.5.2
-
-- **UX:** **Pup guide** pages use the same readable prose typography as **About** (Inter rhythm, links, lists).
-
-## 1.5.1
-
-- **UX:** **About** dialog typography (Inter body rhythm, section headings, links) and readable markdown links.
-
-## 1.5.0 — community operator
-
-- **Operator:** **docs/DEPLOY.md** for any VPS; SSH-key deploy via `scripts/deploy-remote.sh`; Whatbox keeps `./deploy.sh`.
-- **Operator:** No default `public_url` on new installs; `GET /api/health` reports `public_url_configured`.
-- **Operator:** Example `packaging/config.example.json`, production smoke `scripts/smoke_production.py`, hosting-neutral About/Pup guide copy.
-
-## 1.4.0 — take your kennel beyond the browser
-
-Household **1.4** milestone (shipped incrementally through **v1.4.18** on Expedition):
-
-- **UX:** Install BookPup on your phone (**Add to Home Screen**); offline **Pup guide** / **What's new**; **Keep offline** for EPUB/PDF on the device.
-- **Kennel:** **Send to e-reader…** — one-time HTTPS link or **Email to my Kindle** when the household SMTP is set.
-- **Pack:** **Walk the Trail** onboard tour (practice sniff → fetch → tag → **Pack chat**); admins see who has not finished in **Pack digest**.
-- **Reader:** Mobile reader polish, keyboard shortcuts, Study notes with reading position.
-- **Ops:** **Health** vs **readiness**, sample packaging for a generic VPS.
-
-## 1.4.18
-
-- **Ops:** `GET /api/ready` for readiness (IRC worker, Soulseek when enabled, optional Calibre/7z/unrar); `GET /api/health` stays liveness-only (`ok` = config dir writable).
-- **Ops:** Sample **systemd user unit**, **nginx** snippet, and **PKGBUILD** under `packaging/`; README health vs readiness + E2E smoke docs.
-- **Fix:** CI-oriented `tests.test_e2e_flow` (mock login → sniff → kennel); optional `scripts/e2e_browser.py` (Playwright).
-
-## 1.4.17
-
-- **Pack:** **Pack digest** lists pups who have not finished **Walk the Trail**; finishing the tour records completion on the server (syncs across devices).
-- **UX:** Automated test locks Walk the Trail step order to the coach script (fetch → tag → Pack chat).
-
-## 1.4.16
-
-- **Reader:** Comic **dual page** — pick active page with **1** / **2** or **[** / **]** (or tap a page); thin outline shows which pane gets zoom and pan.
-
-## 1.4.15
-
-- **Reader:** Keyboard shortcuts in the reader — arrow keys (pages), **S** (Study), **D** (dual-page spread), comic **+/−/0** zoom and arrow pan when zoomed; **Escape** closes Study then the book; focus stays in the reader while it is open.
-- **Reader:** **Copy study notes** includes your **reading position**; notes for the same EPUB/TXT section can **resume** when you reopen Study.
-
-## 1.4.14
-
-- **UX:** Header **version** opens **About**; **logo** refreshes the app and lands on **Sniff**.
-
-## 1.4.13
-
-- **Fix:** **Email to my Kindle** and session flags read fresh `smtp_*` config after you edit `config.json` (no stale restart required for UI).
-
-## 1.4.12
-
-- **Kennel:** **Email to my Kindle** — household Gmail SMTP (`smtp_*` in server `config.json`); sends the chosen format to each pup’s Send-to-Kindle address on **Your tag** (24 MB cap; use the link for bigger files).
-- **Fix:** `GET /api/health` reports `kindle_smtp` when relay is configured.
-
-## 1.4.11
-
-- **Kennel:** **Send to e-reader…** on catalogued bones — pick format (original or EPUB), get a one-time HTTPS download link for Kindle, KOReader, or sideload.
-- **UX:** **Your tag** — save Send-to-Kindle email; OPDS / KOReader / Kindle help in one **E-readers** panel.
-
-## 1.4.10
-
-- **UX:** **What's new** — all **1.3.x** patch notes (**1.3.0**–**1.3.110**) rolled into one abridged **1.3** history block (same style as **Through 1.2.x**).
-
-## 1.4.9
-
-- **UX:** **What's new** — pre-**1.3** release notes (**0.x**, **1.0.x**, **1.1.x**, **1.2.x**) rolled into one abridged history block (same style as **1.3.0**–**1.3.59**).
-
-## 1.4.8
-
-- **Reader:** **Keep offline** on catalogued **EPUB** and **PDF** — device storage, **On this device** filter, and read when the server is down (position syncs when you are back online).
-- **UX:** PWA shell precaches reader assets; offline reopen shows your downloaded titles in **Kennel**.
-
-## 1.4.7
-
-- **UX:** **Add to home screen** install box — thicker cyan border so it stands out on sign-in and **Your tag**.
-
-## 1.4.6
-
-- **UX:** **Install BookPup** on the sign-in page when your browser supports add-to-home-screen (still under **Your tag** too).
-
-## 1.4.5
-
-- **Fix:** **Pup guide** page 1 — **Walk the Trail** link at the bottom for new pups (not only after finishing the tour).
-
-## 1.4.4
-
-- **UX:** Tighter trimmed logos on sign-in and header so the mark isn’t swallowed by empty padding in the icon files.
-
-## 1.4.3
-
-- **UX:** Larger sign-in and header logos (crisp flat mark in the header, icon beside the title on login).
-
-## 1.4.2
-
-- **UX:** BookPup logo on the sign-in card and a small mark beside the header title.
-
-## 1.4.1
-
-- **UX:** New **Neon Kennel** home-screen icon (hound + book), maskable Android variant, and sharper tab favicon.
-
-## 1.4.0
-
-- **UX:** Install BookPup on your phone — PWA with home-screen icon; **Your tag** shows install help and what works offline vs online.
-- **UX:** Offline **Pup guide** and **What's new** when you have no connection (shell only — sniff, kennel, and reader still need the server).
+- **UX:** Install BookPup on your phone (**Add to Home Screen**, **Neon Kennel** icon); offline **Pup guide** / **What's new**; **Keep offline** for catalogued **EPUB**/**PDF**; sign-in/header logos; header **version** opens **About**, **logo** refreshes to **Sniff**; pre-**1.3** release notes abridged in **What's new**.
+- **Kennel:** **Send to e-reader…** — one-time HTTPS link; **Email to my Kindle** when household SMTP is set (`kindle_smtp` on health); fresh `smtp_*` without restart.
+- **Pack:** **Walk the Trail** onboard tour (practice sniff → fetch → tag → **Pack chat**); **Pack digest** lists pups who have not finished; completion syncs across devices.
+- **Reader:** Mobile polish; keyboard shortcuts and comic dual-page zoom/pan; **Copy study notes** with reading position; Study resume per section.
+- **Ops:** **Health** vs **readiness** (`GET /api/ready`); sample **systemd**, **nginx**, **PKGBUILD** under `packaging/`; CI/E2E smoke docs.
 
 ## 1.3
 
