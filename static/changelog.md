@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.3
+
+- **Kennel — Flow:** **←/→** work on the Kennel tab without focusing the carousel first; drag horizontally to scrub through covers; slightly taller jackets and stage.
+
 ## 1.7.2
 
 - **Kennel:** **Catalogued bones** — third **View → Flow** cover carousel (keyboard, swipe, prev/next); centred cover has a floor reflection. **Flow** is disabled while **Group by** is Series or Author; **Fresh catches** stay Grid/List.

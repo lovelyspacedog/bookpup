@@ -1437,10 +1437,19 @@ td {
 .bp-lib-flow__stage {
   flex: 1 1 auto;
   max-width: 42rem;
-  min-height: 14.5rem;
+  min-height: 17.5rem;
   outline: none;
-  touch-action: pan-y;
+  touch-action: none;
   cursor: grab;
+  overflow: hidden;
+}
+
+.bp-lib-flow--dragging .bp-lib-flow__stage {
+  cursor: grabbing;
+}
+
+.bp-lib-flow--dragging .bp-lib-flow__spine {
+  transition: none;
 }
 
 .bp-lib-flow__stage:active {
@@ -1449,18 +1458,20 @@ td {
 
 .bp-lib-flow__track {
   position: relative;
-  height: 13.5rem;
+  height: 16.25rem;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   perspective: 900px;
-  perspective-origin: 50% 35%;
+  perspective-origin: 50% 38%;
+  transform: translateX(var(--bp-flow-drag-px, 0));
+  will-change: transform;
 }
 
 .bp-lib-flow__spine {
   position: absolute;
   left: 50%;
-  bottom: 2.75rem;
+  bottom: 2.35rem;
   margin: 0;
   padding: 0;
   border: none;
@@ -1485,12 +1496,12 @@ td {
 .bp-lib-flow__spine-inner {
   display: block;
   position: relative;
-  width: 7.5rem;
+  width: 8.75rem;
 }
 
 .bp-lib-flow__spine-inner > .bp-lib-flow__cover {
-  width: 7.5rem;
-  height: 10rem;
+  width: 8.75rem;
+  height: 11.65rem;
   object-fit: cover;
   border-radius: 0.25rem;
   display: block;
@@ -1500,7 +1511,7 @@ td {
 
 .bp-lib-flow__reflect {
   display: block;
-  height: 3.25rem;
+  height: 3.75rem;
   overflow: hidden;
   margin-top: 0.1rem;
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, transparent 92%);
@@ -1513,8 +1524,8 @@ td {
 }
 
 .bp-lib-flow__reflect .bp-lib-flow__cover {
-  width: 7.5rem;
-  height: 10rem;
+  width: 8.75rem;
+  height: 11.65rem;
   object-fit: cover;
   transform: scaleY(-1);
   opacity: 0.42;
@@ -2576,26 +2587,30 @@ td {
   }
 
   .bp-lib-flow__spine-inner {
-    width: 5.5rem;
+    width: 6.5rem;
   }
 
   .bp-lib-flow__spine-inner > .bp-lib-flow__cover,
   .bp-lib-flow__reflect .bp-lib-flow__cover {
-    width: 5.5rem;
-    height: 7.35rem;
+    width: 6.5rem;
+    height: 8.65rem;
   }
 
   .bp-lib-flow__track {
-    height: 11rem;
-    perspective: 650px;
+    height: 13.5rem;
+    perspective: 720px;
+  }
+
+  .bp-lib-flow__stage {
+    min-height: 14.5rem;
   }
 
   .bp-lib-flow__spine {
-    bottom: 2.25rem;
+    bottom: 2rem;
   }
 
   .bp-lib-flow__reflect {
-    height: 2.5rem;
+    height: 2.85rem;
   }
 
   .bp-lib-card-body {

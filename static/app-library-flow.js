@@ -3,7 +3,7 @@
 
   const SLOT_RADIUS = 5;
   const SLOT_COUNT = SLOT_RADIUS * 2 + 1;
-  const DRAG_PX = 48;
+  const DRAG_PX_PER_STEP = 52;
 
   /** @type {WeakMap<HTMLElement, { abort: AbortController, index: number, items: object[] }>} */
   const instances = new WeakMap();
@@ -208,83 +208,170 @@
       renderSpines();
     }
 
-    prevBtn.addEventListener("click", () => step(-1), { signal: sig });
-    nextBtn.addEventListener("click", () => step(1), { signal: sig });
+    function navStep(delta) {
+      step(delta);
+    }
+
+    prevBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      navStep(-1);
+    }, { signal: sig });
+    nextBtn.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      navStep(1);
+    }, { signal: sig });
 
     spines.forEach((spine) => {
       const offset = parseInt(spine.dataset.offset, 10);
       spine.addEventListener(
         "click",
-        () => {
-          if (offset === 0) return;
+        (ev) => {
+          if (offset === 0 || dragScrubbed) return;
+          ev.preventDefault();
           step(offset);
         },
         { signal: sig }
       );
     });
 
-    stage.addEventListener(
-      "keydown",
-      (ev) => {
-        if (ev.key === "ArrowLeft") {
-          ev.preventDefault();
-          step(-1);
-        } else if (ev.key === "ArrowRight") {
-          ev.preventDefault();
-          step(1);
-        } else if (ev.key === "Home") {
-          ev.preventDefault();
-          index = 0;
-          renderSpines();
-        } else if (ev.key === "End") {
-          ev.preventDefault();
-          index = items.length - 1;
-          renderSpines();
-        }
+    function flowKeyActive() {
+      const libPanel = document.getElementById("panel-library");
+      if (!libPanel?.classList.contains("active")) return false;
+      if (!container.isConnected || !container.querySelector(".bp-lib-flow")) return false;
+      if (document.body.classList.contains("bp-reader-open")) return false;
+      if (document.querySelector(".bp-modal:not(.hidden)")) return false;
+      return true;
+    }
+
+    function handleFlowKeys(ev) {
+      if (!flowKeyActive()) return;
+      const tag = ev.target && ev.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (ev.target?.isContentEditable) return;
+      if (ev.key === "ArrowLeft") {
+        ev.preventDefault();
+        navStep(-1);
+      } else if (ev.key === "ArrowRight") {
+        ev.preventDefault();
+        navStep(1);
+      } else if (ev.key === "Home") {
+        ev.preventDefault();
+        index = 0;
+        renderSpines();
+      } else if (ev.key === "End") {
+        ev.preventDefault();
+        index = items.length - 1;
+        renderSpines();
+      }
+    }
+
+    document.addEventListener("keydown", handleFlowKeys, { capture: true, signal: sig });
+    stage.addEventListener("keydown", handleFlowKeys, { signal: sig });
+    root.addEventListener(
+      "click",
+      () => {
+        stage.focus({ preventScroll: true });
       },
       { signal: sig }
     );
 
-    let dragStartX = null;
-    stage.addEventListener(
+    let dragActive = false;
+    let dragCarry = 0;
+    let dragPointerId = null;
+    let dragScrubbed = false;
+
+    function setDragOffset(px) {
+      track.style.setProperty("--bp-flow-drag-px", px ? px + "px" : "0px");
+    }
+
+    function endDrag() {
+      const wasScrub = dragScrubbed;
+      dragActive = false;
+      dragCarry = 0;
+      dragPointerId = null;
+      setDragOffset(0);
+      root.classList.remove("bp-lib-flow--dragging");
+      if (wasScrub) {
+        requestAnimationFrame(() => {
+          dragScrubbed = false;
+        });
+      } else {
+        dragScrubbed = false;
+      }
+    }
+
+    function onDragMove(clientX) {
+      if (!dragActive) return;
+      const dx = clientX - onDragMove.lastX;
+      onDragMove.lastX = clientX;
+      dragCarry += dx;
+      if (Math.abs(dragCarry) > 6) dragScrubbed = true;
+      while (dragCarry <= -DRAG_PX_PER_STEP && index < items.length - 1) {
+        dragCarry += DRAG_PX_PER_STEP;
+        navStep(1);
+        dragScrubbed = true;
+      }
+      while (dragCarry >= DRAG_PX_PER_STEP && index > 0) {
+        dragCarry -= DRAG_PX_PER_STEP;
+        navStep(-1);
+        dragScrubbed = true;
+      }
+      setDragOffset(dragCarry);
+    }
+    onDragMove.lastX = 0;
+
+    const dragZone = root.querySelector(".bp-lib-flow__chrome");
+    dragZone?.addEventListener(
       "pointerdown",
       (ev) => {
         if (ev.button !== 0) return;
-        dragStartX = ev.clientX;
-        stage.setPointerCapture(ev.pointerId);
+        if (ev.target.closest(".bp-lib-flow__nav")) return;
+        dragActive = true;
+        dragCarry = 0;
+        dragPointerId = ev.pointerId;
+        onDragMove.lastX = ev.clientX;
+        root.classList.add("bp-lib-flow--dragging");
+        dragZone.setPointerCapture(ev.pointerId);
+        ev.preventDefault();
       },
       { signal: sig }
     );
-    stage.addEventListener(
-      "pointerup",
+    dragZone?.addEventListener(
+      "pointermove",
       (ev) => {
-        if (dragStartX == null) return;
-        const dx = ev.clientX - dragStartX;
-        dragStartX = null;
-        if (Math.abs(dx) >= DRAG_PX) step(dx > 0 ? -1 : 1);
+        if (!dragActive || ev.pointerId !== dragPointerId) return;
+        onDragMove(ev.clientX);
       },
       { signal: sig }
     );
-    stage.addEventListener(
-      "pointercancel",
-      () => {
-        dragStartX = null;
-      },
-      { signal: sig }
-    );
+    function finishDrag(ev) {
+      if (!dragActive || (ev.pointerId != null && ev.pointerId !== dragPointerId)) return;
+      try {
+        dragZone?.releasePointerCapture(dragPointerId);
+      } catch (_e) {
+        /* released */
+      }
+      endDrag();
+    }
+    dragZone?.addEventListener("pointerup", finishDrag, { signal: sig });
+    dragZone?.addEventListener("pointercancel", finishDrag, { signal: sig });
 
     stage.addEventListener(
       "wheel",
       (ev) => {
-        if (Math.abs(ev.deltaX) < Math.abs(ev.deltaY)) return;
-        if (Math.abs(ev.deltaX) < 8) return;
+        if (!flowKeyActive()) return;
+        const horiz = Math.abs(ev.deltaX) >= Math.abs(ev.deltaY);
+        if (!horiz && Math.abs(ev.deltaY) < 12) return;
+        const delta = horiz ? ev.deltaX : ev.deltaY;
+        if (Math.abs(delta) < 8) return;
         ev.preventDefault();
-        step(ev.deltaX > 0 ? 1 : -1);
+        step(delta > 0 ? 1 : -1);
       },
       { signal: sig, passive: false }
     );
 
     renderSpines();
+    requestAnimationFrame(() => stage.focus({ preventScroll: true }));
     return { getIndex: () => index, setIndex: (i) => { index = clamp(i, 0, Math.max(0, items.length - 1)); renderSpines(); } };
   }
 
