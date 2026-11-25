@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.10
+
+- **UX — Sign-in:** login shield sits above the **BookPup** title for a clearer centered brand on the sign-in card.
+
 ## 1.7.9
 
 - **Fix — Kennel:** chunked uploads (Calibre / fresh file) reserve quota for the whole session so parallel imports cannot exceed your cap; mid-upload checks if the kennel is already full.

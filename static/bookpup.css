@@ -90,8 +90,8 @@ body {
 }
 
 .bp-brand-title--login {
-  flex-direction: row;
-  gap: 0.7rem;
+  flex-direction: column;
+  gap: 0.55rem;
   width: 100%;
   justify-content: center;
 }
@@ -104,8 +104,8 @@ body {
 
 .bp-brand-logo--login {
   width: auto;
-  height: 4.75rem;
-  max-width: 5.25rem;
+  height: 5.25rem;
+  max-width: 5.5rem;
 }
 
 .bp-brand-logo--header {
