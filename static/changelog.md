@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.2
+
+- **Kennel:** **Catalogued bones** — third **View → Flow** cover carousel (keyboard, swipe, prev/next); centred cover has a floor reflection. **Flow** is disabled while **Group by** is Series or Author; **Fresh catches** stay Grid/List.
+
 ## 1.7.1
 
 - **Kennel:** catalog toolbar grouped into two rows — **Browsing** / **Shelves** / **Export** on top, **View** and **Group by** / **Sort by** below — with subtle dividers between related controls.

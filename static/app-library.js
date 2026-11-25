@@ -64,6 +64,23 @@
 
   function libraryLayoutMode() {
     const m = localStorage.getItem(LIB_LAYOUT_KEY);
+    if (m === "list") return "list";
+    if (m === "flow") return "flow";
+    return "grid";
+  }
+
+  function flowAvailable() {
+    return libraryGroupMode() === "none";
+  }
+
+  function catalogueEffectiveLayout() {
+    const layout = libraryLayoutMode();
+    if (layout === "flow" && !flowAvailable()) return "grid";
+    return layout;
+  }
+
+  function downloadsLayoutMode() {
+    const m = libraryLayoutMode();
     return m === "list" ? "list" : "grid";
   }
 
@@ -116,8 +133,10 @@
     const layout = libraryLayoutMode();
     const gridBtn = document.getElementById("lib-view-grid");
     const listBtn = document.getElementById("lib-view-list");
+    const flowBtn = document.getElementById("lib-view-flow");
     const groupSel = document.getElementById("lib-group-by");
     const sortSel = document.getElementById("lib-sort-by");
+    const flowOk = flowAvailable();
     if (gridBtn) {
       gridBtn.classList.toggle("bp-btn--active", layout === "grid");
       gridBtn.setAttribute("aria-pressed", layout === "grid" ? "true" : "false");
@@ -126,12 +145,20 @@
       listBtn.classList.toggle("bp-btn--active", layout === "list");
       listBtn.setAttribute("aria-pressed", layout === "list" ? "true" : "false");
     }
+    if (flowBtn) {
+      flowBtn.disabled = !flowOk;
+      flowBtn.setAttribute("aria-disabled", flowOk ? "false" : "true");
+      flowBtn.classList.toggle("bp-btn--active", layout === "flow" && flowOk);
+      flowBtn.setAttribute("aria-pressed", layout === "flow" && flowOk ? "true" : "false");
+      flowBtn.title = flowOk ? "" : "Flow is only available when Group by is None";
+    }
     if (groupSel) groupSel.value = libraryGroupMode();
     if (sortSel) sortSel.value = librarySortMode();
   }
 
   function setLibraryLayoutMode(mode) {
-    localStorage.setItem(LIB_LAYOUT_KEY, mode === "list" ? "list" : "grid");
+    const next = mode === "list" ? "list" : mode === "flow" ? "flow" : "grid";
+    localStorage.setItem(LIB_LAYOUT_KEY, next);
     updateLibraryToolbar();
     renderLibrary();
   }
@@ -183,7 +210,7 @@
       }
     }
     const sorted = sortLibraryItems(items);
-    const layout = libraryLayoutMode();
+    const layout = downloadsLayoutMode();
     const inner = document.createElement("div");
     inner.className = "bp-lib-items bp-lib-items--" + layout;
     if (layout === "list") {
@@ -636,59 +663,11 @@
     }
   }
 
-  function attachLibraryCard(card, item, readable) {
-    const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
-    const shared = isSharedBrowse();
-    const dl = card.querySelector("a.dl");
-    if (dl) {
-      dl.href = "#";
-      dl.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        downloadLibraryItem(item).catch((err) =>
-          BP.showAppToast("Download", err.message || "Download failed", "err")
-        );
-      });
-    }
-    const read = card.querySelector(".read");
-    if (read) read.addEventListener("click", () => openLibraryReader(item));
-    wireOfflineActions(card, item);
-    if (!shared) {
-    card.querySelector(".del")?.addEventListener("click", async () => {
-      if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
-      await BP.tossLibraryItem(item.id);
-    });
-    card.querySelector(".cover")?.addEventListener("click", () => openCoverModal(item));
-    const reg = card.querySelector(".register");
-    if (reg) reg.addEventListener("click", () => openRegisterModal(item));
-    card.querySelector(".edit-meta")?.addEventListener("click", () => openEditMetadataModal(item));
-    card.querySelector(".send")?.addEventListener("click", () =>
-      openSendModal({ kind: "library", id: item.id, title: item.title || item.filename })
-    );
-  }
-    card.querySelector(".take-shared")?.addEventListener("click", () => void takeSharedItem(item));
-    const img = card.querySelector(".bp-lib-cover");
-    if (img) {
-      if (item.has_cover) {
-        coverUrlForItem(item).then((url) => {
-          if (url) img.src = url;
-        });
-      } else {
-        img.classList.add("bp-lib-cover--empty");
-      }
-    }
-    if (!readable.has(fmt)) card.classList.add("bp-lib-card--nodl-read");
-  }
-
-  function renderLibraryCard(item, readable) {
+  function buildLibraryActionsHtml(item, readable) {
     const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
     const canRead = readable.has(fmt);
     const staged = isStagedItem(item);
     const shared = isSharedBrowse();
-    const card = document.createElement("article");
-    card.className = "bp-lib-card";
-    if (item.id) card.dataset.libItemId = item.id;
-    const meta = libraryMetaLine(item);
-    const pub = item.pubdate ? BP.escapeHtml(String(item.pubdate)) + " · " : "";
     const ownerActions = shared
       ? ""
       : (staged ? '<button type="button" class="bp-btn register">Tag</button> ' : "") +
@@ -700,6 +679,71 @@
       shared && libraryBrowseMode === "give"
         ? '<button type="button" class="bp-btn take-shared">Add to my kennel</button> '
         : "";
+    return (
+      deviceSendButton(item, shared) +
+      offlineActionButton(item, shared) +
+      (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
+      ownerActions +
+      takeBtn +
+      '<a class="bp-btn dl" href="#">Grab file</a> '
+    );
+  }
+
+  function attachLibraryItemActions(root, item, readable) {
+    const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
+    const shared = isSharedBrowse();
+    const dl = root.querySelector("a.dl");
+    if (dl) {
+      dl.href = "#";
+      dl.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        downloadLibraryItem(item).catch((err) =>
+          BP.showAppToast("Download", err.message || "Download failed", "err")
+        );
+      });
+    }
+    const read = root.querySelector(".read");
+    if (read) read.addEventListener("click", () => openLibraryReader(item));
+    wireOfflineActions(root, item);
+    if (!shared) {
+      root.querySelector(".del")?.addEventListener("click", async () => {
+        if (!(await BP.confirmToss(item.title || item.filename, { light: isStagedItem(item) }))) return;
+        await BP.tossLibraryItem(item.id);
+      });
+      root.querySelector(".cover")?.addEventListener("click", () => openCoverModal(item));
+      root.querySelector(".register")?.addEventListener("click", () => openRegisterModal(item));
+      root.querySelector(".edit-meta")?.addEventListener("click", () => openEditMetadataModal(item));
+      root.querySelector(".send")?.addEventListener("click", () =>
+        openSendModal({ kind: "library", id: item.id, title: item.title || item.filename })
+      );
+    }
+    root.querySelector(".take-shared")?.addEventListener("click", () => void takeSharedItem(item));
+    const host = root.closest(".bp-lib-card") || root.closest(".bp-lib-flow");
+    if (host && !readable.has(fmt)) host.classList.add("bp-lib-card--nodl-read");
+    else if (host) host.classList.remove("bp-lib-card--nodl-read");
+  }
+
+  function attachLibraryCard(card, item, readable) {
+    attachLibraryItemActions(card, item, readable);
+    const img = card.querySelector(".bp-lib-cover");
+    if (img) {
+      if (item.has_cover) {
+        coverUrlForItem(item).then((url) => {
+          if (url) img.src = url;
+        });
+      } else {
+        img.classList.add("bp-lib-cover--empty");
+      }
+    }
+  }
+
+  function renderLibraryCard(item, readable) {
+    const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
+    const card = document.createElement("article");
+    card.className = "bp-lib-card";
+    if (item.id) card.dataset.libItemId = item.id;
+    const meta = libraryMetaLine(item);
+    const pub = item.pubdate ? BP.escapeHtml(String(item.pubdate)) + " · " : "";
     card.innerHTML =
       '<div class="bp-lib-cover-wrap">' +
       '<img class="bp-lib-cover" alt="" width="120" height="160" loading="lazy" />' +
@@ -716,12 +760,7 @@
       BP.escapeHtml(BP.bytes(item.bytes || 0)) +
       "</p>" +
       '<div class="bp-lib-card-actions">' +
-      deviceSendButton(item, shared) +
-      offlineActionButton(item, shared) +
-      (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
-      ownerActions +
-      takeBtn +
-      '<a class="bp-btn dl" href="#">Grab file</a> ' +
+      buildLibraryActionsHtml(item, readable) +
       "</div></div>";
     attachLibraryCard(card, item, readable);
     return card;
@@ -835,10 +874,11 @@
     return wrap;
   }
 
-  function fillLibrarySection(container, items, readable, emptyText, filterActive, seriesGapHints) {
+  function fillLibrarySection(container, items, readable, emptyText, filterActive, seriesGapHints, allowFlow) {
     if (!container) return;
-    const layout = libraryLayoutMode();
+    if (BP.LibraryFlow) BP.LibraryFlow.destroy(container);
     const group = libraryGroupMode();
+    const layout = allowFlow ? catalogueEffectiveLayout() : downloadsLayoutMode();
     container.innerHTML = "";
     if (!items.length) {
       container.className = "bp-lib-items bp-lib-items--grid";
@@ -891,6 +931,15 @@
       return;
     }
     const sorted = sortLibraryItems(items);
+    if (allowFlow && layout === "flow" && BP.LibraryFlow) {
+      BP.LibraryFlow.mount(container, sorted, readable, {
+        coverUrlForItem,
+        buildLibraryActionsHtml,
+        attachLibraryActions: attachLibraryItemActions,
+        libraryMetaLine,
+      });
+      return;
+    }
     container.className = "bp-lib-items bp-lib-items--" + layout;
     if (layout === "list") {
       container.appendChild(renderLibraryList(sorted, readable));
@@ -961,7 +1010,9 @@
       downloads,
       readable,
       "No fresh catches yet — sniff something on IRC.",
-      filterActive
+      filterActive,
+      false,
+      false
     );
     const shelf =
       activeShelfId && libraryShelvesCache.find((s) => s.id === activeShelfId);
@@ -969,7 +1020,7 @@
       shelf && !filterActive
         ? `No books on “${shelf.name}” yet — assign catalogued bones from the list or pick another shelf.`
         : "No catalogued bones yet — import Calibre or tag a fresh catch.";
-    fillLibrarySection(calibreEl, calibre, readable, catalogueEmpty, filterActive, true);
+    fillLibrarySection(calibreEl, calibre, readable, catalogueEmpty, filterActive, true, true);
     updateLibraryToolbar();
     updateLibFilterClearBtn();
   }
@@ -1013,12 +1064,19 @@
       const item = libraryItemsCache.find((it) => it.id === itemId);
       libFilterInput.value = item?.title || itemId;
     }
+    if (libraryLayoutMode() === "flow" && flowAvailable() && BP.LibraryFlow) {
+      BP.LibraryFlow.setIndexByItemId(itemId);
+    }
     renderLibrary();
     requestAnimationFrame(() => {
-      const el = document.querySelector('[data-lib-item-id="' + CSS.escape(itemId) + '"]');
-      el?.classList.add("bp-lib-highlight");
-      el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-      setTimeout(() => el?.classList.remove("bp-lib-highlight"), 4000);
+      const calibreEl = document.getElementById("lib-items-calibre");
+      const inFlow = calibreEl?.classList.contains("bp-lib-items--flow");
+      const sel = inFlow
+        ? calibreEl?.querySelector('.bp-lib-flow__spine--center[data-lib-item-id="' + CSS.escape(itemId) + '"]')
+        : document.querySelector('[data-lib-item-id="' + CSS.escape(itemId) + '"]');
+      sel?.classList.add("bp-lib-highlight");
+      sel?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      setTimeout(() => sel?.classList.remove("bp-lib-highlight"), 4000);
     });
   }
 
@@ -1858,10 +1916,12 @@
 
   const libViewGrid = document.getElementById("lib-view-grid");
   const libViewList = document.getElementById("lib-view-list");
+  const libViewFlow = document.getElementById("lib-view-flow");
   const libGroupBy = document.getElementById("lib-group-by");
   const libSortBy = document.getElementById("lib-sort-by");
   if (libViewGrid) libViewGrid.addEventListener("click", () => setLibraryLayoutMode("grid"));
   if (libViewList) libViewList.addEventListener("click", () => setLibraryLayoutMode("list"));
+  if (libViewFlow) libViewFlow.addEventListener("click", () => { if (flowAvailable()) setLibraryLayoutMode("flow"); });
   libGroupBy?.addEventListener("change", () => setLibraryGroupMode(libGroupBy.value));
   libSortBy?.addEventListener("change", () => setLibrarySortMode(libSortBy.value));
   function updateLibFilterClearBtn() {
@@ -2151,6 +2211,9 @@
   BP.applyCoverFromUrl = applyCoverFromUrl;
   BP.applyMetadataCandidate = applyMetadataCandidate;
   BP.attachLibraryCard = attachLibraryCard;
+  BP.attachLibraryItemActions = attachLibraryItemActions;
+  BP.buildLibraryActionsHtml = buildLibraryActionsHtml;
+  BP.catalogueEffectiveLayout = catalogueEffectiveLayout;
   BP.attachLibraryRow = attachLibraryRow;
   BP.clearCoverUrls = clearCoverUrls;
   BP.closeCoverModal = closeCoverModal;

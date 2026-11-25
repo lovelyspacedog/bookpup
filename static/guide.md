@@ -53,6 +53,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - **Toss** removes something from **Fresh catches** if you do not want it (simple confirm).
 - In **Catalogued bones**, **Edit tags** updates metadata; **Toss** needs you to type a short random phrase so deletes are deliberate.
 - **Shelves** (toolbar): **New shelf…** for a custom list (e.g. beach reads). Pick a shelf to show only those catalogued books; **Manage shelf…** checks which bones belong on it. A book can sit on more than one shelf. Tossing a book removes it from every shelf.
+- **Catalogued bones** — toolbar **View → Flow** flips through cover art (arrow keys or swipe); the centred jacket shows a floor reflection. **Flow** is only available when **Group by** is **None** (use **Grid** or **List** for grouped shelves).
 
 ## Page 6 — Read
 

@@ -62,6 +62,7 @@ class MobileLayoutTests(unittest.TestCase):
         html = INDEX.read_text()
         self.assertIn('id="lib-view-grid"', html)
         self.assertIn('id="lib-view-list"', html)
+        self.assertIn('id="lib-view-flow"', html)
 
     def test_filter_clear_controls(self) -> None:
         html = INDEX.read_text()
