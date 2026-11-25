@@ -1630,6 +1630,17 @@
     updateDraftMeta(query, "irchighway:ebooks", rows.length);
   }
 
+  async function sniffWithQuery(query) {
+    const q = String(query || "").trim();
+    if (!q || !searchForm) return;
+    const tabBtn = BP.tabButton?.("search");
+    if (tabBtn) BP.activateTab(tabBtn);
+    const queryEl = document.getElementById("query");
+    if (queryEl) queryEl.value = q;
+    BP.rememberSearchQuery?.(q);
+    searchForm.requestSubmit();
+  }
+
   searchForm.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     if (BP.walkTrailActive) {
@@ -1859,6 +1870,7 @@
   BP.scheduleDraftSync = scheduleDraftSync;
   BP.setFetchRowState = setFetchRowState;
   BP.sniffBestPickKeys = sniffBestPickKeys;
+  BP.sniffWithQuery = sniffWithQuery;
   BP.sniffQualityFilters = sniffQualityFilters;
   BP.sniffRowKey = sniffRowKey;
   BP.sniffRowScore = sniffRowScore;

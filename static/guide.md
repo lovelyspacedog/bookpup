@@ -36,7 +36,15 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - Hints under the search box may show **sniffs left this hour** or **fetches left today** if the household sets limits (admins are not capped personally).
 - Your recent searches can autocomplete in the box (saved in this browser).
 
-## Page 4 — Fetch a book
+## Page 4 — Dig for ideas
+
+- Open **Dig** (between **Sniff** and **Kennel**) when you want suggestions without inventing a query.
+- **From your kennel** — more by authors, tags, and series you already tagged.
+- **Along the trail** — related titles from Open Library (needs the server online).
+- **Popular on the trail** — a curated bestseller-style list bundled with BookPup (edit before deploy if you maintain the list).
+- Each row has **Sniff this** — jumps to **Sniff** and runs that query. **In kennel** means you already have a close match catalogued.
+
+## Page 5 — Fetch a book
 
 - In the results table, **Fetch** on a row starts the download for that line.
 - **Fetch selected** or **Queue highlighted picks** grabs several at once (small batch limit).
@@ -45,7 +53,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - If a download fails, try another row or another sniff source — online sources come and go.
 - On some networks BookPup can try **Project Gutenberg** automatically when a bot says a title is not offered in the format you wanted.
 
-## Page 5 — Catalog (tag) a book
+## Page 6 — Catalog (tag) a book
 
 - Go to **Kennel** → **Fresh catches**. Each item is a download waiting for you to name and shelve it.
 - Open **Tag** (or **Tag this book**) — a compact dialog: set title, author, and tags; use **More details** for ISBN, series, and description; cover art and **Search Online** sit in the side column on wider screens.
@@ -57,14 +65,14 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - Filter **In progress** shows books you have started but not finished; **Sort by → Last read** orders by your latest reading session. Cover pills show rough progress (e.g. **42%**).
 - **Surprise me** picks a random readable catalogued book and opens **Read**. **Copy link** on a catalogued book copies a URL that opens **Kennel** and highlights that title (use `?owner=` when browsing a shared shelf).
 
-## Page 6 — Read
+## Page 7 — Read
 
 - **Catalogued bones** → **Read** opens the book in the browser (common types work directly; some older formats are converted once on the server).
 - **Cover** shows the jacket. Reading position and in-book bookmarks sync to your account on the server.
 - Comic-style books (CBZ and similar) can use **Dual page** (**D** on a keyboard, or the toolbar button). In dual view, click a page or press **1** / **2** (or **[** / **]**) to choose which page zoom and pan apply to — the active page gets a thin outline. **+** / **−** zoom; arrow keys pan when zoomed. Preference is remembered on this device.
 - **Study** (if your admin turned it on): ask questions or get a summary about the open book — the first answer can be slow on a busy server. Press **S** to open Study; **Escape** closes it before closing the book. **Copy study notes** includes where you were reading; reopening Study on the same section can pick up your last notes.
 
-## Page 7 — Save a search list
+## Page 8 — Save a search list
 
 - **Sniff again** (next to recent queries) re-runs your latest sniff text on whatever **Sniff source** is selected now.
 - **Open results** is your last finished sniff — full list, query, and filters — tied to your account.
@@ -72,14 +80,14 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.
 - **Scheduled sniff** (small **▸** row on the sniff card or on a bookmark) re-runs the same search on a timer while BookPup is running. Brand-new rows can arrive as a private **BookPup** message — open **Pack chat** → **Private message** → **BookPup**. Busy download queues can delay scheduled sniffs.
 
-## Page 8 — Fetch queue
+## Page 9 — Fetch queue
 
 - **Fetch queue** lists every sniff and download job: waiting, in progress, finished, failed, or cancelled.
 - **Cancel** stops a job when possible. **Dismiss** clears finished errors from the list.
 - Jobs run **one at a time** — one long download means the next waits its turn.
 - IRC connections may rest when nothing is queued; the next job wakes them again.
 
-## Page 9 — Den chatter
+## Page 10 — Den chatter
 
 - **Den chatter** is the live log when a sniff or fetch is talking to chat bots or Soulseek. It stays hidden until there is something to show.
 - **Hide other pups** (default) shows only your activity.
@@ -87,7 +95,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - **Enable Bark** shows a message box for normal chat (not bot commands). Pick one network, not “all at once.”
 - This is separate from **Pack chat** (household messages between pups).
 
-## Page 10 — Share your library
+## Page 11 — Share your library
 
 - Under **Kennel** → **Sharing**, ask another pup to browse your shelf, or approve their request.
 - **Lend** — they can read and download your books.
@@ -96,21 +104,21 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - Pack chat gets a **BookPup** note when someone requests access.
 - **Pass to pup…** on a catalogued book sends a copy to someone else’s kennel.
 
-## Page 11 — Calibre, e-readers & KOReader
+## Page 12 — Calibre, e-readers & KOReader
 
 - **Import Calibre** and **Import KOReader** on **Kennel** bring existing libraries in bulk (secondary path if you already use those apps).
 - **Send to e-reader…** (catalogued bones only): choose **original** or **EPUB** (converted when needed). **Create download link** (one-time URL, ~1 hour) or, when your server has household Gmail set up, **Email to my Kindle** (save your `@kindle.com` address on **Your tag** first). Amazon must approve the server’s Gmail **From** address.
 - **OPDS:** URL on **Your tag** — username and password match this site; catalogued bones only.
 - **KOReader sync** (device): **Progress sync** → custom server at your BookPup URL — same username/password. Only **Catalogued bones** sync — tag books first. BookPup matches by file fingerprint.
 
-## Page 12 — Pack chat, account & habits
+## Page 13 — Pack chat, account & habits
 
 - **Pack chat:** household channel and private messages. **Attach…** sends a **catalogued book** (recommend or **send copy**) or an **invite to your kennel** (the other pup accepts lend/give on the card). **Reply** on a line to thread; react with **paw**, **heart**, or **laugh**. **BookPup** holds scheduled-sniff alerts. **BugBot** and **FeatureCat** collect bug reports and feature ideas for admins (**Pack roster** → **Bug inbox** / **Feature inbox**). Failed fetches land in **Fetch fail inbox** (markdown log with Den chatter). Type **clear** in a bot thread to reset it. Green dot = pup online. This is not **Den chatter**.
 - **Your tag:** change display name or password (current password required).
 - **Pack roster** (admins): **Add pup**, set **Quota**, **Set login**, **Wipe**, or **Remove**. Passwords are reset, never displayed.
 - **Good habits:** only fetch what you may legally keep. Storage quota applies in **Catalogued bones**, not in **Fresh catches**. Online sources fail sometimes — retry or try another match. Soulseek uses one household identity — respect caps and ratio so the pack stays welcome. **What's new** is the version list; this guide is the walkthrough.
 
-## Page 13 — Phone & home screen
+## Page 14 — Phone & home screen
 
 - On a phone, use the browser menu **Add to Home Screen** / **Install app** (wording varies), or tap **Install BookPup** on the sign-in page or under **Your tag** when the browser offers a one-tap install.
 - Installed BookPup opens full screen like an app and keeps your sign-in in this browser profile.

@@ -11,6 +11,8 @@ const SHELL = [
   "/static/app-core.js?v=__VERSION__",
   "/static/app-boot.js?v=__VERSION__",
   "/static/app-docs.js?v=__VERSION__",
+  "/static/app-dig.js?v=__VERSION__",
+  "/static/data/dig-bestsellers.json",
   "/static/app-ux.js?v=__VERSION__",
   "/static/app-pwa.js?v=__VERSION__",
   "/static/app-offline-store.js?v=__VERSION__",

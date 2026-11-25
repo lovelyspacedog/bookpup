@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.7.28
+
+- **Dig:** New tab between **Sniff** and **Kennel** — catalog picks, Open Library suggestions, and bundled popular titles; **Sniff this** on each row.
+- **UX:** **Pup guide** and **What's new** live in one overflow tab (Guide | What's new).
+
 ## 1.7.27
 
 - **Fix — Walk the Trail:** Tag dialog no longer yanks focus back to Title every poll tick; you can edit author and tags during the tour.

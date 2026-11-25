@@ -247,6 +247,43 @@
   let guideIntroHtml = "";
   let guidePageIndex = 0;
   let guideShowAll = false;
+  let helpView = "guide";
+
+  function setHelpView(mode) {
+    helpView = mode === "changelog" ? "changelog" : "guide";
+    document.getElementById("help-seg-guide")?.classList.toggle("active", helpView === "guide");
+    document.getElementById("help-seg-changelog")?.classList.toggle("active", helpView === "changelog");
+    document.getElementById("guide-pager")?.classList.toggle("hidden", helpView !== "guide");
+    document.getElementById("guide-body")?.classList.toggle("hidden", helpView !== "guide");
+    document.getElementById("changelog-body")?.classList.toggle("hidden", helpView !== "changelog");
+    if (helpView === "changelog") void loadChangelog();
+    else if (guidePages.length) renderGuidePageView();
+  }
+
+  function bindHelpSegments() {
+    document.querySelectorAll("[data-help-view]").forEach((btn) => {
+      if (btn.dataset.boundHelp) return;
+      btn.dataset.boundHelp = "1";
+      btn.addEventListener("click", () => {
+        setHelpView(btn.getAttribute("data-help-view") || "guide");
+      });
+    });
+  }
+
+  function openHelpView(mode) {
+    const tab = BP.tabButton?.("guide");
+    if (tab) BP.activateTab(tab);
+    setHelpView(mode);
+  }
+
+  async function loadHelpTab() {
+    bindHelpSegments();
+    if (helpView === "changelog") {
+      await loadChangelog();
+      return;
+    }
+    await loadGuide();
+  }
 
   function setGuidePagerChrome() {
     const label = document.getElementById("guide-page-label");
@@ -437,6 +474,8 @@
   BP.formatInlineMd = formatInlineMd;
   BP.loadChangelog = loadChangelog;
   BP.loadGuide = loadGuide;
+  BP.loadHelpTab = loadHelpTab;
+  BP.openHelpView = openHelpView;
   BP.loadMarkdownDoc = loadMarkdownDoc;
   BP.openAboutModal = openAboutModal;
   BP.pageIndexLabel = pageIndexLabel;

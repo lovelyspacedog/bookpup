@@ -29,6 +29,7 @@ from .routes import (
     public as public_routes,
     reader_ai_routes,
     pack_chat as pack_chat_routes,
+    dig_picks as dig_picks_routes,
     search as search_routes,
     session_routes,
     staging as staging_routes,
@@ -259,6 +260,7 @@ class Handler(BaseHTTPRequestHandler):
             jobs_routes,
             irc_routes,
             pack_chat_routes,
+            dig_picks_routes,
             search_routes,
         ):
             if mod.handle_get(self, path, qs):

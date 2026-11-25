@@ -511,7 +511,7 @@ window.BookPup = window.BookPup || {};
   }
 
 
-  const TAB_OVERFLOW = new Set(["guide", "changelog", "accounts"]);
+  const TAB_OVERFLOW = new Set(["guide", "accounts"]);
 
   function syncTabMoreAccountsLabel() {
     const src = document.getElementById("accounts-tab");
@@ -583,11 +583,11 @@ window.BookPup = window.BookPup || {};
       BP.stopIrcPoll();
     }
     BP.stopQueueTabPoll();
+    if (tab === "dig") BP.loadDigPicks?.();
     if (tab === "library") BP.loadLibrary();
     if (tab === "queue") BP.startQueueTabPoll();
     BP.syncWalkTrailEntry?.();
-    if (tab === "guide") BP.loadGuide();
-    if (tab === "changelog") BP.loadChangelog();
+    if (tab === "guide") BP.loadHelpTab?.();
     if (tab === "accounts") {
       BP.loadAccountTab();
       if (BP.state.sessionAdmin) {

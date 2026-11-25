@@ -111,6 +111,7 @@
     <div class="bp-tabbar-shell">
     <nav class="bp-tabs" role="tablist" aria-label="BookPup sections">
       <button type="button" class="bp-tab active" role="tab" id="tab-search" aria-selected="true" aria-controls="panel-search" data-tab="search">Sniff</button>
+      <button type="button" class="bp-tab" role="tab" id="tab-dig" aria-selected="false" aria-controls="panel-dig" data-tab="dig">Dig</button>
       <button type="button" class="bp-tab bp-tab--badged" role="tab" id="tab-library" aria-selected="false" aria-controls="panel-library" data-tab="library">
         Kennel
         <span id="library-tab-badge" class="bp-tab-badge hidden" aria-label="Fresh catches"></span>
@@ -126,7 +127,6 @@
       </button>
       <button type="button" class="bp-tab hidden bp-tab--overflow" role="tab" id="accounts-tab" aria-selected="false" aria-controls="panel-accounts" data-tab="accounts">Your tag</button>
       <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-guide" aria-selected="false" aria-controls="panel-guide" data-tab="guide">Pup guide</button>
-      <button type="button" class="bp-tab bp-tab--overflow" role="tab" id="tab-changelog" aria-selected="false" aria-controls="panel-changelog" data-tab="changelog">What&apos;s new</button>
     </nav>
     <button
       type="button"
@@ -141,7 +141,6 @@
     <div id="tab-more-menu" class="bp-tab-more-menu hidden" role="menu" aria-label="More sections">
       <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="accounts" id="tab-more-accounts">Your tag</button>
       <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="guide">Pup guide</button>
-      <button type="button" role="menuitem" class="bp-tab-more-item" data-tab-target="changelog">What&apos;s new</button>
       <button type="button" role="menuitem" class="bp-tab-more-item bp-tab-more-item--exit" id="tab-more-logout">Head out</button>
     </div>
     </div>
@@ -501,6 +500,13 @@
           </div>
         </div>
       </section>
+      <section id="panel-dig" class="bp-panel" role="tabpanel" aria-labelledby="tab-dig" tabindex="0">
+        <p id="dig-intro" class="muted bp-dig-intro">
+          Ideas to sniff for — from your kennel, Open Library, and a curated popular list.
+        </p>
+        <p id="dig-msg" class="bp-msg muted hidden" aria-live="polite"></p>
+        <div id="dig-sections" class="bp-dig-sections" aria-live="polite"></div>
+      </section>
       <section id="panel-library" class="bp-panel">
         <div class="bp-lib-quota bp-card">
           <div class="bp-lib-quota-head">
@@ -782,6 +788,10 @@
         </div>
       </section>
       <section id="panel-guide" class="bp-panel">
+        <nav class="bp-help-segments" id="help-segments" aria-label="Pup guide sections">
+          <button type="button" class="bp-help-seg active" id="help-seg-guide" data-help-view="guide">Guide</button>
+          <button type="button" class="bp-help-seg" id="help-seg-changelog" data-help-view="changelog">What&apos;s new</button>
+        </nav>
         <nav class="bp-guide-pager" id="guide-pager" aria-label="Pup guide pages">
           <button type="button" id="guide-prev" class="bp-btn" disabled>← Previous</button>
           <span id="guide-page-label" class="bp-guide-page-label">—</span>
@@ -791,9 +801,7 @@
         <article id="guide-body" class="bp-card bp-changelog bp-guide bp-prose" aria-live="polite">
           <p class="muted">Loading pup guide…</p>
         </article>
-      </section>
-      <section id="panel-changelog" class="bp-panel">
-        <article id="changelog-body" class="bp-card bp-changelog" aria-live="polite">
+        <article id="changelog-body" class="bp-card bp-changelog hidden" aria-live="polite">
           <p class="muted">Loading changelog…</p>
         </article>
       </section>
@@ -1165,6 +1173,7 @@
     <script src="/static/reader.js?v=__VERSION__" defer></script>
     <script src="/static/app-core.js?v=__VERSION__" defer></script>
     <script src="/static/app-docs.js?v=__VERSION__" defer></script>
+    <script src="/static/app-dig.js?v=__VERSION__" defer></script>
     <script src="/static/app-irc.js?v=__VERSION__" defer></script>
     <script src="/static/app-pack-chat.js?v=__VERSION__" defer></script>
     <script src="/static/app-pack-chat-v2.js?v=__VERSION__" defer></script>
