@@ -13,6 +13,8 @@ _COMMAND_RE = re.compile(r"^!([A-Za-z0-9_-]+)\s+(.+)$")
 UNDERNET_LOCAL_TAGS = frozenset({"get", "oatmeal", "search", "find"})
 # Bots that accept their own !Tag file line on Undernet #bookz (not !Oatmeal rewrite).
 UNDERNET_ON_CHANNEL_BOTS = frozenset({"pondering-ebooks2", "peppylion"})
+# Channel file bots that may not appear in IRC NAMES before a !request still answers.
+PRESENCE_OPTIONAL_BOTS = frozenset({"pondering-ebooks2", "peppylion"})
 # Channel-local commands with no single xdcc nick to preflight.
 _PREFLIGHT_SKIP_TAGS = frozenset({"get", "search", "find"})
 
@@ -113,6 +115,13 @@ def _find_native_network_row(
     if best and best_score >= 60:
         return best
     return None
+
+
+def command_bot_tag(irc_cmd: str) -> str | None:
+    m = _COMMAND_RE.match((irc_cmd or "").strip())
+    if not m:
+        return None
+    return m.group(1).lower()
 
 
 def serving_bot_nick(irc_cmd: str) -> str | None:

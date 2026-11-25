@@ -11,7 +11,12 @@ from . import irc_feed
 from . import jobs
 from .core import MAX_DCC_SEARCH_BYTES
 from .irc_client import DccOffer, DownloadRequestError, IrcSession, SearchNoMatchesError
-from .irc_commands import _title_key, _title_match_score, resolve_download_command
+from .irc_commands import (
+    _title_key,
+    _title_match_score,
+    command_bot_tag,
+    resolve_download_command,
+)
 from .irc_session_target import SessionTarget
 from .irc_targets import normalize_channel_id, resolve_target, search_target_ids
 from .search_results import parse_results_zip
@@ -22,6 +27,7 @@ if TYPE_CHECKING:
     from .irc_worker import IrcWorker
 
 _MIN_ROW_SCORE = 60
+_FALLBACK_ROWS_PER_NET = 5
 _EXT_RE = re.compile(r"\.[a-z0-9]{2,5}$", re.IGNORECASE)
 
 
@@ -71,7 +77,27 @@ def _row_match_score(row: dict, title: str, command: str) -> int:
     row_title = str(row.get("title") or "")
     if titles_likely_same(title, row_title) or titles_likely_same(command, row_title):
         score += 25
+    want_bot = command_bot_tag(command)
+    row_bot = command_bot_tag(cmd)
+    if want_bot and row_bot and want_bot == row_bot:
+        score += 220
     return score
+
+
+def pick_ranked_rows(
+    rows: list[dict],
+    *,
+    title: str,
+    command: str,
+    limit: int = _FALLBACK_ROWS_PER_NET,
+) -> list[dict]:
+    scored: list[tuple[int, dict]] = []
+    for row in rows:
+        score = _row_match_score(row, title, command)
+        if score >= _MIN_ROW_SCORE:
+            scored.append((score, row))
+    scored.sort(key=lambda pair: pair[0], reverse=True)
+    return [row for _s, row in scored[: max(1, limit)]]
 
 
 def pick_best_row(
@@ -237,32 +263,39 @@ def try_other_irc_networks(
     for tid in search_target_ids():
         if normalize_channel_id(tid) == failed_tid:
             continue
-        row = _parent_rows_by_target(all_rows, failed_tid, title, original_cmd).get(tid)
-        if not row:
+        pool = [
+            r
+            for r in all_rows
+            if normalize_channel_id(str(r.get("irc_target") or "")) == tid
+        ]
+        if not pool:
             continue
-        row_cmd = str(row.get("command") or "").strip()
-        if not row_cmd.startswith("!"):
-            continue
-        try:
-            return _attempt_on_target(
-                worker,
-                job_id=job_id,
-                job=job,
-                target_id=tid,
-                irc_cmd=row_cmd,
-                title=str(row.get("title") or title) or None,
-                dest=dest,
-                max_bytes=max_bytes,
-                search_results=[r for r in all_rows if normalize_channel_id(str(r.get("irc_target") or "")) == tid],
-                all_results=all_rows,
-                owner=owner,
-            )
-        except DownloadRequestError as exc:
-            failures.append(f"{tid} (cached row): {exc}")
-            worker._reset_session()
-        except Exception as exc:
-            failures.append(f"{tid} (cached row): {exc}")
-            worker._reset_session()
+        for row in pick_ranked_rows(
+            pool, title=title, command=original_cmd, limit=_FALLBACK_ROWS_PER_NET
+        ):
+            row_cmd = str(row.get("command") or "").strip()
+            if not row_cmd.startswith("!"):
+                continue
+            try:
+                return _attempt_on_target(
+                    worker,
+                    job_id=job_id,
+                    job=job,
+                    target_id=tid,
+                    irc_cmd=row_cmd,
+                    title=str(row.get("title") or title) or None,
+                    dest=dest,
+                    max_bytes=max_bytes,
+                    search_results=pool,
+                    all_results=all_rows,
+                    owner=owner,
+                )
+            except DownloadRequestError as exc:
+                failures.append(f"{tid} (cached {row_cmd[:48]}…): {exc}")
+                worker._reset_session()
+            except Exception as exc:
+                failures.append(f"{tid} (cached row): {exc}")
+                worker._reset_session()
 
     query = fallback_search_query(job, parent)
     staging_id = str(job.get("staging_id") or job_id)
@@ -299,32 +332,37 @@ def try_other_irc_networks(
             worker._reset_session()
             continue
 
-        pick = pick_best_row(rows, title=title, command=original_cmd)
-        if pick is None:
+        picks = pick_ranked_rows(
+            rows, title=title, command=original_cmd, limit=_FALLBACK_ROWS_PER_NET
+        )
+        if not picks:
             failures.append(f"{tid}: no row similar to {title[:60]!r}")
             worker._reset_session()
             continue
-        row_cmd = str(pick.get("command") or "").strip()
-        try:
-            return _attempt_on_target(
-                worker,
-                job_id=job_id,
-                job=job,
-                target_id=tid,
-                irc_cmd=row_cmd,
-                title=str(pick.get("title") or title) or None,
-                dest=dest,
-                max_bytes=max_bytes,
-                search_results=rows,
-                all_results=all_rows or None,
-                owner=owner,
-            )
-        except DownloadRequestError as exc:
-            failures.append(f"{tid}: {exc}")
-            worker._reset_session()
-        except Exception as exc:
-            failures.append(f"{exc}")
-            worker._reset_session()
+        for pick in picks:
+            row_cmd = str(pick.get("command") or "").strip()
+            if not row_cmd.startswith("!"):
+                continue
+            try:
+                return _attempt_on_target(
+                    worker,
+                    job_id=job_id,
+                    job=job,
+                    target_id=tid,
+                    irc_cmd=row_cmd,
+                    title=str(pick.get("title") or title) or None,
+                    dest=dest,
+                    max_bytes=max_bytes,
+                    search_results=rows,
+                    all_results=all_rows or None,
+                    owner=owner,
+                )
+            except DownloadRequestError as exc:
+                failures.append(f"{tid} ({row_cmd[:48]}…): {exc}")
+                worker._reset_session()
+            except Exception as exc:
+                failures.append(f"{tid}: {exc}")
+                worker._reset_session()
 
     summary = "; ".join(failures)[:380]
     job = jobs.load_job(job_id)

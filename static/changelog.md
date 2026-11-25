@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.19
+
+- **Fetch — Fix:** send **!Pondering-Ebooks2** even when the bot is missing from IRC NAMES; cross-network fallback retries **same bot** rows and does not jump to **!Horla** first.
+
 ## 1.7.18
 
 - **Fetch — Fix:** Undernet downloads keep **!Pondering-Ebooks2** (and strip SearchBot `::HASH::` / fused size junk) instead of misrouting a polluted line to **!Oatmeal**.

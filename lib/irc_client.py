@@ -602,10 +602,14 @@ class IrcSession:
         check_presence: bool = True,
     ) -> None:
         from .core import IRC_MOCK
+        from .irc_commands import PRESENCE_OPTIONAL_BOTS
 
         if IRC_MOCK or not bot_nick:
             return
         ch = normalize_channel(channel)
+        if (bot_nick or "").strip().lower() in PRESENCE_OPTIONAL_BOTS:
+            check_presence = False
+            self.status(f"Best-effort send to {bot_nick} on {ch} (may not appear in NAMES)")
         if check_presence:
             ready = self._presence.wait_names_ready(ch, 5.0)
             if not ready:
