@@ -1189,15 +1189,23 @@ td {
 
 .bp-lib-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.5rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
   margin: 0.35rem 0 0.75rem;
   max-width: 100%;
   min-width: 0;
 }
 
-.bp-lib-toolbar-row {
+.bp-lib-toolbar-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  min-width: 0;
+}
+
+.bp-lib-toolbar-group {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1206,8 +1214,13 @@ td {
 }
 
 @media (min-width: 40.0625rem) {
-  .bp-lib-toolbar-row {
-    display: contents;
+  .bp-lib-toolbar-line .bp-lib-toolbar-group + .bp-lib-toolbar-group {
+    padding-left: 0.65rem;
+    border-left: 1px solid var(--border, #555);
+  }
+
+  .bp-lib-toolbar-group--arrange .bp-lib-select {
+    max-width: 9.5rem;
   }
 }
 
@@ -1317,56 +1330,58 @@ td {
   }
 
   .bp-lib-toolbar {
+    gap: 0.55rem;
+  }
+
+  .bp-lib-toolbar-line {
     flex-direction: column;
     align-items: stretch;
     gap: 0.55rem;
   }
 
-  .bp-lib-toolbar-row {
+  .bp-lib-toolbar-group {
     width: 100%;
     flex-wrap: nowrap;
   }
 
-  .bp-lib-toolbar-row--browse {
+  .bp-lib-toolbar-group--source {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.4rem 0.45rem;
     align-items: center;
   }
 
-  .bp-lib-toolbar-row--browse .bp-lib-select {
+  .bp-lib-toolbar-group--source .bp-lib-select {
     max-width: none;
     width: 100%;
     min-width: 0;
   }
 
-  .bp-lib-toolbar-row--export .bp-btn {
+  .bp-lib-toolbar-group--catalog .bp-btn {
     width: 100%;
     margin: 0;
   }
 
-  .bp-lib-toolbar-row--view {
+  .bp-lib-toolbar-group--view {
     display: grid;
     grid-template-columns: auto 1fr 1fr;
     gap: 0.4rem 0.45rem;
     align-items: center;
   }
 
-  .bp-lib-toolbar-row--view .bp-btn {
+  .bp-lib-toolbar-group--view .bp-btn {
     width: 100%;
     margin: 0;
   }
 
-  .bp-lib-toolbar-row--group,
-  .bp-lib-toolbar-row--sort {
+  .bp-lib-toolbar-group--arrange {
     display: grid;
     grid-template-columns: 5.25rem minmax(0, 1fr);
     gap: 0.4rem 0.45rem;
     align-items: center;
   }
 
-  .bp-lib-toolbar-row--group .bp-lib-select,
-  .bp-lib-toolbar-row--sort .bp-lib-select {
+  .bp-lib-toolbar-group--arrange .bp-lib-select {
     max-width: none;
     width: 100%;
     min-width: 0;

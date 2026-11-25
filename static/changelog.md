@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.1
+
+- **Kennel:** catalog toolbar grouped into two rows — **Browsing** / **Shelves** / **Export** on top, **View** and **Group by** / **Sort by** below — with subtle dividers between related controls.
+
 ## 1.7.0
 
 - **UX:** **What's new** — **1.4.x**, **1.5.x**, and **1.6.x** patch notes rolled into abridged history blocks (same style as **1.3**).
