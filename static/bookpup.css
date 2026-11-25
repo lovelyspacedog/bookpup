@@ -1688,6 +1688,60 @@ td {
   opacity: 0.15;
 }
 
+.bp-lib-reading-pill {
+  position: absolute;
+  left: 0.35rem;
+  top: 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.12rem 0.4rem;
+  border-radius: 0.25rem;
+  background: rgba(59, 130, 246, 0.85);
+  color: #fff;
+  line-height: 1.2;
+}
+
+.bp-lib-table .bp-lib-reading-pill {
+  position: static;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.25rem;
+}
+
+.bp-lib-card--link-target {
+  outline: 2px solid rgba(59, 130, 246, 0.75);
+  outline-offset: 2px;
+  animation: bp-lib-link-pulse 1.2s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bp-lib-card--link-target {
+    animation: none;
+  }
+}
+
+@keyframes bp-lib-link-pulse {
+  0%,
+  100% {
+    outline-color: rgba(59, 130, 246, 0.35);
+  }
+  50% {
+    outline-color: rgba(59, 130, 246, 0.9);
+  }
+}
+
+.bp-lib-in-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.bp-query-sniff-again:not(.hidden) {
+  margin-right: 0.25rem;
+}
+
 .bp-lib-format {
   position: absolute;
   right: 0.35rem;

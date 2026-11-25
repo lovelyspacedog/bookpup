@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.7.12
+
+- **Kennel:** **In progress** filter and **Last read** sort; progress pills on catalogued covers; **Surprise me** opens a random readable book; **Copy link** shares a Kennel deep link; Tag warns when a similar title is already catalogued (confirm to continue).
+- **Sniff:** **Sniff again** re-runs your most recent query on the current sniff source.
+
 ## 1.7.11
 
 - **UX:** browser tab favicon is the **hound head** mark (32px); **apple-touch** / PWA icons stay the full kennel.

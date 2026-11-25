@@ -35,7 +35,10 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
             handler.send_json(403, {"error": "Shared kennel access denied"})
             return True
         with catalog_context(handler._current_user, owner):
-            payload = library.status()
+            payload = library.status(
+                reading_viewer=handler._current_user,
+                shared_catalog_owner=owner,
+            )
         payload["shared"] = True
         payload["owner"] = owner
         grant = library_shares.active_grant(handler._current_user, owner)

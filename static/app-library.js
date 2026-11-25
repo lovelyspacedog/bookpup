@@ -7,6 +7,7 @@
   const LIB_GROUP_KEY = "bookpupLibraryGroup";
   const LIB_SORT_KEY = "bookpupLibrarySort";
   const LIB_SHELF_KEY = "bookpupLibraryShelf";
+  const LIB_PROGRESS_KEY = "bookpupLibraryInProgress";
   const coverBlobUrls = new Map();
   let libraryItemsCache = [];
   let libraryBrowseOwner = "";
@@ -15,6 +16,8 @@
   let ownLibraryQuota = { used_bytes: 0, quota_bytes: 1 };
   let offlineIdSet = new Set();
   let libOfflineOnly = false;
+  let libInProgressOnly = localStorage.getItem(LIB_PROGRESS_KEY) === "1";
+  let pendingLibraryFocus = null;
   let libraryShelvesCache = [];
   let activeShelfId = "";
   let shelfNameModalMode = "create";
@@ -92,6 +95,7 @@
   function librarySortMode() {
     const allowed = new Set([
       "saved_desc",
+      "reading_desc",
       "title_asc",
       "title_desc",
       "author_asc",
@@ -124,6 +128,12 @@
         return titleKey(a).localeCompare(titleKey(b));
       }
       if (mode === "size_desc") return (b.bytes || 0) - (a.bytes || 0) || titleKey(a).localeCompare(titleKey(b));
+      if (mode === "reading_desc") {
+        const ra = a.reading?.updated_at || 0;
+        const rb = b.reading?.updated_at || 0;
+        if (rb !== ra) return rb - ra;
+        return titleKey(a).localeCompare(titleKey(b));
+      }
       return (b.saved_at || 0) - (a.saved_at || 0) || titleKey(a).localeCompare(titleKey(b));
     });
     return out;
@@ -283,12 +293,163 @@
   function filterLibraryItems(items) {
     let out = items;
     if (libOfflineOnly) out = out.filter((item) => offlineIdSet.has(item.id));
+    if (libInProgressOnly) {
+      out = out.filter(
+        (item) => isRegisteredItem(item) && !!(item.reading && item.reading.in_progress)
+      );
+    }
     if (activeShelfId) {
       const ids = activeShelfItemSet();
       out = out.filter((item) => isRegisteredItem(item) && ids.has(item.id));
     }
     const q = libFilterInput ? libFilterInput.value : "";
     return out.filter((item) => libraryItemMatchesFilter(item, q));
+  }
+
+  function normalizeCatalogTitle(text) {
+    return String(text || "")
+      .toLowerCase()
+      .replace(/['’"]/g, "")
+      .replace(/[^\w\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function authorTokens(authors) {
+    return normalizeCatalogTitle(authors)
+      .split(" ")
+      .filter((t) => t.length > 1);
+  }
+
+  function findCatalogDuplicates({ title, authors, excludeId }) {
+    const nt = normalizeCatalogTitle(title);
+    if (!nt) return [];
+    const toks = authorTokens(authors);
+    const hits = [];
+    for (const item of libraryItemsCache) {
+      if (!isRegisteredItem(item) || item.id === excludeId) continue;
+      const it = normalizeCatalogTitle(item.title || item.filename);
+      if (!it) continue;
+      const exact = it === nt;
+      const titleNear = it.includes(nt) || nt.includes(it);
+      if (!exact && !titleNear) continue;
+      if (!exact && toks.length) {
+        const at = authorTokens(item.authors);
+        if (at.length && !toks.some((t) => at.some((a) => a.includes(t) || t.includes(a)))) continue;
+      }
+      hits.push(item);
+      if (hits.length >= 3) break;
+    }
+    return hits;
+  }
+
+  function libraryBookDeepLink(item, owner) {
+    const own = owner != null ? owner : libraryBrowseOwner;
+    let hash = "#library/book/" + encodeURIComponent(item.id);
+    if (own) hash += "?owner=" + encodeURIComponent(own);
+    return window.location.origin + window.location.pathname + hash;
+  }
+
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        /* fall through */
+      }
+    }
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  }
+
+  async function copyLibraryLink(item) {
+    const url = libraryBookDeepLink(item);
+    const ok = await copyTextToClipboard(url);
+    BP.showAppToast(
+      "Kennel",
+      ok ? "Link copied — opens this book in Kennel." : "Could not copy link.",
+      ok ? "ok" : "err"
+    );
+  }
+
+  function parseLibraryDeepLinkHash() {
+    const raw = (window.location.hash || "").trim();
+    const m = raw.match(/^#library\/book\/([^?/#]+)(?:\?(.*))?$/);
+    if (!m) return null;
+    let owner = "";
+    if (m[2]) {
+      const qs = new URLSearchParams(m[2]);
+      owner = (qs.get("owner") || "").trim();
+    }
+    return { id: decodeURIComponent(m[1]), owner };
+  }
+
+  function parseLibraryDeepLinkFromUrl() {
+    const hit = parseLibraryDeepLinkHash();
+    if (!hit) return false;
+    pendingLibraryFocus = hit;
+    const base = window.location.pathname + window.location.search;
+    window.history.replaceState(null, "", base);
+    if (hit.owner) libraryBrowseOwner = hit.owner;
+    return true;
+  }
+
+  function focusLibraryItem(itemId) {
+    if (!itemId) return;
+    const esc = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(itemId) : itemId;
+    const node =
+      document.querySelector('.bp-lib-card[data-lib-item-id="' + esc + '"]') ||
+      document.querySelector('tr[data-lib-item-id="' + esc + '"]') ||
+      document.querySelector('.bp-lib-flow__spine[data-lib-item-id="' + esc + '"]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const host = node.classList?.contains("bp-lib-card") ? node : node.closest(".bp-lib-card") || node;
+    host.classList.add("bp-lib-card--link-target");
+    window.setTimeout(() => host.classList.remove("bp-lib-card--link-target"), 2200);
+  }
+
+  function tryFocusPendingLibraryItem() {
+    if (!pendingLibraryFocus?.id) return;
+    const id = pendingLibraryFocus.id;
+    pendingLibraryFocus = null;
+    window.requestAnimationFrame(() => focusLibraryItem(id));
+  }
+
+  function surpriseMeRead() {
+    if (BP.state.offlineOnly) {
+      BP.showAppToast("Kennel", "Surprise me needs the server catalog.", "info");
+      return;
+    }
+    const pool = filterLibraryItems(libraryItemsCache).filter((item) => {
+      if (!isRegisteredItem(item)) return false;
+      const fmt = (item.format || "").toLowerCase().replace(/["']/g, "").replace(/^\./, "");
+      return libraryReadableFormats.has(fmt);
+    });
+    if (!pool.length) {
+      BP.showAppToast("Kennel", "No readable catalogued books match your filter.", "info");
+      return;
+    }
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    openLibraryReader(pick);
+  }
+
+  function readingPillHtml(item) {
+    const label = item.reading?.progress_label;
+    if (!label || BP.state.offlineOnly) return "";
+    return (
+      '<span class="bp-lib-reading-pill" title="Reading progress">' +
+      BP.escapeHtml(label) +
+      "</span>"
+    );
   }
 
   function deviceSendButton(item, shared) {
@@ -679,10 +840,14 @@
       shared && libraryBrowseMode === "give"
         ? '<button type="button" class="bp-btn take-shared">Add to my kennel</button> '
         : "";
+    const copyLink = isRegisteredItem(item)
+      ? '<button type="button" class="bp-btn copy-link">Copy link</button> '
+      : "";
     return (
       deviceSendButton(item, shared) +
       offlineActionButton(item, shared) +
       (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
+      copyLink +
       ownerActions +
       takeBtn +
       '<a class="bp-btn dl" href="#">Grab file</a> '
@@ -704,6 +869,7 @@
     }
     const read = root.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
+    root.querySelector(".copy-link")?.addEventListener("click", () => void copyLibraryLink(item));
     wireOfflineActions(root, item);
     if (!shared) {
       root.querySelector(".del")?.addEventListener("click", async () => {
@@ -749,7 +915,9 @@
       '<img class="bp-lib-cover" alt="" width="120" height="160" loading="lazy" />' +
       '<span class="bp-lib-format">' +
       BP.escapeHtml((fmt || "?").toUpperCase()) +
-      "</span></div>" +
+      "</span>" +
+      readingPillHtml(item) +
+      "</div>" +
       '<div class="bp-lib-card-body">' +
       '<h4 class="bp-lib-title">' +
       BP.escapeHtml(item.title || item.filename) +
@@ -771,6 +939,7 @@
     const shared = isSharedBrowse();
     const read = tr.querySelector(".read");
     if (read) read.addEventListener("click", () => openLibraryReader(item));
+    tr.querySelector(".copy-link")?.addEventListener("click", () => void copyLibraryLink(item));
     wireOfflineActions(tr, item);
     const dl = tr.querySelector("a.dl");
     if (dl) {
@@ -836,12 +1005,14 @@
           ? '<button type="button" class="bp-btn take-shared">Add to my kennel</button> '
           : "";
       const tr = document.createElement("tr");
+      if (item.id) tr.dataset.libItemId = item.id;
       tr.innerHTML =
         "<td class='bp-lib-td-cover'><img class='bp-lib-list-cover' alt='' width='40' height='56' loading='lazy' /></td>" +
         "<td class='bp-lib-td-title'>" +
         '<span class="bp-lib-list-title-text">' +
         BP.escapeHtml(item.title || item.filename) +
-        "</span>" +
+        "</span> " +
+        readingPillHtml(item) +
         '<span class="bp-lib-list-meta muted">' +
         BP.escapeHtml((fmt || "?").toUpperCase()) +
         " · " +
@@ -863,6 +1034,9 @@
         deviceSendButton(item, shared) +
         offlineActionButton(item, shared) +
         (canRead ? '<button type="button" class="bp-btn read">Read</button> ' : "") +
+        (isRegisteredItem(item)
+          ? '<button type="button" class="bp-btn copy-link">Copy link</button> '
+          : "") +
         ownerCells +
         takeBtn +
         '<a class="bp-btn dl" href="#">Grab file</a> ' +
@@ -987,6 +1161,10 @@
     const filterActive = !!(libFilterInput && libFilterInput.value.trim());
     const hideDownloads = !!BP.state.offlineOnly || !!activeShelfId;
     document.getElementById("lib-section-downloads")?.classList.toggle("hidden", hideDownloads);
+    const progWrap = document.getElementById("lib-in-progress-wrap");
+    const progInput = document.getElementById("lib-in-progress-only");
+    if (progWrap) progWrap.classList.toggle("hidden", !!BP.state.offlineOnly);
+    if (progInput) progInput.checked = libInProgressOnly && !BP.state.offlineOnly;
     updateSharedBrowseChrome();
     updateShelfToolbar();
     document.getElementById("lib-usage").textContent =
@@ -1202,6 +1380,7 @@
     }
     updateLibraryBadge();
     renderLibrary();
+    tryFocusPendingLibraryItem();
   }
 
   async function openLibraryReader(item) {
@@ -1540,6 +1719,24 @@
       ev.preventDefault();
       if (!registerItemId) return;
       const itemId = registerItemId;
+      if (registerMode === "register") {
+        const dupes = findCatalogDuplicates({
+          title: registerField("reg-title").value,
+          authors: registerField("reg-authors").value,
+          excludeId: itemId,
+        });
+        if (dupes.length) {
+          const lines = dupes
+            .map((d) => "• " + (d.title || d.filename) + (d.authors ? " — " + d.authors : ""))
+            .join("\n");
+          const ok = window.confirm(
+            "This title may already be in your kennel:\n\n" +
+              lines +
+              "\n\nTag this fresh catch anyway?"
+          );
+          if (!ok) return;
+        }
+      }
       const pendingFile = registerCoverFile?.files?.[0] || null;
       if (pendingFile) {
         const v = validateCoverFile(pendingFile);
@@ -1936,6 +2133,16 @@
       renderLibrary();
     });
   }
+  const libInProgressInput = document.getElementById("lib-in-progress-only");
+  if (libInProgressInput) {
+    libInProgressInput.checked = libInProgressOnly;
+    libInProgressInput.addEventListener("change", () => {
+      libInProgressOnly = !!libInProgressInput.checked;
+      localStorage.setItem(LIB_PROGRESS_KEY, libInProgressOnly ? "1" : "0");
+      renderLibrary();
+    });
+  }
+  document.getElementById("lib-surprise-btn")?.addEventListener("click", () => surpriseMeRead());
 
   if (libFilterInput) {
     libFilterInput.addEventListener("input", () => {
@@ -2265,4 +2472,7 @@
   BP.uploadCoverFile = uploadCoverFile;
   BP.uploadImportSession = uploadImportSession;
   BP.validateCoverFile = validateCoverFile;
+  BP.parseLibraryDeepLinkFromUrl = parseLibraryDeepLinkFromUrl;
+  BP.tryFocusPendingLibraryItem = tryFocusPendingLibraryItem;
+  BP.focusLibraryItem = focusLibraryItem;
 })(window.BookPup);

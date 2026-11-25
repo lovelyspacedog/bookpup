@@ -743,11 +743,25 @@ def item_path(item_id: str) -> Path:
     raise KeyError(item_id)
 
 
-def status() -> dict:
+def status(
+    *,
+    reading_viewer: str | None = None,
+    shared_catalog_owner: str | None = None,
+) -> dict:
     usage = library_usage()
     pruned = prune_ghost_items()
     items = list_items(prune=False)
     from . import shelves as shelves_mod
+    from . import reading as reading_mod
+
+    if reading_viewer:
+        ids = [str(it.get("id") or "") for it in items]
+        summaries = reading_mod.catalog_summaries(
+            reading_viewer, ids, shared_catalog_owner=shared_catalog_owner
+        )
+        for it in items:
+            iid = str(it.get("id") or "")
+            it["reading"] = summaries.get(iid) or {}
 
     out: dict = {
         "items": items,

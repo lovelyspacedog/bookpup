@@ -61,8 +61,11 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         handler.send_bytes(body, "application/json; charset=utf-8", f"bookpup-catalog-{safe}.json")
         return True
     if path == "/api/library":
-        with catalog_context(handler._current_user, shared):
-            payload = library.status()
+        with catalog_context(handler._current_user, shared) as catalog_owner:
+            payload = library.status(
+                reading_viewer=handler._current_user,
+                shared_catalog_owner=catalog_owner,
+            )
         if shared:
             payload["shared"] = True
             payload["owner"] = shared

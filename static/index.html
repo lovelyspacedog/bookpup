@@ -181,6 +181,14 @@
             </div>
             <button
               type="button"
+              id="search-sniff-again"
+              class="bp-btn bp-btn--ghost bp-query-sniff-again hidden"
+              aria-label="Re-run your last sniff query"
+            >
+              Sniff again
+            </button>
+            <button
+              type="button"
               id="search-history-clear"
               class="bp-btn bp-btn--ghost bp-query-history-clear hidden"
               aria-label="Clear recent sniff queries"
@@ -527,6 +535,7 @@
               <button type="button" id="lib-shelf-manage-btn" class="bp-btn" disabled>Manage shelf…</button>
             </div>
             <div class="bp-lib-toolbar-group bp-lib-toolbar-group--catalog">
+              <button type="button" id="lib-surprise-btn" class="bp-btn">Surprise me</button>
               <button type="button" id="lib-export-btn" class="bp-btn">Export catalog</button>
             </div>
           </div>
@@ -547,6 +556,7 @@
               <label class="bp-lib-toolbar-label muted" for="lib-sort-by">Sort by</label>
               <select id="lib-sort-by" class="bp-lib-select">
                 <option value="saved_desc">Recently added</option>
+                <option value="reading_desc">Last read</option>
                 <option value="title_asc">Title (A–Z)</option>
                 <option value="title_desc">Title (Z–A)</option>
                 <option value="author_asc">Author (A–Z)</option>
@@ -579,6 +589,10 @@
           <label class="bp-lib-offline-only muted" for="lib-offline-only">
             <input type="checkbox" id="lib-offline-only" />
             On this device
+          </label>
+          <label class="bp-lib-in-progress muted" for="lib-in-progress-only" id="lib-in-progress-wrap">
+            <input type="checkbox" id="lib-in-progress-only" />
+            In progress
           </label>
         </div>
         <section class="bp-lib-section" id="lib-section-downloads">

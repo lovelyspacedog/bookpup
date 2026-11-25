@@ -54,6 +54,8 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - In **Catalogued bones**, **Edit tags** updates metadata; **Toss** needs you to type a short random phrase so deletes are deliberate.
 - **Shelves** (toolbar): **New shelf…** for a custom list (e.g. beach reads). Pick a shelf to show only those catalogued books; **Manage shelf…** checks which bones belong on it. A book can sit on more than one shelf. Tossing a book removes it from every shelf.
 - **Catalogued bones** — toolbar **View → Flow** flips through cover art (arrow keys or swipe); the centred jacket shows a floor reflection. **Flow** is only available when **Group by** is **None** (use **Grid** or **List** for grouped shelves).
+- Filter **In progress** shows books you have started but not finished; **Sort by → Last read** orders by your latest reading session. Cover pills show rough progress (e.g. **42%**).
+- **Surprise me** picks a random readable catalogued book and opens **Read**. **Copy link** on a catalogued book copies a URL that opens **Kennel** and highlights that title (use `?owner=` when browsing a shared shelf).
 
 ## Page 6 — Read
 
@@ -64,6 +66,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 
 ## Page 7 — Save a search list
 
+- **Sniff again** (next to recent queries) re-runs your latest sniff text on whatever **Sniff source** is selected now.
 - **Open results** is your last finished sniff — full list, query, and filters — tied to your account.
 - **Bookmark** keeps that list (up to 25 bookmarks). Use **Load**, **Remove**, or **↑↓** to manage them.
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.

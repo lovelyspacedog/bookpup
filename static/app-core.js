@@ -201,12 +201,19 @@ window.BookPup = window.BookPup || {};
     if (loginScreen) loginScreen.classList.add("hidden");
     if (appShell) appShell.classList.remove("hidden");
     await loadSession();
+    const libraryDeepLink = !!BP.parseLibraryDeepLinkFromUrl?.();
     if (BP.state.authHeader && BP.offlineBooks) {
       void BP.offlineBooks.flushReadingSync(BP.state.authHeader);
     }
     BP.loadNotifiedDoneJobs?.();
     BP.refreshQueue();
-    BP.loadLibrary();
+    if (libraryDeepLink) {
+      const libBtn = tabButton("library");
+      if (libBtn) activateTab(libBtn);
+      else await BP.loadLibrary();
+    } else {
+      await BP.loadLibrary();
+    }
     renderSearchHistoryUi();
     await BP.loadIrcTargets();
     BP.restoreSearchChannel();
@@ -369,6 +376,8 @@ window.BookPup = window.BookPup || {};
     if (superbar) superbar.classList.toggle("bp-query-superbar--has-history", hasHistory);
     if (clearBtn) clearBtn.classList.toggle("hidden", !hasHistory);
     if (toggle) toggle.classList.toggle("hidden", !hasHistory);
+    const sniffAgain = document.getElementById("search-sniff-again");
+    if (sniffAgain) sniffAgain.classList.toggle("hidden", !hasHistory);
     if (!list) return;
 
     const shown = searchHistoryMatchesInput(filterText);

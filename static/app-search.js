@@ -1797,4 +1797,12 @@
   BP.updateResultsPanelVisibility = updateResultsPanelVisibility;
   BP.ingestCompletedSearch = ingestCompletedSearch;
   BP.syncActiveSearchResults = syncActiveSearchResults;
+
+  document.getElementById("search-sniff-again")?.addEventListener("click", () => {
+    const items = BP.loadSearchHistory?.() || [];
+    if (!items.length) return;
+    const queryEl = document.getElementById("query");
+    if (queryEl) queryEl.value = items[0];
+    searchForm?.requestSubmit();
+  });
 })(window.BookPup);
