@@ -5,11 +5,14 @@ from __future__ import annotations
 import re
 
 from .irc_targets import normalize_channel_id
+from .search_results import normalize_download_body
 
 _COMMAND_RE = re.compile(r"^!([A-Za-z0-9_-]+)\s+(.+)$")
 
 # #bookz on Undernet: DCC via !get ID or file via !Oatmeal (not highway !Bsk etc.)
 UNDERNET_LOCAL_TAGS = frozenset({"get", "oatmeal", "search", "find"})
+# Bots that accept their own !Tag file line on Undernet #bookz (not !Oatmeal rewrite).
+UNDERNET_ON_CHANNEL_BOTS = frozenset({"pondering-ebooks2", "peppylion"})
 # Channel-local commands with no single xdcc nick to preflight.
 _PREFLIGHT_SKIP_TAGS = frozenset({"get", "search", "find"})
 
@@ -135,14 +138,17 @@ def adapt_download_command(target_id: str | None, command: str) -> str:
     m = _COMMAND_RE.match(line)
     if not m:
         return line
-    tag = m.group(1).lower()
-    body = m.group(2).strip()
-    if tag in UNDERNET_LOCAL_TAGS:
-        if tag == "get":
+    tag = m.group(1)
+    tag_low = tag.lower()
+    body = normalize_download_body(m.group(2))
+    if tag_low in UNDERNET_LOCAL_TAGS:
+        if tag_low == "get":
             return f"!get {body}"
-        if tag == "oatmeal":
+        if tag_low == "oatmeal":
             return f"!Oatmeal {body}"
-        return line
+        return f"!{tag} {body}"
+    if tag_low in UNDERNET_ON_CHANNEL_BOTS:
+        return f"!{tag} {body}"
     # Foreign catalog tags from SearchBot (e.g. !Bsk, !Horla) → Oatmeal file line
     return f"!Oatmeal {body}"
 

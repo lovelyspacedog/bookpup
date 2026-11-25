@@ -567,7 +567,10 @@ class IrcWorker:
                 )
             else:
                 jobs.set_irc_status(job_id, f"Requesting book on {target.display}")
-                irc_cmd = str(job.get("command") or "")
+                from .irc_commands import adapt_download_command
+
+                base = str(job.get("command_original") or job.get("command") or "")
+                irc_cmd = adapt_download_command(target.id, base)
                 hint = job.get("command_rewrite_hint")
                 if hint:
                     irc_feed.append_session(str(hint))

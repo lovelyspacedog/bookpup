@@ -25,6 +25,18 @@ class IrcCommandsTest(unittest.TestCase):
         cmd = "!Bsk Author - Title.epub"
         self.assertEqual(adapt_download_command("irchighway:bookz", cmd), cmd)
 
+    def test_undernet_pondering_stays_native(self) -> None:
+        raw = (
+            "!Pondering-Ebooks2 J K Rowling - HP01 (epub).rar846KB "
+            "::HASH:: 2f7fb027c49daeba"
+        )
+        cmd = adapt_download_command("undernet:bookz", raw)
+        self.assertEqual(
+            cmd,
+            "!Pondering-Ebooks2 J K Rowling - HP01 (epub).rar",
+        )
+        self.assertEqual(serving_bot_nick(cmd), "pondering-ebooks2")
+
     def test_undernet_bsk_to_oatmeal(self) -> None:
         cmd = "!Bsk El ultimo hombre lobo - Glen Duncan.epub"
         self.assertEqual(

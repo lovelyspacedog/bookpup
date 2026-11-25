@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 INFO_RE = re.compile(r"\s*::\s*INFO\s*::\s*", re.I)
+INFO_BLOCK_RE = re.compile(r"\s*::\s*INFO\s*::(?:\s*\S+)?", re.I)
+HASH_META_RE = re.compile(r"\s*::\s*HASH\s*::\s*[0-9a-f]+\s*", re.I)
 SIZE_SUFFIX_RE = re.compile(
     r"\s+-\s+\d+(?:\.\d+)?\s*(?:[KMGT]?B|bytes?)\s*$",
     re.I,
@@ -51,6 +53,38 @@ class SearchResult:
         }
 
 
+def normalize_download_body(body: str) -> str:
+    """File name only — strips SearchBot metadata and fused size suffixes."""
+    text, _ = _split_command_rest(body)
+    return text
+
+
+def clean_command_body(body: str) -> str:
+    """Drop SearchBot ::INFO:: / ::HASH:: trailers so bots accept the file line."""
+    text = (body or "").strip()
+    text = INFO_BLOCK_RE.sub("", text)
+    text = HASH_META_RE.sub("", text)
+    text = _ON_DEMAND_NOISE_RE.sub("", text).strip()
+    return re.sub(r"\s{2,}", " ", text).strip()
+
+
+def _split_command_rest(rest: str) -> tuple[str, str | None]:
+    text = rest.strip()
+    size_hint = None
+    info_m = re.search(r"::\s*INFO\s*::\s*(\S+)", text, re.I)
+    if info_m:
+        size_hint = info_m.group(1)
+    text = clean_command_body(text)
+    sm = SIZE_SUFFIX_RE.search(text)
+    if sm:
+        hint = sm.group(0).strip().lstrip("-").strip()
+        return text[: sm.start()].rstrip(), size_hint or hint
+    body, fused = _strip_fused_size(text)
+    if fused:
+        return body, size_hint or fused
+    return text, size_hint
+
+
 def parse_result_line(line: str) -> SearchResult | None:
     line = line.strip()
     if not line or line.startswith("#"):
@@ -63,22 +97,9 @@ def parse_result_line(line: str) -> SearchResult | None:
         return None
     server = m.group("server")
     rest = m.group("rest").strip()
-    size_hint = None
-    sm = SIZE_SUFFIX_RE.search(rest)
-    if sm:
-        size_hint = sm.group(0).strip().lstrip("-").strip()
-        command_body = rest[: sm.start()].rstrip()
-    else:
-        body, fused = _strip_fused_size(rest)
-        if fused:
-            size_hint = fused
-            command_body = body
-        else:
-            command_body = rest
+    command_body, size_hint = _split_command_rest(rest)
     command = f"!{server} {command_body}"
     title = command_body
-    title = _ON_DEMAND_NOISE_RE.sub("", title).strip()
-    title = re.sub(r"\s{2,}", " ", title).strip()
     return SearchResult(
         server=server,
         title=title,

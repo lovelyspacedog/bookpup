@@ -43,6 +43,24 @@ class ParseResultsTest(unittest.TestCase):
         rows = parse_results_text(text)
         self.assertEqual(len(rows), 3)
 
+    def test_pondering_hash_and_info(self) -> None:
+        row = parse_result_line(
+            "!Pondering-Ebooks2 J K Rowling - HP01.epub  ::INFO:: 846KB "
+            "::HASH:: 2f7fb027c49daeba"
+        )
+        assert row is not None
+        self.assertEqual(row.command, "!Pondering-Ebooks2 J K Rowling - HP01.epub")
+        self.assertEqual(row.size_hint, "846KB")
+
+    def test_pondering_fused_size_before_hash(self) -> None:
+        row = parse_result_line(
+            "!Pondering-Ebooks2 J K Rowling - HP01 (retail) (epub).rar846KB "
+            "::HASH:: 2f7fb027c49daeba"
+        )
+        assert row is not None
+        self.assertTrue(row.command.endswith(".rar"))
+        self.assertNotIn("HASH", row.command)
+
     def test_undernet_catalog_enriches_get_rows(self) -> None:
         text = """\
 1059831 | Arthur S. Way - The Lay of the Nibelung Men | Project Gutenberg

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.18
+
+- **Fetch — Fix:** Undernet downloads keep **!Pondering-Ebooks2** (and strip SearchBot `::HASH::` / fused size junk) instead of misrouting a polluted line to **!Oatmeal**.
+
 ## 1.7.17
 
 - **Sniff — Fix:** Undernet `@search` waits for SearchBot’s results zip instead of taking Oatmeal’s interim catalogue file (which had no fetchable `!` rows).
