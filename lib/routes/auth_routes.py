@@ -15,9 +15,11 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
 
 
 def route_login(handler: RequestHandler, length: int) -> None:
+    from ..client_ip import client_key
     from ..login_limit import check_allowed, record_failure, record_success
 
-    client_ip = handler.client_address[0] if handler.client_address else None
+    peer = handler.client_address[0] if handler.client_address else None
+    client_ip = client_key(peer, handler._header_map())
     allowed, retry_after = check_allowed(client_ip)
     if not allowed:
         handler.send_json(

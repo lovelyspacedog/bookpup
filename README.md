@@ -127,13 +127,13 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 
 | Area | Endpoints |
 |------|-----------|
-| Auth | `POST /api/login`, `GET /api/session`, `POST /api/logout`, `POST /api/account` |
+| Auth | `POST /api/login`, `GET /api/session`, `POST /api/logout`, `POST /api/account`, `GET /api/account/wipe-preview`, `POST /api/account/wipe` |
 | Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select |
 | IRC | `GET /api/irc/feed`, `GET /api/irc/targets`, `POST /api/irc/chat`, `POST /api/irc/disconnect` |
 | Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, `GET/POST /api/library/{id}/sideload` (format picker + one-time link), custom shelves `GET/POST/PATCH/DELETE /api/library/shelves`, `PUT /api/library/shelves/{id}/items`, whole-kennel `/api/library/shares…`, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |
 | Pack chat | `GET /api/pack/chat?after=&del_after=`, `GET /api/pack/chat/peers`, `GET /api/pack/chat/bugbot/open` / `featurecat/open` (first-open intros), `POST /api/pack/chat` (`message`, optional `to`, `parent_id`, `attachments[]`), `POST /api/pack/chat/{id}/reactions`, `POST /api/pack/chat/attachments/claim-copy`, `DELETE /api/pack/chat/{id}`, `POST /api/pack/chat/clear` (admin, pack channel only). Kennel owner invite via attachments or `POST /api/library/shares/invite`; `POST /api/library/shares/{id}/accept-invite`. Scheduled sniff alerts → owner PM from `bookpup` (not ntfy). Bug / feature messages → admin **Bug inbox** / **Feature inbox** (`GET/DELETE /api/admin/bug-inbox`, `/api/admin/feature-inbox`). |
-| Public | `GET /api/health`, `GET /api/ready`, `GET /api/config`, `GET /api/sideload/{token}` (one-time catalogued-book download; set `public_url` or `BOOKPUP_PUBLIC_URL` for correct HTTPS links) |
+| Public | `GET /api/health`, `GET /api/ready`, `GET /api/config`, `GET /api/capabilities`, `GET /api/sideload/{token}` (one-time catalogued-book download; set `public_url` or `BOOKPUP_PUBLIC_URL` for correct HTTPS links) |
 
 Frontend loads `static/app-*.js` in order; shared state is on `window.BookPup`.
 

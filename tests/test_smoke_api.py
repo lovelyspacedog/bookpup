@@ -69,6 +69,29 @@ class SmokeApiTests(unittest.TestCase):
             except json.JSONDecodeError:
                 return exc.code, {"error": payload}
 
+    def test_login_throttle_isolated_per_forwarded_ip(self) -> None:
+        import lib.login_limit as login_limit
+        from lib.login_limit import MAX_FAILURES
+
+        login_limit._FAILURES_FILE = core.CONFIG_DIR / "login_throttle.json"
+        login_limit._loaded = False
+        login_limit._failures.clear()
+        login_limit.bootstrap_failures()
+        bad = {"username": "book", "password": "wrong"}
+        hdr_a = {"X-Forwarded-For": "203.0.113.1"}
+        for _ in range(MAX_FAILURES):
+            code, _ = self._request("POST", "/api/login", bad, headers=hdr_a)
+            self.assertEqual(code, 401)
+        code, _ = self._request("POST", "/api/login", bad, headers=hdr_a)
+        self.assertEqual(code, 429)
+        code, _ = self._request(
+            "POST",
+            "/api/login",
+            bad,
+            headers={"X-Forwarded-For": "203.0.113.2"},
+        )
+        self.assertEqual(code, 401)
+
     def test_login_session_logout_wrong_password(self) -> None:
         code, body = self._request(
             "POST",

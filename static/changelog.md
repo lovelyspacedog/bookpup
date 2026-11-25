@@ -1,5 +1,11 @@
 # BookPup changelog
 
+## 1.7.9
+
+- **Fix — Kennel:** chunked uploads (Calibre / fresh file) reserve quota for the whole session so parallel imports cannot exceed your cap; mid-upload checks if the kennel is already full.
+- **Fix — Sign-in:** failed-login throttle tracks the real client IP when BookPup sits behind Whatbox/nginx (no more one shared lockout for the whole household).
+- **Fix — Server:** unexpected errors return a generic message instead of leaking internal details.
+
 ## 1.7.8
 
 - **Fix — Kennel Flow:** hide empty spine slots at the start or end of the catalogue (no grey placeholder cards).

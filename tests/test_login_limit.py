@@ -45,6 +45,18 @@ class LoginLimitTests(unittest.TestCase):
         ok, _ = check_allowed("test-client")
         self.assertTrue(ok)
 
+    def test_proxy_clients_get_separate_buckets(self) -> None:
+        from lib.client_ip import client_key
+        from lib.login_limit import check_allowed, record_failure
+
+        a = client_key("127.0.0.1", {"X-Forwarded-For": "198.51.100.10"})
+        b = client_key("127.0.0.1", {"X-Forwarded-For": "198.51.100.11"})
+        self.assertNotEqual(a, b)
+        for _ in range(MAX_FAILURES):
+            record_failure(a)
+        self.assertFalse(check_allowed(a)[0])
+        self.assertTrue(check_allowed(b)[0])
+
     def test_persists_across_restart(self) -> None:
         import lib.login_limit as login_limit
 

@@ -13,30 +13,65 @@ from . import koreader_sidecar
 from . import library
 from . import quota
 from . import user_paths
-from .core import CONFIG_DIR
+from . import core
 from .json_atomic import atomic_write_json
 
-IMPORT_SESSIONS_DIR = CONFIG_DIR / "import-sessions"
 CHUNK_SIZE = 4 * 1024 * 1024
 SESSION_TTL_SECONDS = 24 * 3600
 KOREADER_PART_RE = re.compile(r"^.+\.(lua|zip)$", re.IGNORECASE)
 
 
+def import_sessions_dir() -> Path:
+    return core.CONFIG_DIR / "import-sessions"
+
+
 def _session_dir(session_id: str) -> Path:
     if not session_id or "/" in session_id or ".." in session_id:
         raise ValueError("Invalid session id")
-    return IMPORT_SESSIONS_DIR / session_id
+    return import_sessions_dir() / session_id
 
 
 def _manifest_path(session_id: str) -> Path:
     return _session_dir(session_id) / "manifest.json"
 
 
+def reserved_bytes_for(username: str) -> int:
+    """Declared part sizes for in-flight import sessions (counts toward quota)."""
+    owner = str(username or "").strip()
+    root = import_sessions_dir()
+    if not owner or not root.is_dir():
+        return 0
+    total = 0
+    for path in root.iterdir():
+        if not path.is_dir():
+            continue
+        manifest = path / "manifest.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text())
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            continue
+        if str(data.get("owner") or "").strip() != owner:
+            continue
+        parts = data.get("parts")
+        if not isinstance(parts, dict):
+            continue
+        for entry in parts.values():
+            if isinstance(entry, dict):
+                try:
+                    total += int(entry.get("size") or 0)
+                except (TypeError, ValueError):
+                    pass
+    return total
+
+
 def cleanup_stale_sessions() -> int:
-    IMPORT_SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+    root = import_sessions_dir()
+    root.mkdir(parents=True, exist_ok=True)
     removed = 0
     now = time.time()
-    for path in IMPORT_SESSIONS_DIR.iterdir():
+    for path in root.iterdir():
         if not path.is_dir():
             continue
         manifest = path / "manifest.json"
@@ -143,9 +178,18 @@ def session_progress(session_id: str) -> dict:
     }
 
 
+def _assert_owner_quota_room(manifest: dict) -> None:
+    owner = str(manifest.get("owner") or "").strip()
+    usage = quota.library_usage_for(owner)
+    if usage["used_bytes"] > usage["quota_bytes"]:
+        cap_gb = usage["quota_bytes"] / (1024**3)
+        raise ValueError(f"Library quota exceeded ({cap_gb:.1f} GB cap for {owner})")
+
+
 def write_chunk(session_id: str, part_name: str, offset: int, data: bytes) -> dict:
     manifest = _load_manifest(session_id)
     _assert_session_owner(manifest)
+    _assert_owner_quota_room(manifest)
     parts = manifest.get("parts") or {}
     if part_name not in parts:
         raise ValueError(f"Unknown part {part_name}")
@@ -175,6 +219,7 @@ def write_chunk(session_id: str, part_name: str, offset: int, data: bytes) -> di
 def finish_session(session_id: str) -> dict:
     manifest = _load_manifest(session_id)
     _assert_session_owner(manifest)
+    _assert_owner_quota_room(manifest)
     prog = session_progress(session_id)
     if not prog["complete"]:
         raise ValueError("Upload incomplete")

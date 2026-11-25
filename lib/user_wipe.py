@@ -17,7 +17,7 @@ from . import jobs
 from . import library
 from . import staging
 from . import user_paths
-from .import_session import IMPORT_SESSIONS_DIR
+from .import_session import import_sessions_dir
 from .irc_worker import worker
 from .json_atomic import atomic_write_json
 
@@ -142,10 +142,10 @@ def _as_user(username: str):
 
 
 def _count_import_sessions(username: str) -> int:
-    if not IMPORT_SESSIONS_DIR.is_dir():
+    if not import_sessions_dir().is_dir():
         return 0
     count = 0
-    for path in IMPORT_SESSIONS_DIR.iterdir():
+    for path in import_sessions_dir().iterdir():
         if not path.is_dir():
             continue
         manifest = path / "manifest.json"
@@ -206,9 +206,9 @@ def wipe_preview(actor: str, target: str | None = None) -> dict[str, Any]:
 
 
 def _remove_import_sessions(username: str) -> None:
-    if not IMPORT_SESSIONS_DIR.is_dir():
+    if not import_sessions_dir().is_dir():
         return
-    for path in list(IMPORT_SESSIONS_DIR.iterdir()):
+    for path in list(import_sessions_dir().iterdir()):
         if not path.is_dir():
             continue
         manifest = path / "manifest.json"

@@ -155,7 +155,8 @@ class Handler(BaseHTTPRequestHandler):
         except (TypeError, json.JSONDecodeError) as exc:
             self.send_json(400, {"error": str(exc)})
         except Exception as exc:
-            self.send_json(500, {"error": str(exc) or "Request failed"})
+            sys.stderr.write(f"bookpup - unhandled: {exc!r}\n")
+            self.send_json(500, {"error": "Request failed"})
 
     def spool_body(self, length: int) -> Path:
         if length <= 0:

@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import unittest.mock
 import zipfile
 from pathlib import Path
 import sys
@@ -19,6 +20,7 @@ from lib.staging import create_staging, staging_dir, _safe_extract_zip
 from lib.url_safety import assert_fetchable_https_url
 from lib.import_session import create_session, finish_session, write_chunk
 import lib.auth as auth
+import lib.quota as quota
 
 
 class AuditFixesTest(unittest.TestCase):
@@ -111,6 +113,28 @@ class AuditFixesTest(unittest.TestCase):
         accounts.update_user("alice", {"quota_bytes": 50})
         with self.assertRaises(ValueError):
             create_session([{"name": "big.bin", "size": 100}], kind="fresh_upload")
+
+    def test_import_session_parallel_exceeds_quota(self) -> None:
+        user_paths.set_user("alice")
+        accounts.update_user("alice", {"quota_bytes": 100})
+        create_session([{"name": "a.txt", "size": 60}], kind="fresh_upload")
+        with self.assertRaises(ValueError):
+            create_session([{"name": "b.txt", "size": 60}], kind="fresh_upload")
+
+    def test_import_chunk_blocked_when_over_quota(self) -> None:
+        user_paths.set_user("alice")
+        accounts.update_user("alice", {"quota_bytes": 100})
+        sess = create_session([{"name": "late.txt", "size": 60}], kind="fresh_upload")
+        sid = sess["session_id"]
+        real_usage = quota.library_usage_for
+
+        def _over_cap(name: str) -> dict:
+            u = real_usage(name)
+            return {**u, "used_bytes": u["quota_bytes"] + 1}
+
+        with unittest.mock.patch.object(quota, "library_usage_for", side_effect=_over_cap):
+            with self.assertRaises(ValueError):
+                write_chunk(sid, "late.txt", 0, b"abcdef")
 
     def test_disabled_user_revokes_session(self) -> None:
         token = auth.create_token("bob")

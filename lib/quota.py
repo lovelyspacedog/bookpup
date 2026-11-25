@@ -42,12 +42,17 @@ def dir_bytes(root: Path) -> int:
 
 
 def library_usage_for(username: str) -> dict:
+    from . import import_session
+
     cap = accounts.quota_bytes(username)
     used = dir_bytes(user_paths.library_dir(username))
     used += dir_bytes(user_paths.covers_dir(username))
     used += dir_bytes(user_paths.derived_dir(username))
+    import_pending = import_session.reserved_bytes_for(username)
+    used += import_pending
     return {
         "used_bytes": used,
+        "import_pending_bytes": import_pending,
         "quota_bytes": cap,
         "remaining_bytes": max(0, cap - used),
         "full": used >= cap,
