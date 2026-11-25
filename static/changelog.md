@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.31
+
+- **Dig:** Jacket art on catalog picks (sample from your tagged books) and popular list (Open Library, cached in `ol_covers.json`; optional `cover_url` in bestseller JSON).
+
 ## 1.7.30
 
 - **Dig:** Desktop layout — three columns (kennel, Open Library, popular list).

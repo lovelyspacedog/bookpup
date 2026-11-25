@@ -31,6 +31,9 @@ _bestsellers_data: dict[str, Any] | None = None
 
 OlSearchFn = Callable[[str | None, str | None, str | None], list[dict]]
 
+OL_COVER_CACHE_PATH = CACHE_DIR / "ol_covers.json"
+MAX_NEW_COVER_LOOKUPS = 10
+
 
 def _now_iso() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -61,6 +64,136 @@ def _owned_titles(registered: list[dict]) -> list[str]:
 
 def in_kennel(title: str, owned: list[str]) -> bool:
     return any(titles_likely_same(title, t) for t in owned)
+
+
+def _library_cover_url(item_id: str) -> str:
+    return "/api/library/" + item_id + "/cover"
+
+
+def _cover_for_author(registered: list[dict], author: str) -> str | None:
+    want = author.strip().lower()
+    for row in registered:
+        if not row.get("has_cover"):
+            continue
+        iid = str(row.get("id") or "").strip()
+        if not iid:
+            continue
+        for a in _split_authors(str(row.get("authors") or "")):
+            if a.lower() == want:
+                return _library_cover_url(iid)
+    return None
+
+
+def _cover_for_series(registered: list[dict], series_key: str) -> str | None:
+    want = series_key.strip().lower()
+    for row in registered:
+        if not row.get("has_cover"):
+            continue
+        series = str(row.get("series") or "").strip().lower()
+        if series != want:
+            continue
+        iid = str(row.get("id") or "").strip()
+        if iid:
+            return _library_cover_url(iid)
+    return None
+
+
+def _cover_for_tag(registered: list[dict], tag: str) -> str | None:
+    want = tag.strip().lower()
+    for row in registered:
+        if not row.get("has_cover"):
+            continue
+        tags = [t.lower() for t in _split_tags(str(row.get("tags") or ""))]
+        if want not in tags:
+            continue
+        iid = str(row.get("id") or "").strip()
+        if iid:
+            return _library_cover_url(iid)
+    return None
+
+
+def _read_ol_cover_cache() -> dict[str, str]:
+    if not OL_COVER_CACHE_PATH.is_file():
+        return {}
+    try:
+        data = json.loads(OL_COVER_CACHE_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _write_ol_cover_cache(cache: dict[str, str]) -> None:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    OL_COVER_CACHE_PATH.write_text(json.dumps(cache, indent=2) + "\n", encoding="utf-8")
+
+
+def _ol_cover_for_title(title: str, authors: str, cache: dict[str, str]) -> tuple[str | None, bool]:
+    """Return (cover_url, cache_dirty)."""
+    key = _dedupe_key({"title": title, "authors": authors, "isbn": ""})
+    if key in cache:
+        hit = str(cache.get(key) or "").strip()
+        return (hit or None, False)
+    try:
+        rows = _search_openlibrary(title, authors or None, None)
+    except OSError:
+        rows = []
+    url = str(rows[0].get("cover_url") or "").strip() if rows else ""
+    cache[key] = url
+    return (url or None, True)
+
+
+def enrich_bestseller_json_items(rows: list[dict], *, max_lookups: int = MAX_NEW_COVER_LOOKUPS) -> None:
+    """Fill cover_url on bestseller JSON rows (refresh or bundled file)."""
+    stub_items = [
+        {
+            "title": str(r.get("title") or ""),
+            "authors": str(r.get("authors") or ""),
+            "cover_url": str(r.get("cover_url") or "").strip() or None,
+        }
+        for r in rows
+    ]
+    _attach_bestseller_covers(stub_items, rows, max_lookups=max_lookups)
+    for row, stub in zip(rows, stub_items, strict=False):
+        url = stub.get("cover_url")
+        if url:
+            row["cover_url"] = url
+
+
+def _attach_bestseller_covers(
+    items: list[dict], raw_rows: list[dict], *, max_lookups: int = MAX_NEW_COVER_LOOKUPS
+) -> None:
+    cache = _read_ol_cover_cache()
+    dirty = False
+    lookups = 0
+    for item, raw in zip(items, raw_rows, strict=False):
+        preset = str(raw.get("cover_url") or "").strip()
+        if preset:
+            item["cover_url"] = preset
+            continue
+        if item.get("cover_url"):
+            continue
+        key = _dedupe_key(
+            {"title": str(item.get("title") or ""), "authors": item.get("authors"), "isbn": ""}
+        )
+        if key in cache:
+            hit = str(cache.get(key) or "").strip()
+            if hit:
+                item["cover_url"] = hit
+            continue
+        if lookups >= max_lookups:
+            continue
+        lookups += 1
+        url, changed = _ol_cover_for_title(
+            str(item.get("title") or ""),
+            str(item.get("authors") or ""),
+            cache,
+        )
+        if changed:
+            dirty = True
+        if url:
+            item["cover_url"] = url
+    if dirty:
+        _write_ol_cover_cache(cache)
 
 
 def _pick_item(
@@ -124,6 +257,7 @@ def catalog_picks(registered: list[dict]) -> tuple[list[dict], list[str]]:
                 reason=f"Often in your kennel ({author_counts[author]} tagged)",
                 source="catalog",
                 owned=owned,
+                cover_url=_cover_for_author(registered, author),
             )
         )
         if len(items) >= CATALOG_MAX:
@@ -141,6 +275,7 @@ def catalog_picks(registered: list[dict]) -> tuple[list[dict], list[str]]:
                 reason=f"You have {len(titles)} in “{label}”",
                 source="catalog",
                 owned=owned,
+                cover_url=_cover_for_series(registered, series_key),
             )
         )
         if len(items) >= CATALOG_MAX:
@@ -157,6 +292,7 @@ def catalog_picks(registered: list[dict]) -> tuple[list[dict], list[str]]:
                 reason=f"Tag shows up on {tag_counts[tag]} bones",
                 source="catalog",
                 owned=owned,
+                cover_url=_cover_for_tag(registered, tag),
             )
         )
         if len(items) >= CATALOG_MAX:
@@ -201,6 +337,7 @@ def bestseller_picks(owned: list[str]) -> tuple[list[dict], dict[str, str]]:
     }
     raw_items = data.get("items") or []
     items: list[dict] = []
+    raws: list[dict] = []
     for row in raw_items:
         if not isinstance(row, dict):
             continue
@@ -209,6 +346,7 @@ def bestseller_picks(owned: list[str]) -> tuple[list[dict], dict[str, str]]:
             continue
         authors = str(row.get("authors") or "").strip()
         sniff = str(row.get("sniff_query") or "").strip() or f"{authors} {title}".strip()
+        preset_cover = str(row.get("cover_url") or "").strip() or None
         items.append(
             _pick_item(
                 title=title,
@@ -217,8 +355,11 @@ def bestseller_picks(owned: list[str]) -> tuple[list[dict], dict[str, str]]:
                 reason="Popular on the trail",
                 source="bestseller",
                 owned=owned,
+                cover_url=preset_cover,
             )
         )
+        raws.append(row)
+    _attach_bestseller_covers(items, raws)
     return items, meta
 
 

@@ -15,6 +15,20 @@ class DigPicksCatalogTest(unittest.TestCase):
         self.assertEqual(items, [])
         self.assertIn("catalog_empty", warnings)
 
+    def test_catalog_author_cover(self) -> None:
+        rows = [
+            {
+                "id": "abc",
+                "title": "Eragon",
+                "authors": "Christopher Paolini",
+                "tags": "",
+                "series": "",
+                "has_cover": True,
+            },
+        ]
+        url = dig_picks._cover_for_author(rows, "Christopher Paolini")
+        self.assertEqual(url, "/api/library/abc/cover")
+
     def test_catalog_author_pick(self) -> None:
         rows = [
             {"title": "Book A", "authors": "Alice Author", "tags": "", "series": ""},

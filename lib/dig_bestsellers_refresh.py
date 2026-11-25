@@ -39,6 +39,9 @@ def validate_bestsellers_payload(data: Any) -> dict[str, Any]:
         sniff = str(raw.get("sniff_query") or "").strip()
         if sniff:
             row["sniff_query"] = sniff
+        cover = str(raw.get("cover_url") or "").strip()
+        if cover.startswith("https://"):
+            row["cover_url"] = cover
         items.append(row)
         if len(items) >= MAX_ITEMS:
             break
@@ -124,6 +127,9 @@ def fetch_and_store_bestsellers(url: str | None = None) -> dict[str, Any]:
         _save_state({"last_error": f"invalid JSON: {exc}", "last_attempt_at": time.time()})
         raise ValueError("bestsellers response is not JSON") from exc
     payload = validate_bestsellers_payload(data)
+    from . import dig_picks
+
+    dig_picks.enrich_bestseller_json_items(payload["items"], max_lookups=60)
     payload["refreshed_at"] = time.strftime("%Y-%m-%d", time.gmtime())
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     atomic_write_json(LIVE_BESTSELLERS_PATH, payload, mode=0o600)
