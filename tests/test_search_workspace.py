@@ -79,3 +79,23 @@ class SearchWorkspaceTest(unittest.TestCase):
             search_workspace.save_draft_as(f"s{i}")
         with self.assertRaises(ValueError):
             search_workspace.save_draft_as("one too many")
+
+    def test_sync_draft_from_completed_job(self) -> None:
+        search_workspace.update_draft(
+            {"query": "old", "channel": "rizon:ebookz", "results": [_row("Old")]}
+        )
+        job = jobs.create_job(
+            "search",
+            query="Brown Da Vinci Code",
+            channel="all",
+            owner="pup",
+            state="done",
+            results=[_row("Merged A"), _row("Merged B")],
+            result_count=2,
+        )
+        search_workspace.sync_draft_from_completed_job(job)
+        ws = search_workspace.get_workspace()
+        self.assertEqual(ws["draft"]["query"], "Brown Da Vinci Code")
+        self.assertEqual(ws["draft"]["channel"], "all")
+        self.assertEqual(ws["draft"]["result_count"], 2)
+        self.assertEqual(str(ws["draft"]["job_id"]), str(job["id"]))

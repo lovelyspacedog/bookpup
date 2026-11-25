@@ -358,6 +358,11 @@ class IrcWorker:
                     completed = jobs.complete_job_success(job_id)
                     if completed is None:
                         return
+                    job = jobs.load_job(job_id)
+                    if job.get("type") == "search" and job.get("state") == "done":
+                        from .search_workspace import sync_draft_from_completed_job
+
+                        sync_draft_from_completed_job(job)
                     from . import notify
 
                     notify.maybe_job_done(completed)
@@ -479,6 +484,9 @@ class IrcWorker:
             job["search_notices"] = notices
         job.pop("awaiting_irc_search", None)
         jobs.save_job(job)
+        irc_feed.append_session(
+            f"Sniff finished: {len(merged)} row(s) for {query!r}"
+        )
 
     def _run_xdcc_search(self, job: dict, job_id: str) -> None:
         owner = str(job.get("owner") or "").strip() or None

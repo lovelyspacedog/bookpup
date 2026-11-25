@@ -12,6 +12,7 @@ window.BookPup = window.BookPup || {};
     notifiedDoneJobs: new Set(),
     coverImageSearchEnabled: false,
     activeSearchJob: null,
+    pendingSearchJobId: null,
     pollTimer: null,
     searchPollTimer: null,
     fetchPollTimer: null,

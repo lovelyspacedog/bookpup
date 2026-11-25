@@ -410,20 +410,40 @@
 
   let workspaceLoadToken = 0;
 
+  function draftMatchesActiveSniff(draft) {
+    if (!draft) return false;
+    const formQ = (document.getElementById("query")?.value || "").trim();
+    const draftQ = (draft.query || "").trim();
+    const formCh = document.getElementById("channel")?.value || "";
+    const draftCh = (draft.channel || "").trim();
+    const pending = String(BP.state.pendingSearchJobId || "");
+    const draftJob = String(draft.job_id || "");
+    if (pending && draftJob && pending === draftJob) return true;
+    if (formQ && draftQ && formQ === draftQ) {
+      return !formCh || !draftCh || formCh === draftCh;
+    }
+    const updated = Number(draft.updated_at || 0);
+    const fresh = updated > 0 && Date.now() / 1000 - updated < 900;
+    return fresh && draftCh === "all" && formCh === "all";
+  }
+
   async function loadSearchWorkspace() {
     const token = ++workspaceLoadToken;
     try {
       const ws = await BP.api("/api/search/workspace");
       if (token !== workspaceLoadToken) return;
       renderSavedSearchList(ws.saved);
-      if (
-        ws.draft &&
-        ws.draft.results &&
-        ws.draft.results.length &&
-        !resultRows.length &&
-        !BP.state.searchPollTimer && !BP.state.fetchPollTimer
-      ) {
-        applyDraft(ws.draft);
+      const draft = ws.draft;
+      const draftRows = draft?.results?.length || 0;
+      const wantDraft =
+        draft &&
+        draftRows > 0 &&
+        !BP.state.searchPollTimer &&
+        !BP.state.fetchPollTimer &&
+        draftMatchesActiveSniff(draft) &&
+        (!resultRows.length || resultRows.length < draftRows);
+      if (wantDraft) {
+        applyDraft(draft);
       } else if (ws.draft) {
         const dc =
           typeof ws.draft.result_count === "number"
@@ -918,6 +938,8 @@
   function sniffMatchesDoneJob(done) {
     if (!done || done.state !== "done") return false;
     const active = String(BP.state.activeSearchJob || "");
+    const pending = String(BP.state.pendingSearchJobId || "");
+    if (pending && pending === String(done.id || "")) return true;
     if (active && active === String(done.id || "")) return true;
     const qv = (document.getElementById("query")?.value || "").trim().toLowerCase();
     const dq = String(done.query || "").trim().toLowerCase();
@@ -1668,15 +1690,21 @@
         return;
       }
       BP.state.activeSearchJob = jobId;
+      BP.state.pendingSearchJobId = jobId;
       void BP.refreshQueue?.();
       const applySearchDone = (job) => {
-        void ingestCompletedSearch(job, { query: body.query, channel: body.channel }).catch((err) => {
-          console.error("applySearchDone", err);
-          if (searchMsg) {
-            searchMsg.textContent = err.message || "Could not show results (see console)";
-            searchMsg.className = "bp-msg err";
-          }
-        });
+        void ingestCompletedSearch(job, { query: body.query, channel: body.channel })
+          .then((ok) => {
+            if (!ok) void loadSearchWorkspace();
+          })
+          .catch((err) => {
+            console.error("applySearchDone", err);
+            void loadSearchWorkspace();
+            if (searchMsg) {
+              searchMsg.textContent = err.message || "Could not show results (see console)";
+              searchMsg.className = "bp-msg err";
+            }
+          });
       };
       if (data.job.state === "done") {
         if (Array.isArray(data.job.results)) {

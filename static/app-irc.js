@@ -375,8 +375,13 @@
         BP.state.ircEvents.push(ev);
         if (ev.id > BP.state.ircAfterId) BP.state.ircAfterId = ev.id;
         const text = String(ev.text || "");
-        if (/\bSniff finished:/i.test(text) || /\bSoulseek:\s*\d+\s*match/i.test(text)) {
+        if (
+          /\bSniff finished:/i.test(text) ||
+          /\bSoulseek:\s*\d+\s*match/i.test(text) ||
+          /\bSearch results received\b/i.test(text)
+        ) {
           void BP.syncActiveSearchResults?.();
+          void BP.loadSearchWorkspace?.();
           if (!BP.state.activeSearchJob) void BP.refreshQueue?.();
         }
         if (/\bDownloaded\b/i.test(text)) {

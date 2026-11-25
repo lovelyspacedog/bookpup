@@ -272,6 +272,39 @@ def get_workspace() -> dict[str, Any]:
     }
 
 
+def sync_draft_from_completed_job(job: dict[str, Any]) -> None:
+    """Write finished sniff rows into owner workspace draft (UI backfill)."""
+    if str(job.get("type") or "") != "search":
+        return
+    if str(job.get("state") or "") != "done":
+        return
+    results = sanitize_results(job.get("results"))
+    if not results:
+        return
+    owner = str(job.get("owner") or "").strip()
+    if not owner:
+        return
+    from . import user_paths
+
+    prev = user_paths.current_user_optional()
+    user_paths.set_user(owner)
+    try:
+        update_draft(
+            {
+                "query": str(job.get("query") or "").strip(),
+                "channel": str(job.get("channel") or "").strip()
+                or "irchighway:ebooks",
+                "filter": "",
+                "results": results,
+                "job_id": str(job.get("id") or ""),
+            }
+        )
+    except ValueError:
+        pass
+    finally:
+        user_paths.set_user(prev)
+
+
 def update_draft(body: dict[str, Any]) -> dict[str, Any]:
     owner = user_paths.current_user()
     data = _load_raw()

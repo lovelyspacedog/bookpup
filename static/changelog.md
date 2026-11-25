@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.22
+
+- **Sniff — Fix:** **Every ebook net** writes merged rows to your sniff draft when IRC finishes, logs **Sniff finished** for Den chatter, and reloads the table from workspace if client ingest misses a poll.
+
 ## 1.7.21
 
 - **Sniff — Fix:** **Every ebook net** merges results into the table again — partial rows stay visible during multi-IRC sniff, queue backfill accepts `all`, stale workspace draft no longer hijacks active job id.
