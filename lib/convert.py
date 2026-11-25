@@ -14,7 +14,7 @@ from .mobi_convert import mobi_to_epub
 VIEW_NATIVE = frozenset({"epub", "pdf", "txt", "cbz", "cbr", "cb7", "md", "html"})
 VIEW_MOBILE_CONVERT = frozenset({"mobi", "azw3", "azw", "prc"})
 VIEW_CALIBRE_CONVERT = frozenset({"fb2", "lit", "chm", "rtf", "djvu"})
-MOBI_DERIVED_VERSION = 2
+MOBI_DERIVED_VERSION = 3
 
 
 def _derived_dir() -> Path:

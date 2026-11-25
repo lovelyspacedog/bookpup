@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.6.6
+
+- **Reader:** MOBI→EPUB rebuild **v3** — collapse spaced NCX/`dc:title` labels (e.g. *D ISCOVERY*); Study **Copy study notes** tries `execCommand` when Clipboard API is blocked.
+- **Docs:** README **Manual QA & browser automation** (Cursor embed workarounds + optional testpup cleanup).
+
 ## 1.6.5
 
 - **Kennel:** **Upload file** over ~3 MB uses chunked session (same as Calibre import) so slow links avoid proxy timeout (**O3**).

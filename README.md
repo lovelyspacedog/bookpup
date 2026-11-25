@@ -147,6 +147,21 @@ scripts/            # smoke tests, Calibre/AI installers, IRC spike
 vendor/             # vendored kindleunpack / mobi helpers (no pip for core IRC path)
 ```
 
+## Manual QA & browser automation
+
+Household users should use a normal browser or installed PWA. **Cursor’s embedded browser** is stricter about clipboard, checkbox state, and login clicks — not a product bug.
+
+| Topic | Workaround |
+|-------|------------|
+| Sign-in | `document.getElementById("login-form").requestSubmit()` or `BookPup.doLogin(username, password)` |
+| Pack chat DMs | Click `[data-pack-dm-peer="bookpup"]` (lowercase peer id); mobile: scroll past tab dock or use CDP coordinates |
+| Offline read | Do not hard-reload while offline; use **Keep offline** then **Read** in-session, or test on installed PWA |
+| Study copy | Clipboard API may block in embed; reader falls back to `execCommand("copy")` where allowed |
+| Sniff toggles | **Enable Bark** / **Hide other pups** may look read-only in embed; verify in Chrome/Firefox |
+| Reader Tab trap | `trapReaderFocus` in `reader.js`; verify Tab wrap in a real browser with Study open |
+
+**Test household cleanup (optional sign-off):** toss **Walk the Trail** practice `.mobi` if you skipped cleanup; trim duplicate QA fetches, old shares, and oversized sniff bookmarks on **testpup** before calling prod done.
+
 ## Legal & good citizenship
 
 IRC bots are community-operated. Use BookPup only for material you are entitled to obtain. XDCC metasearch can reach non-ebook networks; disable with `"xdcc_search_enabled": false` in config if you do not want that surface.

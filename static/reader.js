@@ -834,14 +834,35 @@
       return;
     }
     const md = lines.join("\n");
-    navigator.clipboard
-      .writeText(md)
-      .then(() => {
-        if (studyStatus) studyStatus.textContent = "Study notes copied to clipboard.";
-      })
-      .catch(() => {
-        if (studyStatus) studyStatus.textContent = "Could not copy — select text manually.";
+    const onCopied = () => {
+      if (studyStatus) studyStatus.textContent = "Study notes copied to clipboard.";
+    };
+    const copyFallback = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = md;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      } catch (_e) {
+        return false;
+      }
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(md).then(onCopied).catch(() => {
+        if (copyFallback()) onCopied();
+        else if (studyStatus) studyStatus.textContent = "Could not copy — select text manually.";
       });
+    } else if (copyFallback()) {
+      onCopied();
+    } else if (studyStatus) {
+      studyStatus.textContent = "Could not copy — select text manually.";
+    }
   }
 
   document.getElementById("reader-study-export")?.addEventListener("click", exportStudyNotes);
