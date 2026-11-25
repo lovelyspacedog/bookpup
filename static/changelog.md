@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.25
+
+- **UX:** Kennel, Pack, and account dialogs (toss, share, send, cover, etc.) use the same centered dialog shell as Tag.
+
 ## 1.7.24
 
 - **UX — Kennel:** **Tag this book** / **Edit tags** use a centered dialog (essentials, **More details**, cover + online match in a side column on desktop).

@@ -815,54 +815,59 @@
     </div>
     <div id="bp-toast-stack" class="bp-toast-stack" aria-live="polite" aria-relevant="additions"></div>
     <div id="bp-toast-stack-assertive" class="bp-toast-stack bp-toast-stack--assertive" aria-live="assertive" aria-relevant="additions"></div>
-    <div id="wipe-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="wipe-modal-title">
-      <header class="bp-register-head">
-        <h2 id="wipe-modal-title">Wipe account</h2>
-        <button type="button" id="wipe-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="wipe-form" class="bp-card">
-        <div id="wipe-disclaimer" class="bp-wipe-disclaimer muted"></div>
-        <p class="bp-msg bp-wipe-phrase-lede">Type this 12-word phrase exactly (spaces matter):</p>
-        <p class="bp-wipe-phrase" id="wipe-phrase-display" aria-live="polite"></p>
-        <label for="wipe-phrase-input">Confirmation phrase</label>
-        <input id="wipe-phrase-input" type="text" autocomplete="off" spellcheck="false" required />
-        <label for="wipe-password" id="wipe-password-label">Current password</label>
-        <input id="wipe-password" type="password" required autocomplete="current-password" />
-        <p id="wipe-modal-msg" class="bp-msg muted"></p>
-        <p class="bp-toss-actions">
-          <button type="button" id="wipe-cancel-btn" class="bp-btn">Keep everything</button>
-          <button type="submit" id="wipe-submit-btn" class="bp-btn bp-btn--danger">Wipe my account</button>
-        </p>
-      </form>
+    <div id="wipe-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="wipe-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--md">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="wipe-modal-title">Wipe account</h2>
+          <button type="button" id="wipe-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="wipe-form" class="bp-dialog__body bp-register-form">
+          <div id="wipe-disclaimer" class="bp-wipe-disclaimer muted"></div>
+          <p class="bp-msg bp-wipe-phrase-lede">Type this 12-word phrase exactly (spaces matter):</p>
+          <p class="bp-wipe-phrase" id="wipe-phrase-display" aria-live="polite"></p>
+          <label for="wipe-phrase-input">Confirmation phrase</label>
+          <input id="wipe-phrase-input" type="text" autocomplete="off" spellcheck="false" required />
+          <label for="wipe-password" id="wipe-password-label">Current password</label>
+          <input id="wipe-password" type="password" required autocomplete="current-password" />
+          <p id="wipe-modal-msg" class="bp-msg muted"></p>
+          <p class="bp-toss-actions">
+            <button type="button" id="wipe-cancel-btn" class="bp-btn">Keep everything</button>
+            <button type="submit" id="wipe-submit-btn" class="bp-btn bp-btn--danger">Wipe my account</button>
+          </p>
+        </form>
+      </div>
     </div>
-    <div id="toss-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="toss-modal-title">
-      <header class="bp-register-head">
-        <h2 id="toss-modal-title">Toss from kennel</h2>
-        <button type="button" id="toss-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="toss-form" class="bp-card">
-        <p id="toss-modal-lede" class="muted"></p>
-        <div id="toss-phrase-block">
-          <p class="bp-msg">Type exactly: <strong id="toss-phrase-display"></strong></p>
-          <label for="toss-phrase-input">Confirmation phrase</label>
-          <input id="toss-phrase-input" type="text" autocomplete="off" />
-        </div>
-        <p id="toss-modal-msg" class="bp-msg muted"></p>
-        <p class="bp-toss-actions">
-          <button type="button" id="toss-cancel-btn" class="bp-btn">Keep it</button>
-          <button type="submit" id="toss-submit-btn" class="bp-btn">Toss</button>
-        </p>
-      </form>
+    <div id="toss-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="toss-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--md">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="toss-modal-title">Toss from kennel</h2>
+          <button type="button" id="toss-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="toss-form" class="bp-dialog__body bp-register-form">
+          <p id="toss-modal-lede" class="muted"></p>
+          <div id="toss-phrase-block">
+            <p class="bp-msg">Type exactly: <strong id="toss-phrase-display"></strong></p>
+            <label for="toss-phrase-input">Confirmation phrase</label>
+            <input id="toss-phrase-input" type="text" autocomplete="off" />
+          </div>
+          <p id="toss-modal-msg" class="bp-msg muted"></p>
+          <p class="bp-toss-actions">
+            <button type="button" id="toss-cancel-btn" class="bp-btn">Keep it</button>
+            <button type="submit" id="toss-submit-btn" class="bp-btn">Toss</button>
+          </p>
+        </form>
+      </div>
     </div>
-    </div>
-    <div id="about-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
-      <header class="bp-register-head">
-        <h2 id="about-modal-title">About BookPup</h2>
-        <button type="button" id="about-modal-close" class="bp-btn">Close</button>
-      </header>
-      <article id="about-body" class="bp-card bp-about-body bp-prose">
-        <p class="muted">Loading…</p>
-      </article>
+    <div id="about-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--md">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="about-modal-title">About BookPup</h2>
+          <button type="button" id="about-modal-close" class="bp-btn">Close</button>
+        </header>
+        <article id="about-body" class="bp-dialog__body bp-about-body bp-prose">
+          <p class="muted">Loading…</p>
+        </article>
+      </div>
     </div>
     <div
       id="register-modal"
@@ -942,164 +947,180 @@
         </footer>
       </div>
     </div>
-    <div id="shelf-name-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-name-modal-title">
-      <header class="bp-register-head">
-        <h2 id="shelf-name-modal-title">New shelf</h2>
-        <button type="button" id="shelf-name-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="shelf-name-form" class="bp-card bp-register-form">
-        <label for="shelf-name-input">Name</label>
-        <input id="shelf-name-input" type="text" maxlength="80" autocomplete="off" required />
-        <p id="shelf-name-msg" class="bp-msg muted"></p>
-        <p class="bp-register-actions">
-          <button type="button" id="shelf-name-cancel" class="bp-btn">Cancel</button>
-          <button type="submit" class="bp-btn primary">Save</button>
-        </p>
-      </form>
+    <div id="shelf-name-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-name-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--sm">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="shelf-name-modal-title">New shelf</h2>
+          <button type="button" id="shelf-name-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="shelf-name-form" class="bp-dialog__body bp-register-form">
+          <label for="shelf-name-input">Name</label>
+          <input id="shelf-name-input" type="text" maxlength="80" autocomplete="off" required />
+          <p id="shelf-name-msg" class="bp-msg muted"></p>
+          <p class="bp-register-actions">
+            <button type="button" id="shelf-name-cancel" class="bp-btn">Cancel</button>
+            <button type="submit" class="bp-btn primary">Save</button>
+          </p>
+        </form>
+      </div>
     </div>
     <div id="pack-attach-menu" class="bp-pack-attach-menu hidden" role="menu">
       <button type="button" id="pack-attach-book" class="bp-btn" role="menuitem">Catalogued book…</button>
       <button type="button" id="pack-attach-kennel" class="bp-btn" role="menuitem">Invite to my kennel…</button>
     </div>
-    <div id="pack-attach-book-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2>Attach book</h2>
-        <button type="button" id="pack-attach-book-close" class="bp-btn">Close</button>
-      </header>
-      <div class="bp-card bp-register-form">
-        <p class="muted">Catalogued bones only.</p>
-        <p>
-          <label><input type="radio" name="pack-book-intent" value="recommend" checked /> Recommend</label>
-          <label><input type="radio" name="pack-book-intent" value="offer_copy" /> Send copy</label>
-        </p>
-        <div id="pack-attach-book-list" class="bp-pack-attach-book-list"></div>
+    <div id="pack-attach-book-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true">
+      <div class="bp-dialog__panel">
+        <header class="bp-dialog__head bp-register-head">
+          <h2>Attach book</h2>
+          <button type="button" id="pack-attach-book-close" class="bp-btn">Close</button>
+        </header>
+        <div class="bp-dialog__body bp-register-form">
+          <p class="muted">Catalogued bones only.</p>
+          <p>
+            <label><input type="radio" name="pack-book-intent" value="recommend" checked /> Recommend</label>
+            <label><input type="radio" name="pack-book-intent" value="offer_copy" /> Send copy</label>
+          </p>
+          <div id="pack-attach-book-list" class="bp-pack-attach-book-list"></div>
+        </div>
       </div>
     </div>
-    <div id="pack-attach-invite-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2>Invite to my kennel</h2>
-        <button type="button" id="pack-attach-invite-close" class="bp-btn">Close</button>
-      </header>
-      <div class="bp-card bp-register-form">
-        <label for="pack-invite-user">Pup</label>
-        <select id="pack-invite-user" class="bp-lib-select"></select>
-        <label for="pack-invite-mode">Suggested access</label>
-        <select id="pack-invite-mode" class="bp-lib-select">
-          <option value="">They choose lend or give</option>
-          <option value="lend">Lend (browse/read)</option>
-          <option value="give">Give (may copy)</option>
-        </select>
-        <p class="bp-register-actions">
-          <button type="button" id="pack-invite-save" class="bp-btn primary">Attach invite</button>
-        </p>
-      </div>
-    </div>
-    <div id="shelf-manage-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-manage-modal-title">
-      <header class="bp-register-head">
-        <h2 id="shelf-manage-modal-title">Manage shelf</h2>
-        <button type="button" id="shelf-manage-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="shelf-manage-form" class="bp-card bp-register-form">
-        <p class="muted">Check catalogued bones to keep on this shelf.</p>
-        <div id="shelf-manage-list" class="bp-shelf-manage-list"></div>
-        <p id="shelf-manage-msg" class="bp-msg muted"></p>
-        <p class="bp-register-actions">
-          <button type="button" id="shelf-rename-btn" class="bp-btn">Rename…</button>
-          <button type="button" id="shelf-delete-btn" class="bp-btn bp-btn--danger">Delete shelf</button>
-          <button type="submit" class="bp-btn primary">Save books</button>
-        </p>
-      </form>
-    </div>
-    <div id="lib-share-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2 id="lib-share-modal-title">Kennel sharing</h2>
-        <button type="button" id="lib-share-modal-close" class="bp-btn">Close</button>
-      </header>
-      <div class="bp-card bp-register-form">
-        <h3>Ask to browse</h3>
-        <p class="muted">Request access to another pup&rsquo;s whole kennel. They choose lend (read and download) or give (you can copy books into yours).</p>
-        <form id="lib-share-request-form">
-          <label for="lib-share-request-user">Pup</label>
-          <select id="lib-share-request-user" required></select>
-          <p id="lib-share-request-msg" class="bp-msg muted"></p>
+    <div id="pack-attach-invite-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true">
+      <div class="bp-dialog__panel bp-dialog__panel--sm">
+        <header class="bp-dialog__head bp-register-head">
+          <h2>Invite to my kennel</h2>
+          <button type="button" id="pack-attach-invite-close" class="bp-btn">Close</button>
+        </header>
+        <div class="bp-dialog__body bp-register-form">
+          <label for="pack-invite-user">Pup</label>
+          <select id="pack-invite-user" class="bp-lib-select"></select>
+          <label for="pack-invite-mode">Suggested access</label>
+          <select id="pack-invite-mode" class="bp-lib-select">
+            <option value="">They choose lend or give</option>
+            <option value="lend">Lend (browse/read)</option>
+            <option value="give">Give (may copy)</option>
+          </select>
           <p class="bp-register-actions">
-            <button type="submit" class="bp-btn primary">Send request</button>
+            <button type="button" id="pack-invite-save" class="bp-btn primary">Attach invite</button>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div id="shelf-manage-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-manage-modal-title">
+      <div class="bp-dialog__panel">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="shelf-manage-modal-title">Manage shelf</h2>
+          <button type="button" id="shelf-manage-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="shelf-manage-form" class="bp-dialog__body bp-register-form">
+          <p class="muted">Check catalogued bones to keep on this shelf.</p>
+          <div id="shelf-manage-list" class="bp-shelf-manage-list"></div>
+          <p id="shelf-manage-msg" class="bp-msg muted"></p>
+          <p class="bp-register-actions">
+            <button type="button" id="shelf-rename-btn" class="bp-btn">Rename…</button>
+            <button type="button" id="shelf-delete-btn" class="bp-btn bp-btn--danger">Delete shelf</button>
+            <button type="submit" class="bp-btn primary">Save books</button>
           </p>
         </form>
-        <h3>Requests for you</h3>
-        <div id="lib-share-incoming" class="bp-share-list"></div>
-        <h3>Your requests</h3>
-        <div id="lib-share-outgoing" class="bp-share-list"></div>
-        <h3>You share with</h3>
-        <div id="lib-share-granted" class="bp-share-list"></div>
       </div>
     </div>
-    <div id="device-send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2 id="device-send-modal-title">Send to e-reader</h2>
-        <button type="button" id="device-send-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="device-send-form" class="bp-card bp-register-form">
-        <p class="muted">Catalogued bone: <strong id="device-send-title"></strong></p>
-        <label for="device-send-format">Format</label>
-        <select id="device-send-format" name="format" required></select>
-        <p id="device-send-hint" class="bp-msg muted"></p>
-        <p class="bp-lib-actions">
-          <button type="submit" class="bp-btn primary">Create download link</button>
-          <button type="button" id="device-send-kindle-btn" class="bp-btn hidden">
-            Email to my Kindle
-          </button>
-          <button type="button" id="device-send-cancel" class="bp-btn">Cancel</button>
-        </p>
-        <label for="device-send-link">One-time link</label>
-        <div class="bp-lib-filter-input-row">
-          <input id="device-send-link" type="url" readonly />
-          <button type="button" id="device-send-copy" class="bp-btn">Copy</button>
+    <div id="lib-share-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="lib-share-modal-title">
+      <div class="bp-dialog__panel">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="lib-share-modal-title">Kennel sharing</h2>
+          <button type="button" id="lib-share-modal-close" class="bp-btn">Close</button>
+        </header>
+        <div class="bp-dialog__body bp-register-form">
+          <h3>Ask to browse</h3>
+          <p class="muted">Request access to another pup&rsquo;s whole kennel. They choose lend (read and download) or give (you can copy books into yours).</p>
+          <form id="lib-share-request-form">
+            <label for="lib-share-request-user">Pup</label>
+            <select id="lib-share-request-user" required></select>
+            <p id="lib-share-request-msg" class="bp-msg muted"></p>
+            <p class="bp-register-actions">
+              <button type="submit" class="bp-btn primary">Send request</button>
+            </p>
+          </form>
+          <h3>Requests for you</h3>
+          <div id="lib-share-incoming" class="bp-share-list"></div>
+          <h3>Your requests</h3>
+          <div id="lib-share-outgoing" class="bp-share-list"></div>
+          <h3>You share with</h3>
+          <div id="lib-share-granted" class="bp-share-list"></div>
         </div>
-        <p id="device-send-msg" class="bp-msg muted"></p>
-        <div id="device-send-kindle-steps" class="hidden">
-          <p class="bp-msg muted">
-            <strong>Kindle:</strong> open your Send-to-Kindle inbox email, paste the link in the body or attach the file after download, or use Amazon&rsquo;s
-            <em>Send to Kindle</em> page with the downloaded file.
-            <strong>KOReader / OPDS:</strong> paste the link in the browser download, or use OPDS on <strong>Your tag</strong>.
+      </div>
+    </div>
+    <div id="device-send-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="device-send-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--md">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="device-send-modal-title">Send to e-reader</h2>
+          <button type="button" id="device-send-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="device-send-form" class="bp-dialog__body bp-register-form">
+          <p class="muted">Catalogued bone: <strong id="device-send-title"></strong></p>
+          <label for="device-send-format">Format</label>
+          <select id="device-send-format" name="format" required></select>
+          <p id="device-send-hint" class="bp-msg muted"></p>
+          <p class="bp-lib-actions">
+            <button type="submit" class="bp-btn primary">Create download link</button>
+            <button type="button" id="device-send-kindle-btn" class="bp-btn hidden">
+              Email to my Kindle
+            </button>
+            <button type="button" id="device-send-cancel" class="bp-btn">Cancel</button>
           </p>
+          <label for="device-send-link">One-time link</label>
+          <div class="bp-lib-filter-input-row">
+            <input id="device-send-link" type="url" readonly />
+            <button type="button" id="device-send-copy" class="bp-btn">Copy</button>
+          </div>
+          <p id="device-send-msg" class="bp-msg muted"></p>
+          <div id="device-send-kindle-steps" class="hidden">
+            <p class="bp-msg muted">
+              <strong>Kindle:</strong> open your Send-to-Kindle inbox email, paste the link in the body or attach the file after download, or use Amazon&rsquo;s
+              <em>Send to Kindle</em> page with the downloaded file.
+              <strong>KOReader / OPDS:</strong> paste the link in the browser download, or use OPDS on <strong>Your tag</strong>.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="send-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="send-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--sm">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="send-modal-title">Pass to a pup</h2>
+          <button type="button" id="send-modal-close" class="bp-btn">Close</button>
+        </header>
+        <form id="send-form" class="bp-dialog__body bp-register-form">
+          <p id="send-item-label" class="muted"></p>
+          <label for="send-to-user">Recipient</label>
+          <select id="send-to-user" name="to" required></select>
+          <p id="send-msg" class="bp-msg muted"></p>
+          <p class="bp-register-actions">
+            <button type="submit" id="send-submit" class="bp-btn primary">Pass copy</button>
+            <button type="button" id="send-cancel" class="bp-btn">Cancel</button>
+          </p>
+        </form>
+      </div>
+    </div>
+    <div id="cover-modal" class="bp-register-modal bp-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="cover-modal-title">
+      <div class="bp-dialog__panel bp-dialog__panel--sm">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="cover-modal-title">Cover art</h2>
+          <button type="button" id="cover-modal-close" class="bp-btn">Close</button>
+        </header>
+        <div class="bp-dialog__body bp-register-form">
+          <p class="bp-register-actions">
+            <label class="bp-btn" for="cover-modal-file">Upload image</label>
+            <input
+              type="file"
+              id="cover-modal-file"
+              class="hidden"
+              accept="image/jpeg,image/png,image/webp"
+            />
+            <button type="button" id="cover-modal-images-btn" class="bp-btn secondary">Search cover images</button>
+          </p>
+          <p id="cover-modal-msg" class="bp-msg muted"></p>
+          <div id="cover-modal-images" class="bp-cover-images hidden" aria-live="polite"></div>
         </div>
-      </form>
-    </div>
-    <div id="send-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2 id="send-modal-title">Pass to a pup</h2>
-        <button type="button" id="send-modal-close" class="bp-btn">Close</button>
-      </header>
-      <form id="send-form" class="bp-card bp-register-form">
-        <p id="send-item-label" class="muted"></p>
-        <label for="send-to-user">Recipient</label>
-        <select id="send-to-user" name="to" required></select>
-        <p id="send-msg" class="bp-msg muted"></p>
-        <p class="bp-register-actions">
-          <button type="submit" id="send-submit" class="bp-btn primary">Pass copy</button>
-          <button type="button" id="send-cancel" class="bp-btn">Cancel</button>
-        </p>
-      </form>
-    </div>
-    <div id="cover-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2 id="cover-modal-title">Cover art</h2>
-        <button type="button" id="cover-modal-close" class="bp-btn">Close</button>
-      </header>
-      <div class="bp-card bp-register-form">
-        <p class="bp-register-actions">
-          <label class="bp-btn" for="cover-modal-file">Upload image</label>
-          <input
-            type="file"
-            id="cover-modal-file"
-            class="hidden"
-            accept="image/jpeg,image/png,image/webp"
-          />
-          <button type="button" id="cover-modal-images-btn" class="bp-btn secondary">Search cover images</button>
-        </p>
-        <p id="cover-modal-msg" class="bp-msg muted"></p>
-        <div id="cover-modal-images" class="bp-cover-images hidden" aria-live="polite"></div>
       </div>
     </div>
     <div id="reader-modal" class="bp-reader-modal hidden" role="dialog" aria-modal="true" aria-labelledby="reader-title">
