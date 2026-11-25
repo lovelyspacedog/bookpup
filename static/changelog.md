@@ -1,5 +1,12 @@
 # BookPup changelog
 
+## 1.6.7
+
+- **Fix — Pack:** Claim-copy reserves attachment under lock so concurrent claims cannot duplicate books.
+- **Fix — Kennel:** Quota usage includes `derived/` cache; chunked import pre-checks declared upload size against cap.
+- **Fix — KOReader:** `POST /users/create` accepts household `accounts.json` pups (MD5 key).
+- **Fix — Security:** Disabled accounts revoke bearer sessions; sideload `HEAD` no longer leaks file metadata; README API table matches auth.
+
 ## 1.6.6
 
 - **Reader:** MOBI→EPUB rebuild **v3** — collapse spaced NCX/`dc:title` labels (e.g. *D ISCOVERY*); Study **Copy study notes** tries `execCommand` when Clipboard API is blocked.

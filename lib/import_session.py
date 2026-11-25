@@ -11,6 +11,7 @@ from pathlib import Path
 from .calibre_import import PART_NAME_RE, import_parts
 from . import koreader_sidecar
 from . import library
+from . import quota
 from . import user_paths
 from .core import CONFIG_DIR
 from .json_atomic import atomic_write_json
@@ -90,6 +91,8 @@ def create_session(parts: list[dict], *, kind: str = "calibre") -> dict:
         catalog[name] = {"size": size, "received": 0}
 
     owner = user_paths.current_user()
+    total = sum(int(row.get("size") or 0) for row in parts)
+    quota.assert_can_store(total, username=owner)
     session_id = secrets.token_urlsafe(16)
     base = _session_dir(session_id)
     base.mkdir(parents=True, exist_ok=True)
@@ -100,7 +103,6 @@ def create_session(parts: list[dict], *, kind: str = "calibre") -> dict:
         "parts": catalog,
     }
     _manifest_path(session_id).write_text(json.dumps(manifest, indent=2) + "\n")
-    total = sum(row["size"] for row in catalog.values())
     return {
         "session_id": session_id,
         "chunk_size": CHUNK_SIZE,

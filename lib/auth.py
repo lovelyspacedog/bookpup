@@ -115,6 +115,8 @@ def session_user(header: str | None) -> str | None:
             _persist_unlocked()
             return None
         if not accounts.get_user(user).get("enabled", True):
+            _sessions.pop(token, None)
+            _persist_unlocked()
             return None
         return user
 

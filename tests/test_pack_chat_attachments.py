@@ -1,7 +1,9 @@
 import json
 import tempfile
+import threading
 import unittest
 from pathlib import Path
+from unittest import mock
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -72,6 +74,51 @@ class PackChatAttachmentsTest(unittest.TestCase):
                 to="bugbot",
                 attachments=[{"type": "kennel_invite", "requester": "bob"}],
             )
+
+    @mock.patch("lib.transfer.send_library_item")
+    def test_pack_chat_attachments_claim_copy_race(self, mock_send: mock.MagicMock) -> None:
+        item = library.list_items()[0]
+        mid = pack_chat.append_message(
+            "alice",
+            "take it",
+            to="bob",
+            attachments=[
+                {
+                    "type": "library_book",
+                    "item_id": item["id"],
+                    "owner": "alice",
+                    "intent": "offer_copy",
+                }
+            ],
+        )
+        gate = threading.Event()
+        release = threading.Event()
+
+        def slow_copy(*_a, **_k):
+            gate.set()
+            release.wait(timeout=2)
+            return {"id": "copy-1", "title": "Book"}
+
+        mock_send.side_effect = slow_copy
+        results: list[str] = []
+
+        def claim() -> None:
+            try:
+                pack_chat.claim_attachment_copy(mid, 0, "bob")
+                results.append("ok")
+            except ValueError as exc:
+                results.append(str(exc))
+
+        first = threading.Thread(target=claim)
+        second = threading.Thread(target=claim)
+        first.start()
+        self.assertTrue(gate.wait(timeout=2))
+        second.start()
+        release.set()
+        first.join(timeout=5)
+        second.join(timeout=5)
+        self.assertEqual(len([r for r in results if r == "ok"]), 1)
+        self.assertEqual(len([r for r in results if "already claimed" in r]), 1)
 
     def test_kennel_invite_attachment(self) -> None:
         mid = pack_chat.append_message(

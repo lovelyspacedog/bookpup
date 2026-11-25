@@ -12,6 +12,7 @@ class PackChatStoreTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         core.CONFIG_DIR = Path(self.tmp.name) / "cfg"
+        core.CONFIG_FILE = core.CONFIG_DIR / "config.json"
         core.ensure_dirs()
         pack_chat.PACK_CHAT_FILE = core.CONFIG_DIR / "pack_chat.json"
         with pack_chat._lock:

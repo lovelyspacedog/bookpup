@@ -18,6 +18,7 @@ from lib.safe_ids import validate_path_segment, validate_username
 from lib.staging import create_staging, staging_dir, _safe_extract_zip
 from lib.url_safety import assert_fetchable_https_url
 from lib.import_session import create_session, finish_session, write_chunk
+import lib.auth as auth
 
 
 class AuditFixesTest(unittest.TestCase):
@@ -104,6 +105,18 @@ class AuditFixesTest(unittest.TestCase):
         out = finish_session(sid)
         self.assertTrue(out.get("item", {}).get("id"))
         self.assertEqual(out["item"]["format"], "txt")
+
+    def test_import_session_rejects_over_quota(self) -> None:
+        user_paths.set_user("alice")
+        accounts.update_user("alice", {"quota_bytes": 50})
+        with self.assertRaises(ValueError):
+            create_session([{"name": "big.bin", "size": 100}], kind="fresh_upload")
+
+    def test_disabled_user_revokes_session(self) -> None:
+        token = auth.create_token("bob")
+        self.assertEqual(auth.session_user(f"Bearer {token}"), "bob")
+        accounts.update_user("bob", {"enabled": False})
+        self.assertIsNone(auth.session_user(f"Bearer {token}"))
 
 
 if __name__ == "__main__":

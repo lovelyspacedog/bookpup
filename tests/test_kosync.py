@@ -33,6 +33,14 @@ class KosyncAuthTest(unittest.TestCase):
         self.assertEqual(kosync.auth_user(headers, cfg), "book")
         self.assertIsNone(kosync.auth_user({**headers, "X-Auth-Key": "bad"}, cfg))
 
+    def test_kosync_create_user_accounts_json(self) -> None:
+        accounts.create_user("bob", "secret456")
+        cfg = {"username": "book", "password": "secret123"}
+        key = hashlib.md5(b"secret456").hexdigest()
+        code, data = kosync.create_user({"username": "bob", "password": key}, cfg)
+        self.assertEqual(code, 201)
+        self.assertEqual(data.get("username"), "bob")
+
 
 class PartialMd5Test(unittest.TestCase):
     def test_partial_md5_stable(self):

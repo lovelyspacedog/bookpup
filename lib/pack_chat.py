@@ -410,15 +410,34 @@ def claim_attachment_copy(message_id: int, attachment_index: int, claimer: str) 
         item_id = str(att.get("item_id") or "")
         if not owner or not item_id or owner == who:
             raise ValueError("Invalid attachment")
-    item = transfer.send_library_item(owner, who, item_id)
-    with _lock:
-        row = next(m for m in _messages if int(m["id"]) == int(message_id))
-        atts = list(row.get("attachments") or [])
-        att = dict(atts[ai])
+        att = dict(att)
         att["claimed_by"] = who
         atts[ai] = att
         row["attachments"] = atts
+        _messages[idx] = row
         _persist_unlocked()
+    try:
+        item = transfer.send_library_item(owner, who, item_id)
+    except Exception:
+        with _lock:
+            idx = next(
+                (i for i, m in enumerate(_messages) if int(m["id"]) == int(message_id)), None
+            )
+            if idx is not None:
+                row = _messages[idx]
+                atts = list(row.get("attachments") or [])
+                if 0 <= ai < len(atts) and isinstance(atts[ai], dict):
+                    cur = dict(atts[ai])
+                    if cur.get("claimed_by") == who:
+                        cur.pop("claimed_by", None)
+                        atts[ai] = cur
+                        row["attachments"] = atts
+                        _messages[idx] = row
+                        _persist_unlocked()
+        raise
+    with _lock:
+        row = next(m for m in _messages if int(m["id"]) == int(message_id))
+        att = dict((row.get("attachments") or [])[ai])
     return {"item": item, "attachment": att}
 
 

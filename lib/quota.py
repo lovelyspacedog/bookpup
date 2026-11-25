@@ -45,6 +45,7 @@ def library_usage_for(username: str) -> dict:
     cap = accounts.quota_bytes(username)
     used = dir_bytes(user_paths.library_dir(username))
     used += dir_bytes(user_paths.covers_dir(username))
+    used += dir_bytes(user_paths.derived_dir(username))
     return {
         "used_bytes": used,
         "quota_bytes": cap,

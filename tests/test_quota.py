@@ -49,6 +49,15 @@ class QuotaTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             quota.assert_can_store(200)
 
+    def test_quota_includes_derived(self) -> None:
+        d = user_paths.derived_dir("book")
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "cache.epub").write_bytes(b"x" * 300)
+        f = user_paths.library_dir("book") / "a.epub"
+        f.write_bytes(b"x" * 100)
+        usage = quota.library_usage()
+        self.assertEqual(usage["used_bytes"], 400)
+
 
 if __name__ == "__main__":
     unittest.main()

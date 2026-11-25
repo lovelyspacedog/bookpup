@@ -145,6 +145,15 @@ def sync_reading_to_document(item_id: str, *, percentage: float | None, progress
 def create_user(body: dict[str, Any], config: dict) -> tuple[int, dict]:
     username = str(body.get("username") or "").strip()
     password = str(body.get("password") or "").strip().lower()
+    accounts.migrate_legacy()
+    row = accounts.get_user(username)
+    if row:
+        expected = hashlib.md5(str(row.get("password") or "").encode("utf-8")).hexdigest().lower()
+        if password == expected and row.get("enabled", True):
+            return 201, {"username": username}
+        if password == expected:
+            return 401, {"code": 2001, "message": "Unauthorized"}
+        return 402, {"code": 2004, "message": "User exists"}
     cfg_user = str(config.get("username") or "book").strip()
     cfg_pass = hashlib.md5(str(config.get("password") or "").encode("utf-8")).hexdigest().lower()
     if username == cfg_user and password == cfg_pass:
