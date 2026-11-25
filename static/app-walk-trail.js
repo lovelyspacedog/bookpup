@@ -733,7 +733,7 @@
     {
       id: "kennel",
       title: "Fresh catches",
-      body: "Kennel opens at the top — scroll down through Fresh catches until you spot your practice .mobi, then tap Next.",
+      body: "Kennel opens at the top — scroll Fresh catches for your practice .mobi. Tap Tag to open the tag dialog when ready, or Next once you see it.",
       selector: "#tab-library",
       placement: "top",
       mobileTip: "top",

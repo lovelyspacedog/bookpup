@@ -1417,11 +1417,15 @@
   const registerCoverImages = document.getElementById("register-cover-images");
   const registerCoverFileHint = document.getElementById("register-cover-file-hint");
   const registerCoverFile = document.getElementById("reg-cover-file");
+  const registerCoverPreview = document.getElementById("register-cover-preview");
+  const registerCoverPreviewImg = document.getElementById("register-cover-preview-img");
   const coverModal = document.getElementById("cover-modal");
   const coverModalMsg = document.getElementById("cover-modal-msg");
   const coverModalImages = document.getElementById("cover-modal-images");
   const coverModalFile = document.getElementById("cover-modal-file");
   let registerItemId = null;
+  let registerItem = null;
+  let registerCoverPreviewObjectUrl = null;
   let registerMode = "register";
   const registerModalTitle = document.getElementById("register-modal-title");
   const registerSubmitBtn = document.getElementById("register-submit");
@@ -1430,6 +1434,49 @@
 
   function registerField(id) {
     return document.getElementById(id);
+  }
+
+  function clearRegisterCoverPreview() {
+    if (registerCoverPreviewObjectUrl) {
+      URL.revokeObjectURL(registerCoverPreviewObjectUrl);
+      registerCoverPreviewObjectUrl = null;
+    }
+    if (registerCoverPreviewImg) {
+      registerCoverPreviewImg.removeAttribute("src");
+      registerCoverPreviewImg.alt = "";
+    }
+    if (registerCoverPreview) {
+      registerCoverPreview.classList.add("hidden");
+      registerCoverPreview.setAttribute("aria-hidden", "true");
+    }
+  }
+
+  function showRegisterCoverPreview(url, alt) {
+    if (!url || !registerCoverPreviewImg || !registerCoverPreview) return;
+    registerCoverPreviewImg.src = url;
+    registerCoverPreviewImg.alt = alt || "Cover preview";
+    registerCoverPreview.classList.remove("hidden");
+    registerCoverPreview.setAttribute("aria-hidden", "false");
+  }
+
+  async function refreshRegisterCoverPreview() {
+    clearRegisterCoverPreview();
+    if (!registerItem) return;
+    const pickedUrl = (registerField("reg-cover-url")?.value || "").trim();
+    if (pickedUrl) {
+      showRegisterCoverPreview(pickedUrl, registerItem.title || "Selected cover");
+      return;
+    }
+    const pendingFile = registerCoverFile?.files?.[0];
+    if (pendingFile) {
+      registerCoverPreviewObjectUrl = URL.createObjectURL(pendingFile);
+      showRegisterCoverPreview(registerCoverPreviewObjectUrl, pendingFile.name || "Upload preview");
+      return;
+    }
+    if (registerItem.has_cover) {
+      const url = await coverUrlForItem(registerItem);
+      if (url) showRegisterCoverPreview(url, registerItem.title || "Current cover");
+    }
   }
 
   function validateCoverFile(file) {
@@ -1549,6 +1596,8 @@
   function closeRegisterModal() {
     if (registerModal) registerModal.classList.add("hidden");
     registerItemId = null;
+    registerItem = null;
+    clearRegisterCoverPreview();
     registerMode = "register";
     if (registerModalTitle) registerModalTitle.textContent = "Tag this book";
     if (registerSubmitBtn) registerSubmitBtn.textContent = "Tag it";
@@ -1637,6 +1686,7 @@
       registerCoverFileHint.textContent = "";
     }
     setRegisterDetailsOpen(registerDetailsHasContent(item));
+    void refreshRegisterCoverPreview();
   }
 
   function applyMetadataCandidate(row) {
@@ -1657,12 +1707,14 @@
       registerMsg.textContent = `Selected match (${row.source || "online"}).`;
       registerMsg.className = "bp-msg muted";
     }
+    void refreshRegisterCoverPreview();
   }
 
   function openRegisterModal(item) {
     if (!isStagedItem(item)) return;
     registerMode = "register";
     registerItemId = item.id;
+    registerItem = item;
     if (registerModalTitle) registerModalTitle.textContent = "Tag this book";
     if (registerSubmitBtn) registerSubmitBtn.textContent = "Tag it";
     fillRegisterForm(item);
@@ -1675,6 +1727,7 @@
     if (!isRegisteredItem(item)) return;
     registerMode = "edit";
     registerItemId = item.id;
+    registerItem = item;
     if (registerModalTitle) registerModalTitle.textContent = "Edit tags";
     if (registerSubmitBtn) registerSubmitBtn.textContent = "Save";
     fillRegisterForm(item);
@@ -1827,6 +1880,7 @@
           registerMsg.textContent = "Selected cover image (will download when you Tag it).";
           registerMsg.className = "bp-msg muted";
         }
+        void refreshRegisterCoverPreview();
       },
       coverSearchBtn
     );
@@ -1835,6 +1889,8 @@
     const file = registerCoverFile.files?.[0];
     if (!file) {
       if (registerCoverFileHint) registerCoverFileHint.classList.add("hidden");
+      registerField("reg-cover-url").value = "";
+      void refreshRegisterCoverPreview();
       return;
     }
     const v = validateCoverFile(file);
@@ -1846,6 +1902,8 @@
     if (!v) {
       const useCover = document.getElementById("register-use-cover");
       if (useCover) useCover.checked = false;
+      registerField("reg-cover-url").value = "";
+      void refreshRegisterCoverPreview();
     }
   });
   document.getElementById("cover-modal-close")?.addEventListener("click", () => closeCoverModal());

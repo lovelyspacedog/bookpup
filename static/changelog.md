@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.26
+
+- **UX — Kennel:** Tag dialog shows live cover preview (current jacket, upload, or web pick); cover-only dialog buttons align with tag flow; Walk the Trail kennel step mentions tag dialog.
+
 ## 1.7.25
 
 - **UX:** Kennel, Pack, and account dialogs (toss, share, send, cover, etc.) use the same centered dialog shell as Tag.
