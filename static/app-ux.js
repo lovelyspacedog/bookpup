@@ -147,6 +147,8 @@
       }
       modal.dataset.mode = light ? "light" : "phrase";
       modal.dataset.phrase = phrase;
+      modal.setAttribute("data-toss-light", light ? "1" : "0");
+      modal.setAttribute("data-toss-phrase", light ? "" : phrase);
       if (titleEl) titleEl.textContent = light ? "Remove fresh catch" : "Toss from kennel";
       if (lede) {
         lede.textContent = light

@@ -14,6 +14,7 @@ from .mobi_convert import mobi_to_epub
 VIEW_NATIVE = frozenset({"epub", "pdf", "txt", "cbz", "cbr", "cb7", "md", "html"})
 VIEW_MOBILE_CONVERT = frozenset({"mobi", "azw3", "azw", "prc"})
 VIEW_CALIBRE_CONVERT = frozenset({"fb2", "lit", "chm", "rtf", "djvu"})
+MOBI_DERIVED_VERSION = 2
 
 
 def _derived_dir() -> Path:
@@ -97,7 +98,14 @@ def prepare_view(item_id: str) -> dict:
         }
     if fmt in VIEW_MOBILE_CONVERT:
         out = _derived_dir() / f"{item_id}.epub"
-        if not out.is_file() or out.stat().st_mtime < src.stat().st_mtime:
+        stamp = out.with_suffix(".epub.version")
+        stale_stamp = True
+        if stamp.is_file():
+            try:
+                stale_stamp = int(stamp.read_text().strip()) < MOBI_DERIVED_VERSION
+            except (OSError, ValueError):
+                stale_stamp = True
+        if not out.is_file() or out.stat().st_mtime < src.stat().st_mtime or stale_stamp:
             tmp = out.with_suffix(".tmp.epub")
             if tmp.is_file():
                 tmp.unlink()
@@ -120,6 +128,7 @@ def prepare_view(item_id: str) -> dict:
                         f"Conversion failed: mobi: {mobi_err}; calibre: {cal_msg}"
                     ) from cal_err
             tmp.replace(out)
+            stamp.write_text(str(MOBI_DERIVED_VERSION))
         return {
             "format": "epub",
             "path": str(out),

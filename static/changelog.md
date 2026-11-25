@@ -1,5 +1,11 @@
 # BookPup changelog
 
+## 1.6.5
+
+- **Kennel:** **Upload file** over ~3 MB uses chunked session (same as Calibre import) so slow links avoid proxy timeout (**O3**).
+- **Reader:** MOBI unpack strips justify/letter-spacing from HTML; derived EPUB cache version **2** rebuilds converted books.
+- **UX:** Toss modal exposes `data-toss-phrase` / `data-toss-light` for automation hooks.
+
 ## 1.6.4
 
 - **Fix — Sniff:** Zero-match searches clear open results and status instead of sticking on *Querying…*; workspace draft syncs to **0** rows.

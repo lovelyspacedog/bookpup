@@ -108,6 +108,24 @@ class SmokeApiTests(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(body.get("koreader_sync_url"), "https://smoke.example.test")
 
+    def test_fresh_upload_session_create(self) -> None:
+        _, login = self._request(
+            "POST",
+            "/api/login",
+            {"username": "book", "password": "secret"},
+        )
+        token = login["token"]
+        headers = {"Authorization": f"Bearer {token}", "X-Bookpup": "1"}
+        code, body = self._request(
+            "POST",
+            "/api/library/upload/session",
+            {"parts": [{"name": "smoke.txt", "size": 4}]},
+            headers=headers,
+        )
+        self.assertEqual(code, 201)
+        self.assertTrue(body.get("session_id"))
+        self.assertEqual(body.get("chunk_size"), 4 * 1024 * 1024)
+
     def test_search_saved_list(self) -> None:
         _, login = self._request(
             "POST",

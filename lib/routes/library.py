@@ -36,6 +36,7 @@ from ._types import RequestHandler
 _IMPORT_SESSION_PREFIXES = (
     "/api/library/import-calibre/session/",
     "/api/library/koreader/import/session/",
+    "/api/library/upload/session/",
 )
 
 
@@ -217,6 +218,9 @@ def try_post_early(handler: RequestHandler, path: str, length: int) -> bool:
     if path == "/api/library/import-calibre/session":
         handler.dispatch(lambda: route_import_session_create(handler, length))
         return True
+    if path == "/api/library/upload/session":
+        handler.dispatch(lambda: route_fresh_upload_session_create(handler, length))
+        return True
     if path.startswith("/api/library/import-calibre/session/") and path.endswith("/chunk"):
         handler.dispatch(lambda: route_import_chunk(handler, path, length))
         return True
@@ -311,6 +315,14 @@ def route_koreader_session_create(handler: RequestHandler, length: int) -> None:
     if not isinstance(parts, list):
         raise ValueError("parts array required")
     handler.send_json(201, create_session(parts, kind="koreader"))
+
+
+def route_fresh_upload_session_create(handler: RequestHandler, length: int) -> None:
+    body = handler.read_json(length)
+    parts = body.get("parts")
+    if not isinstance(parts, list):
+        raise ValueError("parts array required")
+    handler.send_json(201, create_session(parts, kind="fresh_upload"))
 
 
 def route_import_chunk(handler: RequestHandler, path: str, length: int) -> None:

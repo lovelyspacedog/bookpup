@@ -1905,22 +1905,34 @@
         freshUploadStatus.className = "bp-msg muted";
       }
       try {
-        const fd = new FormData();
-        fd.append("file", file, file.name);
-        const res = await fetch("/api/library/upload", {
-          method: "POST",
-          headers: { ...CSRF, ...(BP.state.authHeader ? { Authorization: BP.state.authHeader } : {}) },
-          body: fd,
-        });
-        const text = await res.text();
-        let data = {};
-        try {
-          data = text ? JSON.parse(text) : {};
-        } catch {
+        const CHUNKED_UPLOAD_MIN = 3 * 1024 * 1024;
+        let data;
+        if (file.size > CHUNKED_UPLOAD_MIN) {
+          setUploadProgress(0, "Uploading (chunked)…");
+          data = await uploadImportSession(
+            "/api/library/upload/session",
+            "/api/library/upload/session/",
+            [file]
+          );
+          hideUploadProgress();
+        } else {
+          const fd = new FormData();
+          fd.append("file", file, file.name);
+          const res = await fetch("/api/library/upload", {
+            method: "POST",
+            headers: { ...CSRF, ...(BP.state.authHeader ? { Authorization: BP.state.authHeader } : {}) },
+            body: fd,
+          });
+          const text = await res.text();
           data = {};
-        }
-        if (!res.ok) {
-          throw new Error((data && data.error) || res.statusText || "Upload failed");
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch {
+            data = {};
+          }
+          if (!res.ok) {
+            throw new Error((data && data.error) || res.statusText || "Upload failed");
+          }
         }
         if (freshUploadStatus) {
           freshUploadStatus.textContent = "Added to Fresh catches.";
@@ -1929,6 +1941,7 @@
         BP.showAppToast("Kennel", (data.item && data.item.title) || file.name + " uploaded", "ok");
         loadLibrary();
       } catch (err) {
+        hideUploadProgress();
         if (freshUploadStatus) {
           freshUploadStatus.textContent = err.message || "Upload failed";
           freshUploadStatus.className = "bp-msg err";

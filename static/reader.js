@@ -1266,11 +1266,21 @@
         });
         if (meta.converted) {
           activeRendition.themes.register("mobi-pack-fix", {
-            body: { "letter-spacing": "normal", "word-spacing": "normal" },
-            p: { "letter-spacing": "normal", "word-spacing": "normal", "text-align": "start" },
-            h1: { "letter-spacing": "normal", "word-spacing": "normal" },
-            h2: { "letter-spacing": "normal", "word-spacing": "normal" },
-            h3: { "letter-spacing": "normal", "word-spacing": "normal" },
+            body: {
+              "letter-spacing": "normal",
+              "word-spacing": "normal",
+              "text-align": "start",
+              "font-variant": "normal",
+            },
+            p: {
+              "letter-spacing": "normal",
+              "word-spacing": "normal",
+              "text-align": "start",
+              "font-variant": "normal",
+            },
+            h1: { "letter-spacing": "normal", "word-spacing": "normal", "font-variant": "normal" },
+            h2: { "letter-spacing": "normal", "word-spacing": "normal", "font-variant": "normal" },
+            h3: { "letter-spacing": "normal", "word-spacing": "normal", "font-variant": "normal" },
             a: { "letter-spacing": "normal", "word-spacing": "normal" },
             nav: { "letter-spacing": "normal", "word-spacing": "normal" },
           });

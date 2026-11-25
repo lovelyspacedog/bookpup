@@ -10,6 +10,7 @@ from pathlib import Path
 
 from .calibre_import import PART_NAME_RE, import_parts
 from . import koreader_sidecar
+from . import library
 from . import user_paths
 from .core import CONFIG_DIR
 from .json_atomic import atomic_write_json
@@ -63,6 +64,13 @@ def _validate_part_name(name: str, kind: str) -> None:
     elif kind == "koreader":
         if not KOREADER_PART_RE.match(name):
             raise ValueError(f"Invalid upload name (use .lua or .zip): {name}")
+    elif kind == "fresh_upload":
+        base = Path(name).name
+        if base != name or not base:
+            raise ValueError(f"Invalid upload name: {name}")
+        ext = Path(base).suffix.lower()
+        if ext not in library.UPLOAD_EXTS:
+            raise ValueError(f"Unsupported upload type ({ext or 'none'})")
     else:
         raise ValueError(f"Unknown import kind: {kind}")
 
@@ -178,6 +186,12 @@ def finish_session(session_id: str) -> dict:
     if not paths:
         raise ValueError("No upload files on disk")
     try:
+        if kind == "fresh_upload":
+            if len(paths) != 1:
+                raise ValueError("Upload one file per session")
+            path = paths[0]
+            item = library.add_upload(path.read_bytes(), path.name, title_hint=path.stem)
+            return {"item": item, "library": library.status()}
         if kind == "koreader":
             return koreader_sidecar.import_upload(paths)
         calibre_paths = [p for p in paths if PART_NAME_RE.match(p.name)]

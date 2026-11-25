@@ -2,10 +2,33 @@
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 import zipfile
 from pathlib import Path
+
+_INLINE_STYLE_FIXES = (
+    (re.compile(r"letter-spacing\s*:\s*[^;\"']+;?", re.I), ""),
+    (re.compile(r"word-spacing\s*:\s*[^;\"']+;?", re.I), ""),
+    (re.compile(r"text-justify\s*:\s*[^;\"']+;?", re.I), ""),
+    (re.compile(r"font-variant(?:-[\w-]+)?\s*:\s*small-caps[^;\"']*;?", re.I), ""),
+    (re.compile(r"text-align\s*:\s*justify;?", re.I), "text-align:left;"),
+)
+
+
+def _sanitize_mobi7_html(root: Path) -> None:
+    """Strip Kindle unpack styles that break nav/title typography in epub.js."""
+    for path in root.rglob("*.html"):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        orig = text
+        for pattern, repl in _INLINE_STYLE_FIXES:
+            text = pattern.sub(repl, text)
+        if text != orig:
+            path.write_text(text, encoding="utf-8")
 
 
 def _vendor_path() -> Path:
@@ -61,6 +84,7 @@ def mobi_to_epub(src: Path, dest: Path) -> None:
             mobi7 = fp.parent
             if mobi7.name != "mobi7":
                 mobi7 = Path(tempdir) / "mobi7"
+            _sanitize_mobi7_html(mobi7)
             _repack_mobi7_to_epub(mobi7, dest)
             return
         if suffix == ".pdf":

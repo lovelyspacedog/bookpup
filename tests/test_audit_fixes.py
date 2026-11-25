@@ -17,7 +17,7 @@ import lib.user_paths as user_paths
 from lib.safe_ids import validate_path_segment, validate_username
 from lib.staging import create_staging, staging_dir, _safe_extract_zip
 from lib.url_safety import assert_fetchable_https_url
-from lib.import_session import create_session, write_chunk
+from lib.import_session import create_session, finish_session, write_chunk
 
 
 class AuditFixesTest(unittest.TestCase):
@@ -95,6 +95,15 @@ class AuditFixesTest(unittest.TestCase):
         job = jobs.create_job("download", owner="alice")
         jobs.cancel_job(job["id"])
         self.assertIsNone(jobs.complete_job_success(job["id"]))
+
+    def test_fresh_upload_session(self) -> None:
+        user_paths.set_user("alice")
+        sess = create_session([{"name": "trail.txt", "size": 11}], kind="fresh_upload")
+        sid = sess["session_id"]
+        write_chunk(sid, "trail.txt", 0, b"hello trail")
+        out = finish_session(sid)
+        self.assertTrue(out.get("item", {}).get("id"))
+        self.assertEqual(out["item"]["format"], "txt")
 
 
 if __name__ == "__main__":

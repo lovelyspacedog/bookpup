@@ -8,7 +8,7 @@ import secrets
 import sys
 from pathlib import Path
 
-VERSION = "1.6.4"
+VERSION = "1.6.5"
 CONFIG_DIR = Path.home() / ".config" / "bookpup"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 JOBS_DIR = CONFIG_DIR / "jobs"
