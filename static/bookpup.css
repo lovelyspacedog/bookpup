@@ -803,7 +803,13 @@ button.bp-header-ver {
 
 .bp-btn.primary {
   background: var(--accent, #5a8);
-  color: #111;
+  color: var(--on-accent, #111);
+  border-color: transparent;
+}
+
+.bp-btn.secondary {
+  background: var(--accent-2, #ff4fa3);
+  color: var(--on-accent, #111);
   border-color: transparent;
 }
 

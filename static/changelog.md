@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.16
+
+- **UX:** In the tagging dialog, **Search Online** and **Search cover images** use the pink accent so they stand out like **Tag it**.
+
 ## 1.7.15
 
 - **Fix — Walk the Trail:** tossing the practice .mobi no longer resurrects it after sign-out; practice sniff rows clear when the tour finishes.
