@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.27
+
+- **Fix — Walk the Trail:** Tag dialog no longer yanks focus back to Title every poll tick; you can edit author and tags during the tour.
+
 ## 1.7.26
 
 - **UX — Kennel:** Tag dialog shows live cover preview (current jacket, upload, or web pick); cover-only dialog buttons align with tag flow; Walk the Trail kennel step mentions tag dialog.

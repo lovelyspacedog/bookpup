@@ -914,12 +914,6 @@
     if (tagModal) {
       clearFocusTarget();
       layoutSpotRing(null);
-      const titleInput = document.getElementById("reg-title");
-      try {
-        titleInput?.focus({ preventScroll: true });
-      } catch {
-        /* ignore */
-      }
       const tip = tipEl();
       if (tip) {
         tip.classList.remove("bp-walk-trail-tip--dock");
