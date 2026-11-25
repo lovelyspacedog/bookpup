@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.11
+
+- **UX:** browser tab favicon is the **hound head** mark (32px); **apple-touch** / PWA icons stay the full kennel.
+
 ## 1.7.10
 
 - **UX — Sign-in:** login shield sits above the **BookPup** title for a clearer centered brand on the sign-in card.
