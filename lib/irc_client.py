@@ -151,6 +151,27 @@ def is_search_results_dcc_filename(filename: str) -> bool:
     return "searchbot_results" in fn or fn.endswith(".txt.zip")
 
 
+def is_oatmeal_interim_search_dcc_filename(filename: str) -> bool:
+    """Undernet Oatmeal @search zip — often arrives before SearchBot; not !command lines."""
+    return "oatmeal_search" in (filename or "").lower()
+
+
+def _search_dcc_pick_index(offers: list[DccOffer], *, allow_oatmeal: bool) -> int | None:
+    candidates: list[tuple[int, int]] = []
+    for i, offer in enumerate(offers):
+        if not is_search_results_dcc_filename(offer.filename):
+            continue
+        if is_oatmeal_interim_search_dcc_filename(offer.filename) and not allow_oatmeal:
+            continue
+        rank = 0 if "searchbot_results" in offer.filename.lower() else 1
+        if is_oatmeal_interim_search_dcc_filename(offer.filename):
+            rank = 2
+        candidates.append((rank, i))
+    if not candidates:
+        return None
+    return min(candidates, key=lambda pair: (pair[0], offers[pair[1]].size))[1]
+
+
 def _parse_dcc_payload(payload: str) -> DccOffer | None:
     text = payload.strip().strip("\x01")
     if not text.upper().startswith("DCC SEND"):
@@ -467,11 +488,18 @@ class IrcSession:
                     kept.append(offer)
             self._pending_dcc = kept
 
-    def _take_dcc_offer(self, *, search_mode: bool) -> DccOffer | None:
+    def _take_dcc_offer(
+        self, *, search_mode: bool, allow_oatmeal: bool = False
+    ) -> DccOffer | None:
         if not self._pending_dcc:
             return None
         if search_mode:
-            return self._pending_dcc.pop(0)
+            idx = _search_dcc_pick_index(
+                self._pending_dcc, allow_oatmeal=allow_oatmeal
+            )
+            if idx is None:
+                return None
+            return self._pending_dcc.pop(idx)
         while self._pending_dcc:
             offer = self._pending_dcc.pop(0)
             if is_search_results_dcc_filename(offer.filename):
@@ -514,9 +542,8 @@ class IrcSession:
             self._extend_book_offer_deadline()
 
     def wait_dcc(self, timeout: float, *, search_mode: bool = False) -> DccOffer:
-        if search_mode:
-            deadline = time.monotonic() + timeout
-        else:
+        search_deadline = time.monotonic() + timeout if search_mode else None
+        if not search_mode:
             with self._dcc_cond:
                 self._book_offer_deadline = time.monotonic() + timeout
         with self._dcc_cond:
@@ -536,17 +563,20 @@ class IrcSession:
                         raise DownloadRequestError(
                             self._book_abort_reason or "Download refused by IRC bots"
                         )
-                    offer = self._take_dcc_offer(search_mode=search_mode)
-                    if offer is not None:
-                        return offer
-                    if not self.is_alive():
-                        raise ConnectionError(self.last_error or "IRC disconnected")
                     deadline = (
-                        time.monotonic() + timeout
+                        search_deadline
                         if search_mode
                         else self._book_offer_deadline
                     )
                     remaining = deadline - time.monotonic()
+                    allow_oatmeal = search_mode and remaining <= 0
+                    offer = self._take_dcc_offer(
+                        search_mode=search_mode, allow_oatmeal=allow_oatmeal
+                    )
+                    if offer is not None:
+                        return offer
+                    if not self.is_alive():
+                        raise ConnectionError(self.last_error or "IRC disconnected")
                     if remaining <= 0:
                         if search_mode:
                             raise TimeoutError("DCC offer timed out")

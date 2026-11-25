@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.17
+
+- **Sniff — Fix:** Undernet `@search` waits for SearchBot’s results zip instead of taking Oatmeal’s interim catalogue file (which had no fetchable `!` rows).
+
 ## 1.7.16
 
 - **UX:** In the tagging dialog, **Search Online** and **Search cover images** use the pink accent so they stand out like **Tag it**.
