@@ -32,6 +32,7 @@ from .irc_targets import (
     search_target_ids,
 )
 from . import gutenberg_fetch
+from . import irc_fetch_fallback
 from .search_results import parse_results_text, parse_results_zip
 from .staging import create_staging
 from . import soulseek_search
@@ -577,11 +578,22 @@ class IrcWorker:
                         dest_path=dest,
                         on_status=lambda m: jobs.set_irc_status(job_id, m),
                     )
-                    if fb is None:
-                        raise
-                    irc_feed.append_session(fb.feed)
-                    job["gutenberg_fallback"] = True
-                    offer = fb.offer
+                    if fb is not None:
+                        irc_feed.append_session(fb.feed)
+                        job["gutenberg_fallback"] = True
+                        offer = fb.offer
+                    else:
+                        offer = irc_fetch_fallback.try_other_irc_networks(
+                            self,
+                            job_id=job_id,
+                            job=job,
+                            failed_target_id=target.id,
+                            dest=dest,
+                            max_bytes=_dcc_byte_cap_for_job(job),
+                            title=str(job.get("title") or ""),
+                            command=irc_cmd,
+                            first_reason=str(exc),
+                        )
             final = dest
             safe_name = offer.filename.replace('"', "").strip()
             if safe_name and "." in safe_name:

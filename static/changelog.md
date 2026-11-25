@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.13
+
+- **Fetch:** when bots refuse a book on one IRC trail, BookPup tries the other ebook networks (cached sniff rows first, then a fresh `@search` per net) before marking the fetch failed.
+
 ## 1.7.12
 
 - **Kennel:** **In progress** filter and **Last read** sort; progress pills on catalogued covers; **Surprise me** opens a random readable book; **Copy link** shares a Kennel deep link; Tag warns when a similar title is already catalogued (confirm to continue).
