@@ -864,62 +864,83 @@
         <p class="muted">Loading…</p>
       </article>
     </div>
-    <div id="register-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true">
-      <header class="bp-register-head">
-        <h2 id="register-modal-title">Tag this book</h2>
-        <button type="button" id="register-close" class="bp-btn">Close</button>
-      </header>
-      <form id="register-form" class="bp-card bp-register-form">
-        <input type="hidden" id="reg-cover-url" name="cover_url" value="" />
-        <label for="reg-title">Title</label>
-        <input id="reg-title" name="title" required />
-        <label for="reg-authors">Authors</label>
-        <input id="reg-authors" name="authors" />
-        <label for="reg-isbn">ISBN</label>
-        <input id="reg-isbn" name="isbn" inputmode="numeric" autocomplete="off" />
-        <label for="reg-series">Series</label>
-        <input id="reg-series" name="series" />
-        <label for="reg-series-index">Series #</label>
-        <input id="reg-series-index" name="series_index" type="number" step="any" />
-        <label for="reg-publisher">Publisher</label>
-        <input id="reg-publisher" name="publisher" />
-        <label for="reg-pubdate">Published</label>
-        <input id="reg-pubdate" name="pubdate" />
-        <label for="reg-tags">Tags</label>
-        <input id="reg-tags" name="tags" />
-        <label for="reg-comments">Description</label>
-        <textarea id="reg-comments" name="comments" rows="4"></textarea>
-        <p class="bp-register-actions">
-          <button type="button" id="register-search-btn" class="bp-btn secondary">Search Online</button>
-        </p>
-        <div id="register-results" class="bp-register-results hidden" aria-live="polite"></div>
-        <fieldset class="bp-cover-fieldset">
-          <legend>Cover art</legend>
-          <p class="bp-register-actions">
-            <label class="bp-btn" for="reg-cover-file">Upload image</label>
-            <input
-              type="file"
-              id="reg-cover-file"
-              class="hidden"
-              accept="image/jpeg,image/png,image/webp"
-            />
-            <button type="button" id="register-cover-images-btn" class="bp-btn secondary">
-              Search cover images
-            </button>
+    <div
+      id="register-modal"
+      class="bp-register-modal bp-dialog hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="register-modal-title"
+    >
+      <div class="bp-dialog__panel bp-dialog__panel--tag">
+        <header class="bp-dialog__head bp-register-head">
+          <h2 id="register-modal-title">Tag this book</h2>
+          <button type="button" id="register-close" class="bp-btn">Close</button>
+        </header>
+        <form id="register-form" class="bp-dialog__body bp-register-form">
+          <input type="hidden" id="reg-cover-url" name="cover_url" value="" />
+          <div class="bp-register-layout">
+            <div class="bp-register-main">
+              <label for="reg-title">Title</label>
+              <input id="reg-title" name="title" required />
+              <label for="reg-authors">Authors</label>
+              <input id="reg-authors" name="authors" />
+              <label for="reg-tags">Tags</label>
+              <input id="reg-tags" name="tags" />
+              <details id="reg-details-more" class="bp-register-details">
+                <summary>More details</summary>
+                <label for="reg-isbn">ISBN</label>
+                <input id="reg-isbn" name="isbn" inputmode="numeric" autocomplete="off" />
+                <label for="reg-series">Series</label>
+                <input id="reg-series" name="series" />
+                <label for="reg-series-index">Series #</label>
+                <input id="reg-series-index" name="series_index" type="number" step="any" />
+                <label for="reg-publisher">Publisher</label>
+                <input id="reg-publisher" name="publisher" />
+                <label for="reg-pubdate">Published</label>
+                <input id="reg-pubdate" name="pubdate" />
+                <label for="reg-comments">Description</label>
+                <textarea id="reg-comments" name="comments" rows="4"></textarea>
+              </details>
+            </div>
+            <aside class="bp-register-aside" aria-label="Cover art and online match">
+              <h3 class="bp-register-aside__title">Cover art</h3>
+              <div id="register-cover-preview" class="bp-register-cover-preview hidden" aria-hidden="true">
+                <img id="register-cover-preview-img" alt="" />
+              </div>
+              <p class="bp-register-actions bp-register-aside__actions">
+                <label class="bp-btn" for="reg-cover-file">Upload image</label>
+                <input
+                  type="file"
+                  id="reg-cover-file"
+                  class="hidden"
+                  accept="image/jpeg,image/png,image/webp"
+                />
+                <button type="button" id="register-cover-images-btn" class="bp-btn secondary">
+                  Search cover images
+                </button>
+              </p>
+              <p id="register-cover-file-hint" class="bp-msg muted hidden"></p>
+              <div id="register-cover-images" class="bp-cover-images hidden" aria-live="polite"></div>
+              <label class="bp-check">
+                <input type="checkbox" id="register-use-cover" />
+                Use cover from selected match
+              </label>
+              <h3 class="bp-register-aside__title">Match from web</h3>
+              <p class="bp-register-actions bp-register-aside__actions">
+                <button type="button" id="register-search-btn" class="bp-btn secondary">Search Online</button>
+              </p>
+              <div id="register-results" class="bp-register-results hidden" aria-live="polite"></div>
+            </aside>
+          </div>
+        </form>
+        <footer class="bp-dialog__foot">
+          <p id="register-msg" class="bp-msg muted"></p>
+          <p class="bp-register-actions bp-dialog__foot-actions">
+            <button type="submit" id="register-submit" class="bp-btn primary" form="register-form">Tag it</button>
+            <button type="button" id="register-cancel" class="bp-btn">Cancel</button>
           </p>
-          <p id="register-cover-file-hint" class="bp-msg muted hidden"></p>
-          <div id="register-cover-images" class="bp-cover-images hidden" aria-live="polite"></div>
-        </fieldset>
-        <label class="bp-check">
-          <input type="checkbox" id="register-use-cover" />
-          Use cover from selected match
-        </label>
-        <p id="register-msg" class="bp-msg muted"></p>
-        <p class="bp-register-actions">
-          <button type="submit" id="register-submit" class="bp-btn primary">Tag it</button>
-          <button type="button" id="register-cancel" class="bp-btn">Cancel</button>
-        </p>
-      </form>
+        </footer>
+      </div>
     </div>
     <div id="shelf-name-modal" class="bp-register-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shelf-name-modal-title">
       <header class="bp-register-head">

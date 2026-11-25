@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.7.24
+
+- **UX — Kennel:** **Tag this book** / **Edit tags** use a centered dialog (essentials, **More details**, cover + online match in a side column on desktop).
+- **Walk the Trail:** tag-step coach copy and layout match the new tag dialog (essentials only during the tour).
+
 ## 1.7.23
 
 - **Sniff — Soulseek:** Longer slskd poll window so slow searches finish before BookPup gives up; **in progress** status while peers respond; “still searching, retry” instead of false **no matches** when nothing has arrived yet.

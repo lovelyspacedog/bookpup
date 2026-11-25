@@ -1595,6 +1595,24 @@
     document.body.classList.add("bp-reader-open");
   }
 
+  function registerDetailsHasContent(item) {
+    if (!item) return false;
+    const si = item.series_index;
+    return !!(
+      (item.isbn && String(item.isbn).trim()) ||
+      (item.series && String(item.series).trim()) ||
+      (si != null && si !== "") ||
+      (item.publisher && String(item.publisher).trim()) ||
+      (item.pubdate && String(item.pubdate).trim()) ||
+      (item.comments && String(item.comments).trim())
+    );
+  }
+
+  function setRegisterDetailsOpen(open) {
+    const details = document.getElementById("reg-details-more");
+    if (details) details.open = !!open;
+  }
+
   function fillRegisterForm(item) {
     registerField("reg-title").value = item.title || "";
     registerField("reg-authors").value = item.authors || "";
@@ -1618,6 +1636,7 @@
       registerCoverFileHint.classList.add("hidden");
       registerCoverFileHint.textContent = "";
     }
+    setRegisterDetailsOpen(registerDetailsHasContent(item));
   }
 
   function applyMetadataCandidate(row) {
@@ -1631,6 +1650,9 @@
     registerField("reg-cover-url").value = row.cover_url || "";
     const useCover = document.getElementById("register-use-cover");
     if (useCover) useCover.checked = !!row.cover_url;
+    setRegisterDetailsOpen(
+      !!(row.isbn || row.publisher || row.pubdate || row.comments)
+    );
     if (registerMsg) {
       registerMsg.textContent = `Selected match (${row.source || "online"}).`;
       registerMsg.className = "bp-msg muted";

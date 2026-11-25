@@ -743,7 +743,7 @@
     {
       id: "tag",
       title: "Tag this book",
-      body: "Tap Tag on your practice catch. Change at least one field (title, author, or tags), then save.",
+      body: "Tap Tag on your practice catch to open the tag dialog. Change title, author, or tags, then tap Tag it.",
       selector: "#lib-items-downloads",
       placement: "top",
       mobileCoachBottom: true,
@@ -855,7 +855,7 @@
       } else if (st.id === "tag") {
         const modal = document.getElementById("register-modal");
         if (modal && !modal.classList.contains("hidden")) {
-          copy = "Change at least one field (title, author, or tags), then tap Tag it.";
+          copy = "Edit title, author, or tags in the dialog, then tap Tag it.";
         }
       }
       bodyEl.textContent = copy;
@@ -914,9 +914,9 @@
     if (tagModal) {
       clearFocusTarget();
       layoutSpotRing(null);
-      const submit = document.getElementById("register-submit");
+      const titleInput = document.getElementById("reg-title");
       try {
-        submit?.scrollIntoView({ block: "end", behavior: "instant", inline: "nearest" });
+        titleInput?.focus({ preventScroll: true });
       } catch {
         /* ignore */
       }
@@ -1221,6 +1221,11 @@
     BP.state.walkTrailRegisterReady = false;
     syncRegisterSubmitGate();
     updateTipChrome();
+    try {
+      document.getElementById("reg-title")?.focus({ preventScroll: true });
+    } catch {
+      /* ignore */
+    }
   }
 
   function syncRegisterSubmitGate() {

@@ -48,7 +48,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 ## Page 5 — Catalog (tag) a book
 
 - Go to **Kennel** → **Fresh catches**. Each item is a download waiting for you to name and shelve it.
-- Open **Tag** (or **Tag this book**) — set title, author, tags, and cover image.
+- Open **Tag** (or **Tag this book**) — a compact dialog: set title, author, and tags; use **More details** for ISBN, series, and description; cover art and **Search Online** sit in the side column on wider screens.
 - Save. The book moves to **Catalogued bones**. That is **cataloging**: it is on your shelf, searchable, and ready for **Read** or sharing.
 - **Toss** removes something from **Fresh catches** if you do not want it (simple confirm).
 - In **Catalogued bones**, **Edit tags** updates metadata; **Toss** needs you to type a short random phrase so deletes are deliberate.
