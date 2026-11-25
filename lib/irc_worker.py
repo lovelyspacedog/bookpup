@@ -14,7 +14,9 @@ from . import core
 from .core import IRC_IDLE_DISCONNECT_SECONDS, ensure_dirs
 from . import jobs
 from . import library
+from . import quota
 from . import user_paths
+from .core import MAX_DCC_RECEIVE_BYTES, MAX_DCC_SEARCH_BYTES
 from .irc_client import (
     DownloadRequestError,
     IrcSession,
@@ -36,6 +38,15 @@ from . import soulseek_search
 from . import soulseek_fetch
 from . import xdcc_search
 from .xdcc_search import XdccSearchDisabledError, XdccSearchError
+
+
+def _dcc_byte_cap_for_job(job: dict) -> int:
+    owner = str(job.get("owner") or "").strip()
+    cap = MAX_DCC_RECEIVE_BYTES
+    if owner:
+        rem = int(quota.library_usage_for(owner).get("remaining_bytes") or 0)
+        cap = min(cap, max(rem, 0))
+    return cap
 
 
 class IrcWorker:
@@ -501,7 +512,12 @@ class IrcWorker:
             jobs.save_job(job)
             jobs.set_irc_status(job_id, f"@search on {target.display}")
             try:
-                session.search_and_download_results(channel, str(job["query"]), zip_path)
+                session.search_and_download_results(
+                    channel,
+                    str(job["query"]),
+                    zip_path,
+                    max_bytes=MAX_DCC_SEARCH_BYTES,
+                )
                 jobs.set_irc_status(job_id, "Parsing search results…")
                 rows = parse_results_zip(zip_path)
                 jobs.set_irc_status(job_id, f"Parsed {len(rows)} match(es)")
@@ -540,7 +556,9 @@ class IrcWorker:
                 slot = int(xdcc.get("slot") or 0)
                 jobs.set_irc_status(job_id, f"XDCC fetch from {bot} on {target.display}")
                 irc_feed.append_out(bot, f"xdcc send #{slot}")
-                offer = session.request_xdcc(bot, slot, str(dest))
+                offer = session.request_xdcc(
+                    bot, slot, str(dest), max_bytes=_dcc_byte_cap_for_job(job)
+                )
             else:
                 jobs.set_irc_status(job_id, f"Requesting book on {target.display}")
                 irc_cmd = str(job.get("command") or "")
@@ -548,7 +566,9 @@ class IrcWorker:
                 if hint:
                     irc_feed.append_session(str(hint))
                 try:
-                    offer = session.request_book(channel, irc_cmd, str(dest))
+                    offer = session.request_book(
+                        channel, irc_cmd, str(dest), max_bytes=_dcc_byte_cap_for_job(job)
+                    )
                 except DownloadRequestError as exc:
                     fb = gutenberg_fetch.gutenberg_fallback_after_irc_refusal(
                         reason=str(exc),

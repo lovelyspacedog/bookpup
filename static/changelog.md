@@ -1,5 +1,10 @@
 # BookPup changelog
 
+## 1.6.8
+
+- **Fix — Sniff:** DCC receives reject offers above 512 MB (or the job owner’s remaining kennel space); search DCC zips capped at 32 MB.
+- **Fix — Security:** Login rate-limit failures persist in `login_throttle.json` across process restarts.
+
 ## 1.6.7
 
 - **Fix — Pack:** Claim-copy reserves attachment under lock so concurrent claims cannot duplicate books.

@@ -357,6 +357,11 @@ def main() -> None:
     restored = auth.bootstrap_sessions()
     if restored:
         print(f"bookpup: restored {restored} session(s)", file=sys.stderr)
+    from .login_limit import bootstrap_failures
+
+    throttle_keys = bootstrap_failures()
+    if throttle_keys:
+        print(f"bookpup: loaded login throttle for {throttle_keys} IP(s)", file=sys.stderr)
     cleanup_staging()
     try:
         from .import_session import cleanup_stale_sessions

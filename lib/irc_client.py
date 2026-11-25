@@ -19,6 +19,7 @@ from .core import (
     DEFAULT_CHANNELS,
     DOWNLOAD_TIMEOUT,
     IRC_POST_JOIN_COOLDOWN,
+    MAX_DCC_RECEIVE_BYTES,
     SEARCH_TIMEOUT,
     bot_status_stale_seconds,
     download_offer_timeout,
@@ -175,6 +176,19 @@ class DccOffer:
     host: str
     port: int
     size: int
+
+
+def assert_dcc_offer_size(offer: DccOffer, max_bytes: int) -> None:
+    cap = int(max_bytes)
+    if cap <= 0:
+        raise DownloadRequestError("DCC size cap misconfigured")
+    size = int(offer.size)
+    if size <= 0:
+        raise DownloadRequestError("Invalid DCC offer size")
+    if size > cap:
+        raise DownloadRequestError(
+            f"DCC offer too large ({size // 1024} KB; max {cap // 1024} KB)"
+        )
 
 
 def _dcc_host(raw: str) -> str:
@@ -579,11 +593,20 @@ class IrcSession:
         if warn:
             self.status(warn)
 
-    def receive_dcc_file(self, offer: DccOffer, dest_path: str, timeout: float) -> None:
+    def receive_dcc_file(
+        self,
+        offer: DccOffer,
+        dest_path: str,
+        timeout: float,
+        *,
+        max_bytes: int | None = None,
+    ) -> None:
+        cap = int(max_bytes if max_bytes is not None else MAX_DCC_RECEIVE_BYTES)
+        assert_dcc_offer_size(offer, cap)
         last_err: Exception | None = None
         for attempt in range(3):
             try:
-                self._receive_dcc_once(offer, dest_path, timeout)
+                self._receive_dcc_once(offer, dest_path, timeout, max_bytes=cap)
                 return
             except (ConnectionResetError, ConnectionError, OSError) as exc:
                 last_err = exc
@@ -594,15 +617,23 @@ class IrcSession:
         if last_err:
             raise last_err
 
-    def _receive_dcc_once(self, offer: DccOffer, dest_path: str, timeout: float) -> None:
+    def _receive_dcc_once(
+        self,
+        offer: DccOffer,
+        dest_path: str,
+        timeout: float,
+        *,
+        max_bytes: int | None = None,
+    ) -> None:
+        limit = min(int(offer.size), int(max_bytes or offer.size))
         sock = socket.create_connection((offer.host, offer.port), timeout=30)
         sock.settimeout(timeout)
         received = 0
         bufsize = 1024
         try:
             with open(dest_path, "wb") as fh:
-                while received < offer.size:
-                    chunk = sock.recv(min(bufsize, offer.size - received))
+                while received < limit:
+                    chunk = sock.recv(min(bufsize, limit - received))
                     if not chunk:
                         raise ConnectionError("DCC truncated")
                     fh.write(chunk)
@@ -610,11 +641,16 @@ class IrcSession:
                     sock.sendall(struct.pack(">I", received))
         finally:
             sock.close()
-        if received < offer.size:
+        if received < limit:
             raise ConnectionError("DCC incomplete")
 
     def search_and_download_results(
-        self, channel: str, query: str, dest_zip: str
+        self,
+        channel: str,
+        query: str,
+        dest_zip: str,
+        *,
+        max_bytes: int | None = None,
     ) -> None:
         qnorm = _norm_search_query(query)
         with self._dcc_cond:
@@ -634,14 +670,24 @@ class IrcSession:
             self.status(
                 f"Receiving {offer.filename} ({offer.size // 1024} KB via DCC)…"
             )
-            self.receive_dcc_file(offer, dest_zip, SEARCH_TIMEOUT)
+            from .core import MAX_DCC_SEARCH_BYTES
+
+            cap = int(max_bytes if max_bytes is not None else MAX_DCC_SEARCH_BYTES)
+            self.receive_dcc_file(offer, dest_zip, SEARCH_TIMEOUT, max_bytes=cap)
             self.status("Search results received")
             self._discard_search_result_dcc()
         finally:
             with self._dcc_cond:
                 self._active_search_query = None
 
-    def request_book(self, channel: str, command_line: str, dest_path: str) -> DccOffer:
+    def request_book(
+        self,
+        channel: str,
+        command_line: str,
+        dest_path: str,
+        *,
+        max_bytes: int | None = None,
+    ) -> DccOffer:
         self._wait_post_join()
         bot = serving_bot_nick(command_line)
         self._active_book_bot = bot
@@ -654,14 +700,21 @@ class IrcSession:
             self.status("Waiting for book file (DCC)…")
             offer = self.wait_dcc(offer_timeout, search_mode=False)
             self.status(f"Downloading {offer.filename} ({offer.size // 1024} KB)…")
-            self.receive_dcc_file(offer, dest_path, DOWNLOAD_TIMEOUT)
+            self.receive_dcc_file(offer, dest_path, DOWNLOAD_TIMEOUT, max_bytes=max_bytes)
             self.status(f"Downloaded {offer.filename}")
             return offer
         finally:
             self._active_book_bot = None
             self._disarm_book_dcc_wait()
 
-    def request_xdcc(self, botnick: str, slot: int, dest_path: str) -> DccOffer:
+    def request_xdcc(
+        self,
+        botnick: str,
+        slot: int,
+        dest_path: str,
+        *,
+        max_bytes: int | None = None,
+    ) -> DccOffer:
         self._wait_post_join()
         self._discard_search_result_dcc()
         nick = (botnick or "").strip()
@@ -679,7 +732,7 @@ class IrcSession:
             self.status(f"Waiting for XDCC from {nick} (#{slot})…")
             offer = self.wait_dcc(offer_timeout, search_mode=False)
             self.status(f"Downloading {offer.filename} ({offer.size // 1024} KB)…")
-            self.receive_dcc_file(offer, dest_path, DOWNLOAD_TIMEOUT)
+            self.receive_dcc_file(offer, dest_path, DOWNLOAD_TIMEOUT, max_bytes=max_bytes)
             self.status(f"Downloaded {offer.filename}")
             return offer
         finally:

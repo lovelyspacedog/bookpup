@@ -18,5 +18,6 @@ Never commit deploy credentials, live `config.json`, or `accounts.json` from a d
 | `~/.ssh/expedition_secret` | Default path for Expedition wrapper |
 | `~/.config/bookpup/config.json` | IRC, SMTP, slskd, admin password |
 | `~/.config/bookpup/accounts.json` | Household user passwords (plaintext by design for KOReader/OPDS) |
+| `~/.config/bookpup/login_throttle.json` | Recent failed login timestamps per client IP (mode **600**) |
 
 Prefer **SSH keys** for `BOOKPUP_DEPLOY_HOST` deploys; use a password file only when the host requires it (e.g. Whatbox).
