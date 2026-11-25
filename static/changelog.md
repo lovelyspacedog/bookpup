@@ -1,141 +1,18 @@
 # BookPup changelog
 
-## 1.7.32
+## 1.8.0
 
-- **Dig:** Refresh **Popular on the trail** bundled list (`updated` 2026-11-25; NYT Combined Fiction week of 30 Nov 2025 + household IRC picks).
+- **UX:** **What's new** — **1.7.x** patch notes rolled into an abridged history block (same style as **1.6** / **1.7.0**).
 
-## 1.7.31
+## 1.7 — dig & kennel polish
 
-- **Dig:** Jacket art on catalog picks (sample from your tagged books) and popular list (Open Library, cached in `ol_covers.json`; optional `cover_url` in bestseller JSON).
+Patch lines **1.7.0**–**1.7.32** (history only — live patch is current `VERSION` on **What's new** and `GET /api/health`).
 
-## 1.7.30
-
-- **Dig:** Desktop layout — three columns (kennel, Open Library, popular list).
-
-## 1.7.29
-
-- **Dig:** Optional in-process refresh of **Popular on the trail** from `dig_bestsellers_url` in config (HTTPS JSON, default every 168h). Live file `~/.config/bookpup/dig-bestsellers-live.json`; bundled list remains fallback.
-
-## 1.7.28
-
-- **Dig:** New tab between **Sniff** and **Kennel** — catalog picks, Open Library suggestions, and bundled popular titles; **Sniff this** on each row.
-- **UX:** **Pup guide** and **What's new** live in one overflow tab (Guide | What's new).
-
-## 1.7.27
-
-- **Fix — Walk the Trail:** Tag dialog no longer yanks focus back to Title every poll tick; you can edit author and tags during the tour.
-
-## 1.7.26
-
-- **UX — Kennel:** Tag dialog shows live cover preview (current jacket, upload, or web pick); cover-only dialog buttons align with tag flow; Walk the Trail kennel step mentions tag dialog.
-
-## 1.7.25
-
-- **UX:** Kennel, Pack, and account dialogs (toss, share, send, cover, etc.) use the same centered dialog shell as Tag.
-
-## 1.7.24
-
-- **UX — Kennel:** **Tag this book** / **Edit tags** use a centered dialog (essentials, **More details**, cover + online match in a side column on desktop).
-- **Walk the Trail:** tag-step coach copy and layout match the new tag dialog (essentials only during the tour).
-
-## 1.7.23
-
-- **Sniff — Soulseek:** Longer slskd poll window so slow searches finish before BookPup gives up; **in progress** status while peers respond; “still searching, retry” instead of false **no matches** when nothing has arrived yet.
-
-## 1.7.22
-
-- **Sniff — Fix:** **Every ebook net** writes merged rows to your sniff draft when IRC finishes, logs **Sniff finished** for Den chatter, and reloads the table from workspace if client ingest misses a poll.
-
-## 1.7.21
-
-- **Sniff — Fix:** **Every ebook net** merges results into the table again — partial rows stay visible during multi-IRC sniff, queue backfill accepts `all`, stale workspace draft no longer hijacks active job id.
-
-## 1.7.20
-
-- **UX:** Kennel grid covers show the full jacket (no top/bottom crop); matches cover-flow sizing.
-
-## 1.7.19
-
-- **Fetch — Fix:** send **!Pondering-Ebooks2** even when the bot is missing from IRC NAMES; cross-network fallback retries **same bot** rows and does not jump to **!Horla** first.
-
-## 1.7.18
-
-- **Fetch — Fix:** Undernet downloads keep **!Pondering-Ebooks2** (and strip SearchBot `::HASH::` / fused size junk) instead of misrouting a polluted line to **!Oatmeal**.
-
-## 1.7.17
-
-- **Sniff — Fix:** Undernet `@search` waits for SearchBot’s results zip instead of taking Oatmeal’s interim catalogue file (which had no fetchable `!` rows).
-
-## 1.7.16
-
-- **UX:** In the tagging dialog, **Search Online** and **Search cover images** use the pink accent so they stand out like **Tag it**.
-
-## 1.7.15
-
-- **Fix — Walk the Trail:** tossing the practice .mobi no longer resurrects it after sign-out; practice sniff rows clear when the tour finishes.
-
-## 1.7.14
-
-- **Fetch:** failed download jobs are logged with Den chatter and request details; admins open **Fetch fail inbox** on **Pack roster** to view markdown logs and dismiss entries.
-
-## 1.7.13
-
-- **Fetch:** when bots refuse a book on one IRC trail, BookPup tries the other ebook networks (cached sniff rows first, then a fresh `@search` per net) before marking the fetch failed.
-
-## 1.7.12
-
-- **Kennel:** **In progress** filter and **Last read** sort; progress pills on catalogued covers; **Surprise me** opens a random readable book; **Copy link** shares a Kennel deep link; Tag warns when a similar title is already catalogued (confirm to continue).
-- **Sniff:** **Sniff again** re-runs your most recent query on the current sniff source.
-
-## 1.7.11
-
-- **UX:** browser tab favicon is the **hound head** mark (32px); **apple-touch** / PWA icons stay the full kennel.
-
-## 1.7.10
-
-- **UX — Sign-in:** login shield sits above the **BookPup** title for a clearer centered brand on the sign-in card.
-
-## 1.7.9
-
-- **Fix — Kennel:** chunked uploads (Calibre / fresh file) reserve quota for the whole session so parallel imports cannot exceed your cap; mid-upload checks if the kennel is already full.
-- **Fix — Sign-in:** failed-login throttle tracks the real client IP when BookPup sits behind Whatbox/nginx (no more one shared lockout for the whole household).
-- **Fix — Server:** unexpected errors return a generic message instead of leaking internal details.
-
-## 1.7.8
-
-- **Fix — Kennel Flow:** hide empty spine slots at the start or end of the catalogue (no grey placeholder cards).
-
-## 1.7.7
-
-- **Kennel — Flow:** **Enter** on the focussed book opens **Read** (when the format supports it).
-
-## 1.7.6
-
-- **Kennel — Flow:** cover stage and jackets **50% taller** (wider spine spacing to match).
-
-## 1.7.5
-
-- **Fix — Kennel Flow:** cover frames use **contain** (full jacket visible for comics and non–3:4 art); rotation pivots from the bottom so tall centres are less likely to clip.
-
-## 1.7.4
-
-- **Fix — Kennel Flow:** **←/→** advance one book per press (removed duplicate key handler); taller stage so centred covers are not clipped at the top.
-
-## 1.7.3
-
-- **Kennel — Flow:** **←/→** work on the Kennel tab without focusing the carousel first; drag horizontally to scrub through covers; slightly taller jackets and stage.
-
-## 1.7.2
-
-- **Kennel:** **Catalogued bones** — third **View → Flow** cover carousel (keyboard, swipe, prev/next); centred cover has a floor reflection. **Flow** is disabled while **Group by** is Series or Author; **Fresh catches** stay Grid/List.
-
-## 1.7.1
-
-- **Kennel:** catalog toolbar grouped into two rows — **Browsing** / **Shelves** / **Export** on top, **View** and **Group by** / **Sort by** below — with subtle dividers between related controls.
-
-## 1.7.0
-
-- **UX:** **What's new** — **1.4.x**, **1.5.x**, and **1.6.x** patch notes rolled into abridged history blocks (same style as **1.3**).
+- **Dig:** New **Dig** tab — catalog picks, Open Library suggestions, **Popular on the trail** (bundled + optional live `dig_bestsellers_url`); **Sniff this** on each row; jacket art from your kennel or Open Library cache.
+- **Kennel:** **Flow** cover carousel for **Catalogued bones**; two-row catalog toolbar; centered tag/cover/account dialogs with live cover preview; **In progress** filter, **Last read** sort, **Surprise me**, deep links, duplicate-title warning; grid covers use full jackets.
+- **Sniff / Fetch:** **Every ebook net** and **Undernet** reliability fixes; cross-network fetch fallback before fail; **Fetch fail inbox** for admins; longer Soulseek poll and honest **in progress** status; **Sniff again** for last query.
+- **Fix — Trust:** Chunked upload quota sessions; proxy-aware login throttle; generic 500 bodies; Walk the Trail tag focus and practice-toss cleanup.
+- **UX:** Hound-head tab favicon; sign-in brand stack; **Pup guide** and **What's new** in one overflow tab.
 
 ## 1.6
 
