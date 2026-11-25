@@ -1189,8 +1189,24 @@ td {
   margin: 0 0 0.75rem;
 }
 
+.bp-dig-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+@media (min-width: 52rem) {
+  .bp-dig-sections {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+}
+
 .bp-dig-section {
-  margin-bottom: 1.1rem;
+  margin-bottom: 0;
+  min-width: 0;
 }
 
 .bp-dig-section__title {

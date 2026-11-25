@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.30
+
+- **Dig:** Desktop layout — three columns (kennel, Open Library, popular list).
+
 ## 1.7.29
 
 - **Dig:** Optional in-process refresh of **Popular on the trail** from `dig_bestsellers_url` in config (HTTPS JSON, default every 168h). Live file `~/.config/bookpup/dig-bestsellers-live.json`; bundled list remains fallback.

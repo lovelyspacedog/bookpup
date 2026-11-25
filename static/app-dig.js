@@ -64,7 +64,7 @@
 
   function renderSection(section) {
     const wrap = document.createElement("section");
-    wrap.className = "bp-dig-section";
+    wrap.className = "bp-dig-section" + (section.id ? " bp-dig-section--" + section.id : "");
     const h = document.createElement("h2");
     h.className = "bp-dig-section__title";
     h.textContent = section.title || "";
