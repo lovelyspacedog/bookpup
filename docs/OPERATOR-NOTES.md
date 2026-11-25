@@ -36,7 +36,7 @@ Production: unset all three; `/api/health` should show each mock `false`.
 
 ## Health vs readiness
 
-- `GET /api/health` — liveness (`ok` === config dir writable).
+- `GET /api/health` — liveness (`ok` === config dir writable). Add `?verbose=1` for IRC mock flags and worker snapshot (keep default URL public / cron-safe).
 - `GET /api/ready` — IRC worker, optional slskd, optional tool probes.
 
 ## Staging

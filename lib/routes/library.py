@@ -83,7 +83,7 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
             if cover is None or not cover.is_file():
                 handler.send_json(404, {"error": "No cover"})
                 return
-            handler.send_bytes(cover.read_bytes(), covers_mod.cover_mime(cover), None)
+            handler.send_file(cover, covers_mod.cover_mime(cover), None)
 
         _with_item_catalog(handler, qs, serve_cover)
         return True
@@ -189,7 +189,7 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
                 "cbz": "application/vnd.comicbook+zip",
                 "cbr": "application/vnd.comicbook-rar",
             }.get(view_fmt) or mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-            handler.send_bytes(file_path.read_bytes(), ctype)
+            handler.send_file(file_path, ctype)
 
         _with_item_catalog(handler, qs, serve_read)
         return True
@@ -199,7 +199,7 @@ def handle_get(handler: RequestHandler, path: str, qs: dict) -> bool:
         def serve_file() -> None:
             file_path = library.item_path(item_id)
             ctype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-            handler.send_bytes(file_path.read_bytes(), ctype, file_path.name)
+            handler.send_file(file_path, ctype, file_path.name)
 
         _with_item_catalog(handler, qs, serve_file)
         return True

@@ -4,6 +4,8 @@ BookPup is designed for a **private household** VPS. Household passwords are sto
 
 **Do not expose BookPup to the open internet without TLS, strong passwords, and trust in your household users.**
 
+KOReader sends `X-Auth-Key` as the MD5 hex of the account password (protocol requirement). Treat that header like the password: use HTTPS only, rotate passwords if a proxy log may have captured it, and prefer loopback or VPN for admin traffic.
+
 ## Reporting
 
 Open a [GitHub issue](https://github.com/lovelyspacedog/bookpup/issues) for vulnerabilities you are willing to disclose publicly. For sensitive reports, use GitHub private vulnerability reporting if enabled on the repo.

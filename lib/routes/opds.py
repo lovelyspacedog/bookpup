@@ -7,6 +7,7 @@ import mimetypes
 
 from .. import accounts, kosync, library, opds as opds_mod, user_paths
 from ..core import public_base_url
+from . import auth_throttle
 from ._types import RequestHandler
 
 
@@ -33,8 +34,11 @@ def opds_user(headers: dict[str, str], config: dict) -> str | None:
 
 
 def route_opds_get(handler: RequestHandler, path: str) -> None:
+    if auth_throttle.block_json(handler):
+        return
     headers = handler._header_map()
     user = opds_user(headers, handler.config)
+    auth_throttle.note_auth_result(handler, user)
     if not user:
         handler.send_response(401)
         handler.send_header("WWW-Authenticate", 'Basic realm="BookPup OPDS"')
@@ -60,7 +64,7 @@ def route_opds_get(handler: RequestHandler, path: str) -> None:
             return
         file_path = library.item_path(item_id)
         ctype = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
-        handler.send_bytes(file_path.read_bytes(), ctype, file_path.name)
+        handler.send_file(file_path, ctype, file_path.name)
         return
     else:
         handler.send_json(404, {"error": "Not found"})

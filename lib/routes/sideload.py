@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from .. import device_delivery, library, sideload_tokens, user_paths
+from .. import device_delivery, library, sideload_tokens, sideload_limit, user_paths
 from ._types import RequestHandler
 
 
@@ -19,23 +19,28 @@ def route_public_download_head(handler: RequestHandler, token: str) -> None:
 
 
 def route_public_download(handler: RequestHandler, token: str) -> None:
-    row = sideload_tokens.consume_token(token)
-    if not row:
-        handler.send_json(404, {"error": "Link expired or invalid"})
-        return
-    owner = str(row.get("owner") or "")
-    item_id = str(row.get("item_id") or "")
-    delivery = str(row.get("delivery") or "source")
-    user_paths.set_user(owner)
-    try:
-        item = library.get_item_row(item_id)
-        if not library.is_registered(item):
-            handler.send_json(403, {"error": "Not a catalogued book"})
+    peer = handler.client_address[0] if handler.client_address else None
+    with sideload_limit.public_download_slot(peer, handler._header_map()) as slot:
+        if not slot:
+            handler.send_json(503, {"error": "Too many concurrent sideload downloads"})
             return
-        path, mime, filename = device_delivery.resolve_delivery(item_id, delivery)
-        if not path.is_file():
-            handler.send_json(404, {"error": "File missing"})
+        row = sideload_tokens.consume_token(token)
+        if not row:
+            handler.send_json(404, {"error": "Link expired or invalid"})
             return
-        handler.send_bytes(path.read_bytes(), mime, filename)
-    finally:
-        user_paths.set_user(None)
+        owner = str(row.get("owner") or "")
+        item_id = str(row.get("item_id") or "")
+        delivery = str(row.get("delivery") or "source")
+        user_paths.set_user(owner)
+        try:
+            item = library.get_item_row(item_id)
+            if not library.is_registered(item):
+                handler.send_json(403, {"error": "Not a catalogued book"})
+                return
+            path, mime, filename = device_delivery.resolve_delivery(item_id, delivery)
+            if not path.is_file():
+                handler.send_json(404, {"error": "File missing"})
+                return
+            handler.send_file(path, mime, filename)
+        finally:
+            user_paths.set_user(None)

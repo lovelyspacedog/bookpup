@@ -4,28 +4,63 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import threading
 import time
-from pathlib import Path
 from typing import Any
 
 from .core import CONFIG_DIR, ensure_dirs
 from . import accounts
 from . import file_digest
 from . import library
+from .json_atomic import atomic_write_json
 
 KOSYNC_STATE = CONFIG_DIR / "kosync.json"
 KO_JSON = "application/vnd.koreader.v1+json"
+_lock = threading.Lock()
+MAX_DOCUMENTS = 5000
+DOCUMENT_TTL_SECONDS = 90 * 24 * 3600
+_DOCUMENT_RE = re.compile(r"^[0-9a-f]{32}$")
 
 
 def _load() -> dict:
     ensure_dirs()
     if not KOSYNC_STATE.is_file():
         return {"documents": {}}
-    return json.loads(KOSYNC_STATE.read_text())
+    try:
+        return json.loads(KOSYNC_STATE.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {"documents": {}}
 
 
 def _save(data: dict) -> None:
-    KOSYNC_STATE.write_text(json.dumps(data, indent=2) + "\n")
+    ensure_dirs()
+    atomic_write_json(KOSYNC_STATE, data)
+
+
+def _valid_document_id(document: str) -> bool:
+    return bool(_DOCUMENT_RE.fullmatch(document))
+
+
+def _prune_stale_documents(docs: dict) -> None:
+    cutoff_ms = int(time.time() * 1000) - DOCUMENT_TTL_SECONDS * 1000
+    stale = [
+        key
+        for key, row in docs.items()
+        if not isinstance(row, dict) or int(row.get("timestamp") or 0) < cutoff_ms
+    ]
+    for key in stale:
+        docs.pop(key, None)
+
+
+def _upsert_document(docs: dict, document: str, row: dict) -> tuple[int, dict] | None:
+    is_new = document not in docs
+    if is_new:
+        _prune_stale_documents(docs)
+        if len(docs) >= MAX_DOCUMENTS:
+            return 507, {"code": 2005, "message": "Progress store full; try again later"}
+    docs[document] = row
+    return None
 
 
 def auth_user(headers: dict[str, str], config: dict) -> str | None:
@@ -49,9 +84,10 @@ def unauthorized() -> tuple[int, dict]:
 
 def get_progress(document: str) -> tuple[int, dict]:
     document = (document or "").strip().lower()
-    if not document or len(document) != 32:
+    if not _valid_document_id(document):
         return 400, {"code": 2002, "message": "Invalid document"}
-    row = (_load().get("documents") or {}).get(document)
+    with _lock:
+        row = (_load().get("documents") or {}).get(document)
     if not row:
         return 200, {}
     out = {k: row[k] for k in ("document", "progress", "percentage", "device", "device_id", "timestamp") if k in row}
@@ -65,7 +101,7 @@ def put_progress(body: dict[str, Any]) -> tuple[int, dict]:
     progress = body.get("progress")
     percentage = body.get("percentage")
     device = body.get("device")
-    if not document or len(document) != 32:
+    if not _valid_document_id(document):
         return 400, {"code": 2002, "message": "Invalid document"}
     if progress is None or percentage is None or not device:
         return 400, {"code": 2003, "message": "Invalid fields"}
@@ -77,9 +113,7 @@ def put_progress(body: dict[str, Any]) -> tuple[int, dict]:
     device = str(device)[:120]
     device_id = str(body.get("device_id") or "").strip()[:64]
     timestamp = int(time.time() * 1000)
-    data = _load()
-    docs = data.setdefault("documents", {})
-    docs[document] = {
+    row = {
         "document": document,
         "progress": progress,
         "percentage": percentage,
@@ -87,7 +121,13 @@ def put_progress(body: dict[str, Any]) -> tuple[int, dict]:
         "device_id": device_id,
         "timestamp": timestamp,
     }
-    _save(data)
+    with _lock:
+        data = _load()
+        docs = data.setdefault("documents", {})
+        denied = _upsert_document(docs, document, row)
+        if denied:
+            return denied
+        _save(data)
     item_id = library.item_id_for_document(document)
     if item_id:
         library.apply_koreader_progress(
@@ -120,9 +160,10 @@ def sync_reading_to_document(item_id: str, *, percentage: float | None, progress
     if progress is None:
         progress = "0"
     timestamp = int(time.time() * 1000)
-    data = _load()
-    docs = data.setdefault("documents", {})
-    docs[partial] = {
+    partial = partial.lower()
+    if not _valid_document_id(partial):
+        return
+    row = {
         "document": partial,
         "progress": str(progress),
         "percentage": float(percentage),
@@ -130,7 +171,13 @@ def sync_reading_to_document(item_id: str, *, percentage: float | None, progress
         "device_id": "bookpup-web",
         "timestamp": timestamp,
     }
-    _save(data)
+    with _lock:
+        data = _load()
+        docs = data.setdefault("documents", {})
+        denied = _upsert_document(docs, partial, row)
+        if denied:
+            return
+        _save(data)
     library.apply_koreader_progress(
         item_id,
         progress=str(progress),

@@ -25,29 +25,39 @@ def route_public_ready(handler: RequestHandler) -> None:
     handler.send_json(200, ops_readiness.build_ready())
 
 
-def route_public_health(handler: RequestHandler) -> None:
+def _health_verbose(qs: dict) -> bool:
+    raw = qs.get("verbose")
+    if raw is None:
+        return False
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
+    return str(raw).strip().lower() in ("1", "true", "yes")
+
+
+def route_public_health(handler: RequestHandler, qs: dict | None = None) -> None:
     cfg = load_config()
     writable = ops_readiness.config_dir_writable()
-    irc = worker.health_snapshot()
-    xdcc = xdcc_search.health_probe()
-    slskd = slskd_client.health_probe()
-    handler.send_json(
-        200,
-        {
-            "ok": writable,
-            "version": VERSION,
-            "irc_mock": IRC_MOCK,
-            "xdcc_mock": xdcc_search.XDCC_MOCK,
-            "slskd_mock": slskd_client.SLSKD_MOCK,
-            "xdcc_search": xdcc,
-            "soulseek": slskd,
-            "config_dir_writable": writable,
-            "public_url": public_base_url(cfg),
-            "public_url_configured": public_url_configured(cfg),
-            "kindle_smtp": kindle_smtp.smtp_configured(cfg),
-            **irc,
-        },
-    )
+    payload: dict = {
+        "ok": writable,
+        "version": VERSION,
+        "config_dir_writable": writable,
+        "public_url": public_base_url(cfg),
+        "public_url_configured": public_url_configured(cfg),
+        "kindle_smtp": kindle_smtp.smtp_configured(cfg),
+    }
+    if _health_verbose(qs or {}):
+        irc = worker.health_snapshot()
+        payload.update(
+            {
+                "irc_mock": IRC_MOCK,
+                "xdcc_mock": xdcc_search.XDCC_MOCK,
+                "slskd_mock": slskd_client.SLSKD_MOCK,
+                "xdcc_search": xdcc_search.health_probe(),
+                "soulseek": slskd_client.health_probe(),
+                **irc,
+            }
+        )
+    handler.send_json(200, payload)
 
 
 def route_public_capabilities(handler: RequestHandler) -> None:

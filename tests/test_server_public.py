@@ -48,9 +48,14 @@ class ServerPublicTests(unittest.TestCase):
         body = self._get_json("/api/health")
         self.assertEqual(body.get("version"), core.VERSION)
         self.assertTrue(body.get("config_dir_writable"))
-        self.assertIn("irc_worker_alive", body)
+        self.assertNotIn("irc_mock", body)
         self.assertIn("public_url_configured", body)
         self.assertTrue(body.get("public_url_configured"))
+
+    def test_health_verbose(self) -> None:
+        body = self._get_json("/api/health?verbose=1")
+        self.assertIn("irc_worker_alive", body)
+        self.assertIn("irc_mock", body)
 
     def test_config_koreader_url(self) -> None:
         body = self._get_json("/api/config")

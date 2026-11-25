@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .. import accounts, kosync, user_paths
+from . import auth_throttle
 from ._types import RequestHandler
 
 
@@ -11,9 +12,13 @@ def kosync_path(path: str) -> bool:
 
 
 def route_kosync_get(handler: RequestHandler, path: str) -> None:
+    if auth_throttle.block_ko_json(handler):
+        return
     headers = handler._header_map()
     if path == "/users/auth":
-        if kosync.auth_user(headers, handler.config):
+        user = kosync.auth_user(headers, handler.config)
+        auth_throttle.note_auth_result(handler, user)
+        if user:
             handler.send_ko_json(200, {"authorized": "OK"})
         else:
             code, body = kosync.unauthorized()
@@ -21,6 +26,7 @@ def route_kosync_get(handler: RequestHandler, path: str) -> None:
         return
     if path.startswith("/syncs/progress/"):
         user = kosync.auth_user(headers, handler.config)
+        auth_throttle.note_auth_result(handler, user)
         if not user:
             code, body = kosync.unauthorized()
             handler.send_ko_json(code, body)
@@ -35,8 +41,11 @@ def route_kosync_get(handler: RequestHandler, path: str) -> None:
 
 
 def route_kosync_put(handler: RequestHandler, length: int) -> None:
+    if auth_throttle.block_ko_json(handler):
+        return
     headers = handler._header_map()
     user = kosync.auth_user(headers, handler.config)
+    auth_throttle.note_auth_result(handler, user)
     if not user:
         code, body = kosync.unauthorized()
         handler.send_ko_json(code, body)
@@ -51,8 +60,14 @@ def route_kosync_put(handler: RequestHandler, length: int) -> None:
 
 
 def route_kosync_create(handler: RequestHandler, length: int) -> None:
+    if auth_throttle.block_ko_json(handler):
+        return
     if length > 8192:
         raise ValueError("Request too large")
     body = handler.read_json(length)
     code, data = kosync.create_user(body, handler.config)
+    if code == 201:
+        auth_throttle.note_auth_result(handler, str(data.get("username") or ""))
+    else:
+        auth_throttle.note_auth_result(handler, None)
     handler.send_ko_json(code, data)

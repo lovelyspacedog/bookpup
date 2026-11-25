@@ -99,7 +99,7 @@ An example **Arch PKGBUILD** (installs under `/opt/bookpup`) lives in [`packagin
 
 | Endpoint | Semantics | Use |
 |----------|-----------|-----|
-| `GET /api/health` | **Liveness** — process up and `~/.config/bookpup` writable; `ok` is **only** `config_dir_writable` (unchanged contract for deploy scripts). Also reports `public_url_configured`. | Cron, Whatbox custom app, deploy scripts |
+| `GET /api/health` | **Liveness** — process up and `~/.config/bookpup` writable; `ok` is **only** `config_dir_writable` (unchanged contract for deploy scripts). Also reports `public_url_configured`. Add `?verbose=1` for IRC/mock diagnostics (default omits them). | Cron, Whatbox custom app, deploy scripts |
 | `GET /api/ready` | **Readiness** — IRC worker alive; optional Soulseek sidecar reachable when enabled; reports optional tools (`calibre`, `7z`, `unrar`) without failing liveness. | Operator dashboards, “can we sniff/fetch now?” |
 
 Optional remote sync: `scripts/deploy-remote.sh` (SSH key/agent; optional password file via `BOOKPUP_DEPLOY_SECRET`). [`deploy.sh`](deploy.sh) is a Whatbox Expedition wrapper (`EXPEDITION_HOST` / `EXPEDITION_SECRET`). **Do not commit secrets.**
@@ -128,7 +128,7 @@ Authenticated unless noted. Full handlers live under `lib/routes/`.
 | Area | Endpoints |
 |------|-----------|
 | Auth | `POST /api/login`, `GET /api/session`, `POST /api/logout`, `POST /api/account`, `GET /api/account/wipe-preview`, `POST /api/account/wipe` |
-| Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select |
+| Search | `POST /api/search`, `GET /api/jobs/{id}`, `POST /api/jobs/{searchId}/select`, batch select, `GET /api/dig-picks` (Dig tab taste picks) |
 | IRC | `GET /api/irc/feed`, `GET /api/irc/targets`, `POST /api/irc/chat`, `POST /api/irc/disconnect` |
 | Library | `GET/POST/DELETE /api/library…`, upload, export, reader, send-to-user, `GET/POST /api/library/{id}/sideload` (format picker + one-time link), custom shelves `GET/POST/PATCH/DELETE /api/library/shelves`, `PUT /api/library/shelves/{id}/items`, whole-kennel `/api/library/shares…`, OPDS `/opds/catalog` |
 | Admin | accounts CRUD, digest, backup |

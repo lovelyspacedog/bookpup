@@ -88,6 +88,29 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_file(
+        self,
+        file_path: Path,
+        content_type: str,
+        download_name: str | None = None,
+        *,
+        chunk_size: int = 1024 * 1024,
+    ) -> None:
+        st = file_path.stat()
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(st.st_size))
+        self.send_header("Cache-Control", "no-cache")
+        if download_name:
+            self.send_header("Content-Disposition", f'attachment; filename="{download_name}"')
+        self.end_headers()
+        with open(file_path, "rb") as src:
+            while True:
+                chunk = src.read(chunk_size)
+                if not chunk:
+                    break
+                self.wfile.write(chunk)
+
     def _validated_irc_channel(self, raw: object) -> str:
         cid = irc_targets.normalize_channel_id(str(raw or "irchighway:ebooks"))
         if cid in (
@@ -221,7 +244,8 @@ class Handler(BaseHTTPRequestHandler):
             self.dispatch(lambda: public_routes.route_public_capabilities(self))
             return
         if path == "/api/health":
-            self.dispatch(lambda: public_routes.route_public_health(self))
+            qs = parse_qs(parsed.query)
+            self.dispatch(lambda: public_routes.route_public_health(self, qs))
             return
         if path == "/api/ready":
             self.dispatch(lambda: public_routes.route_public_ready(self))

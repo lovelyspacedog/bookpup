@@ -21,7 +21,7 @@ def send_staging_raw(handler: RequestHandler, staging_id: str) -> None:
         raise ValueError("Nothing staged")
     raw = raw_files[0]
     ctype = mimetypes.guess_type(raw.name)[0] or "application/octet-stream"
-    handler.send_bytes(raw.read_bytes(), ctype, raw.name)
+    handler.send_file(raw, ctype, raw.name)
 
 
 def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
