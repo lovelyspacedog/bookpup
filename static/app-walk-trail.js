@@ -75,6 +75,7 @@
       /* ignore */
     }
     void BP.api("/api/walk-trail/complete", {}).catch(() => {});
+    BP.clearWalkTrailSniffResults?.();
     BP.syncWalkTrailEntry?.();
   }
 
@@ -984,7 +985,9 @@
     document.body.classList.remove("bp-walk-trail-toss-modal");
     hideOverlay();
     if (!partial) {
-      BP.state.activeSearchJob = BP.state.activeSearchJob === ACTIVE_JOB ? null : BP.state.activeSearchJob;
+      BP.clearWalkTrailSniffResults?.();
+    } else if (BP.state.activeSearchJob === ACTIVE_JOB) {
+      BP.state.activeSearchJob = null;
     }
   }
 
@@ -1171,6 +1174,8 @@
         body: JSON.stringify({ query: tutorialQuery, title: tutorialTitle }),
       });
       tutorialItemId = data.library_item_id || data.item?.id || "";
+      const jobId = data.job_id || data.staging_id || "";
+      if (jobId && BP.persistNotifiedDoneJob) BP.persistNotifiedDoneJob(jobId);
       if (tr && BP.setFetchRowState) BP.setFetchRowState(tr, "done");
       if (searchMsg) searchMsg.textContent = "Practice fetch complete — see Fresh catches.";
       BP.markUxFetchComplete?.();

@@ -249,6 +249,28 @@ def dismiss_job(job_id: str) -> None:
     _path(str(job["id"])).unlink(missing_ok=True)
 
 
+def remove_job(job_id: str) -> bool:
+    """Drop a job record (e.g. after the user tossed a fresh catch)."""
+    path = _path(str(job_id))
+    if not path.is_file():
+        return False
+    path.unlink(missing_ok=True)
+    return True
+
+
+def remove_done_download_for_staging(staging_id: str) -> None:
+    """Remove finished fetch jobs tied to a staging id so queue backfill cannot re-stash."""
+    sid = str(staging_id or "").strip()
+    if not sid:
+        return
+    remove_job(sid)
+    for job in list_jobs():
+        if job.get("type") != "download" or job.get("state") != "done":
+            continue
+        if str(job.get("staging_id") or job.get("id") or "") == sid:
+            remove_job(str(job["id"]))
+
+
 def cancel_job(job_id: str) -> JobDict:
     with _job_state_lock:
         job = load_job(job_id)

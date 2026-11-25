@@ -1548,6 +1548,23 @@
   });
 
 
+  function clearWalkTrailSniffResults() {
+    if (BP.state.activeSearchJob === "walk-trail-practice") {
+      BP.state.activeSearchJob = null;
+    }
+    sniffPage = 1;
+    resultRows = [];
+    sniffSelected.clear();
+    renderResults([]);
+    updateResultsPanelVisibility();
+    updateSniffWipeBtn();
+    if (searchMsg) {
+      searchMsg.textContent = "";
+      searchMsg.className = "bp-msg muted";
+    }
+    void pushDraftPatch({ query: "", channel: "", filter: "", results: [], job_id: null });
+  }
+
   function ingestWalkTrailResults(rows, query) {
     resultRows = rows;
     BP.state.activeSearchJob = "walk-trail-practice";
@@ -1767,6 +1784,7 @@
   BP.channelDisplayLabel = channelDisplayLabel;
   BP.clearSniffQueryInput = clearSniffQueryInput;
   BP.confirmToss = confirmToss;
+  BP.clearWalkTrailSniffResults = clearWalkTrailSniffResults;
   BP.ingestWalkTrailResults = ingestWalkTrailResults;
   BP.humanizeIrcFeedText = humanizeIrcFeedText;
   BP.humanizeSearchBotNotice = humanizeSearchBotNotice;

@@ -521,4 +521,5 @@
   BP.trackQueueJobs = trackQueueJobs;
   BP.updateQueueBadge = updateQueueBadge;
   BP.loadNotifiedDoneJobs = loadNotifiedDoneJobs;
+  BP.persistNotifiedDoneJob = persistNotifiedDoneJob;
 })(window.BookPup);

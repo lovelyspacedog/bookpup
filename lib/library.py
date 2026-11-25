@@ -404,6 +404,19 @@ def auto_stash_from_job(job: dict) -> dict | None:
         return None
 
 
+def purge_download_staging(staging_id: str) -> None:
+    """Remove staged raw bytes so a done fetch cannot be re-saved into Fresh catches."""
+    sid = str(staging_id or "").strip()
+    if not sid:
+        return
+    base = staging_dir(sid)
+    if base.is_dir():
+        shutil.rmtree(base, ignore_errors=True)
+    from . import jobs
+
+    jobs.remove_done_download_for_staging(sid)
+
+
 def discard_download_staging(staging_id: str) -> None:
     """Drop a partial fresh catch and staged raw file after a cancelled download."""
     sid = str(staging_id or "").strip()
@@ -732,6 +745,10 @@ def delete_item(item_id: str) -> None:
         shelves_mod.remove_item_from_all_shelves(item_id)
     except OSError:
         pass
+    if removed and is_staged(removed):
+        sid = str(removed.get("staging_id") or "").strip()
+        if sid:
+            purge_download_staging(sid)
 
 
 def item_path(item_id: str) -> Path:

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.15
+
+- **Fix — Walk the Trail:** tossing the practice .mobi no longer resurrects it after sign-out; practice sniff rows clear when the tour finishes.
+
 ## 1.7.14
 
 - **Fetch:** failed download jobs are logged with Den chatter and request details; admins open **Fetch fail inbox** on **Pack roster** to view markdown logs and dismiss entries.

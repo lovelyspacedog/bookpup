@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT))
 
 import lib.auth as auth
 import lib.core as core
+import lib.library as library
 from lib.server import Handler
 
 
@@ -115,6 +116,43 @@ class WalkTrailTests(unittest.TestCase):
         )
         self.assertEqual(code, 200)
         self.assertEqual(first.get("library_item_id"), second.get("library_item_id"))
+
+    def test_toss_practice_mobi_does_not_restash(self) -> None:
+        _, login = self._request(
+            "POST",
+            "/api/login",
+            {"username": "book", "password": "secret"},
+        )
+        token = login["token"]
+        headers = {"Authorization": f"Bearer {token}", "X-Bookpup": "1"}
+        code, body = self._request(
+            "POST",
+            "/api/walk-trail/fetch",
+            {"query": "Ocean", "title": "Ocean.mobi"},
+            headers=headers,
+        )
+        self.assertEqual(code, 200)
+        item_id = body["library_item_id"]
+        code, _ = self._request("DELETE", "/api/library/" + item_id, headers=headers)
+        self.assertEqual(code, 200)
+        code, lib = self._request("GET", "/api/library", headers=headers)
+        self.assertEqual(code, 200)
+        staged = [it for it in (lib.get("items") or []) if str(it.get("source") or "") == "download"]
+        self.assertEqual(staged, [])
+        import lib.user_paths as user_paths
+
+        user_paths.set_user("book")
+        job = library.auto_stash_from_job(
+            {
+                "id": body["job_id"],
+                "type": "download",
+                "state": "done",
+                "staging_id": body["staging_id"],
+                "raw_bytes": 1,
+                "owner": "book",
+            }
+        )
+        self.assertIsNone(job)
 
     def test_walk_trail_complete_records_account(self) -> None:
         _, login = self._request(
