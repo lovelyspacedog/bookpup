@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.21
+
+- **Sniff — Fix:** **Every ebook net** merges results into the table again — partial rows stay visible during multi-IRC sniff, queue backfill accepts `all`, stale workspace draft no longer hijacks active job id.
+
 ## 1.7.20
 
 - **UX:** Kennel grid covers show the full jacket (no top/bottom crop); matches cover-flow sizing.

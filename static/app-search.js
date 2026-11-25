@@ -425,10 +425,24 @@
       ) {
         applyDraft(ws.draft);
       } else if (ws.draft) {
-        updateDraftMeta(ws.draft.query, ws.draft.channel, 0);
+        const dc =
+          typeof ws.draft.result_count === "number"
+            ? ws.draft.result_count
+            : Array.isArray(ws.draft.results)
+              ? ws.draft.results.length
+              : 0;
+        updateDraftMeta(ws.draft.query, ws.draft.channel, dc);
       }
       if (ws.draft?.job_id && !BP.state.searchPollTimer && !BP.state.fetchPollTimer) {
-        BP.state.activeSearchJob = ws.draft.job_id;
+        const formQ = (document.getElementById("query")?.value || "").trim();
+        const draftQ = (ws.draft.query || "").trim();
+        const formCh = document.getElementById("channel")?.value || "";
+        const draftCh = (ws.draft.channel || "").trim();
+        const sameSniff =
+          !formQ || (formQ === draftQ && (!formCh || !draftCh || formCh === draftCh));
+        if (sameSniff) {
+          BP.state.activeSearchJob = ws.draft.job_id;
+        }
       }
       if (!resultRows.length && BP.state.activeSearchJob && !BP.state.searchPollTimer) {
         void syncActiveSearchResults();
@@ -839,6 +853,9 @@
       if ((full.result_count || 0) > 0) {
         throw new Error("Search finished but results could not be loaded — refresh and try again.");
       }
+      if (full.state === "running" && resultRows.length > 0) {
+        return false;
+      }
       const query = (meta && meta.query) || full.query || "";
       const channel = (meta && meta.channel) || full.channel || "";
       sniffPage = 1;
@@ -907,13 +924,16 @@
     if (qv && dq && qv === dq) return true;
     const ch = String(done.channel || "");
     const count = done.result_count || (Array.isArray(done.results) ? done.results.length : 0);
-    if (
-      count > 0 &&
-      !resultRows.length &&
-      (ch === "soulseek:slskd" || ch === "xdcc:index")
-    ) {
-      const updated = Number(done.updated_at || 0);
-      if (updated && Date.now() / 1000 - updated < 900) return true;
+    const formCh = String(document.getElementById("channel")?.value || "");
+    if (count > 0 && !resultRows.length) {
+      const backfillNet =
+        ch === "soulseek:slskd" ||
+        ch === "xdcc:index" ||
+        (ch === "all" && formCh === "all");
+      if (backfillNet) {
+        const updated = Number(done.updated_at || 0);
+        if (updated && Date.now() / 1000 - updated < 900) return true;
+      }
     }
     return false;
   }
@@ -922,7 +942,13 @@
     if (!done || !sniffMatchesDoneJob(done)) return;
     const expect = done.result_count || (Array.isArray(done.results) ? done.results.length : 0);
     if (!expect) return;
-    if (resultRows.length >= expect && resultRows.length > 0) return;
+    if (
+      resultRows.length >= expect &&
+      resultRows.length > 0 &&
+      String(BP.state.activeSearchJob || "") === String(done.id || "")
+    ) {
+      return;
+    }
     BP.state.activeSearchJob = done.id;
     void ingestCompletedSearch(done, {
       query: done.query || document.getElementById("query")?.value?.trim(),
@@ -1671,8 +1697,11 @@
           intervalMs: pollMs,
           onProgress: (job) => {
             const partial = Array.isArray(job.results) ? job.results : [];
-            if (partial.length) {
-              void ingestCompletedSearch(job, { query: body.query, channel: body.channel });
+            const expect = job.result_count || partial.length;
+            if (partial.length || (expect > 0 && job.state === "running")) {
+              void ingestCompletedSearch(job, { query: body.query, channel: body.channel }).catch(
+                () => {}
+              );
             } else if (searchMsg) {
               searchMsg.textContent =
                 body.channel === "xdcc:index"
