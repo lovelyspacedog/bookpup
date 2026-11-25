@@ -173,7 +173,13 @@
         spine.style.setProperty("--bp-flow-scale", String(t.scale));
         spine.style.setProperty("--bp-flow-tx", t.tx + "rem");
         spine.style.setProperty("--bp-flow-z", String(t.z));
-        spine.style.opacity = String(t.opacity);
+        if (!item) {
+          spine.style.opacity = "0";
+          spine.style.visibility = "hidden";
+        } else {
+          spine.style.opacity = String(t.opacity);
+          spine.style.visibility = "visible";
+        }
         spine.classList.toggle("bp-lib-flow__spine--center", offset === 0);
         spine.classList.toggle("bp-lib-flow__spine--empty", !item);
         spine.disabled = !item;

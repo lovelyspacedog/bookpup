@@ -1497,6 +1497,12 @@ td {
 
 .bp-lib-flow__spine--empty {
   pointer-events: none;
+  visibility: hidden;
+}
+
+.bp-lib-flow__spine--empty .bp-lib-flow__cover-frame,
+.bp-lib-flow__spine--empty .bp-lib-flow__reflect {
+  display: none;
 }
 
 .bp-lib-flow__spine-inner {

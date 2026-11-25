@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.8
+
+- **Fix — Kennel Flow:** hide empty spine slots at the start or end of the catalogue (no grey placeholder cards).
+
 ## 1.7.7
 
 - **Kennel — Flow:** **Enter** on the focussed book opens **Read** (when the format supports it).
