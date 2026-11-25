@@ -1,5 +1,13 @@
 # BookPup changelog
 
+## 1.7.6
+
+- **Kennel — Flow:** cover stage and jackets **50% taller** (wider spine spacing to match).
+
+## 1.7.5
+
+- **Fix — Kennel Flow:** cover frames use **contain** (full jacket visible for comics and non–3:4 art); rotation pivots from the bottom so tall centres are less likely to clip.
+
 ## 1.7.4
 
 - **Fix — Kennel Flow:** **←/→** advance one book per press (removed duplicate key handler); taller stage so centred covers are not clipped at the top.

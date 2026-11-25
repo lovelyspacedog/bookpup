@@ -1424,6 +1424,7 @@ td {
   align-items: center;
   gap: 0.35rem;
   justify-content: center;
+  overflow: visible;
 }
 
 .bp-lib-flow__nav {
@@ -1436,8 +1437,8 @@ td {
 
 .bp-lib-flow__stage {
   flex: 1 1 auto;
-  max-width: 42rem;
-  min-height: 21rem;
+  max-width: 56rem;
+  min-height: 31.5rem;
   outline: none;
   touch-action: none;
   cursor: grab;
@@ -1458,8 +1459,8 @@ td {
 
 .bp-lib-flow__track {
   position: relative;
-  height: 19.5rem;
-  padding-top: 0.65rem;
+  height: 29.25rem;
+  padding-top: 1rem;
   box-sizing: border-box;
   display: flex;
   align-items: flex-end;
@@ -1474,14 +1475,16 @@ td {
 .bp-lib-flow__spine {
   position: absolute;
   left: 50%;
-  bottom: 1.15rem;
+  bottom: 1.75rem;
   margin: 0;
   padding: 0;
   border: none;
   background: transparent;
+  overflow: visible;
   transform: translateX(-50%) translateX(var(--bp-flow-tx, 0))
     rotateY(var(--bp-flow-rotate, 0deg)) scale(var(--bp-flow-scale, 1));
   transform-style: preserve-3d;
+  transform-origin: 50% 100%;
   transition: transform 0.22s ease, opacity 0.22s ease;
   z-index: var(--bp-flow-z, 1);
   cursor: pointer;
@@ -1499,22 +1502,37 @@ td {
 .bp-lib-flow__spine-inner {
   display: block;
   position: relative;
-  width: 8.75rem;
+  width: 13.15rem;
+  overflow: visible;
 }
 
-.bp-lib-flow__spine-inner > .bp-lib-flow__cover {
-  width: 8.75rem;
-  height: 11.65rem;
-  object-fit: cover;
+.bp-lib-flow__cover-frame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13.15rem;
+  height: 17.5rem;
   border-radius: 0.25rem;
-  display: block;
   background: #2a2a2a;
   box-shadow: 0 0.35rem 1.25rem rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.bp-lib-flow__cover-frame > .bp-lib-flow__cover {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background: transparent;
+  box-shadow: none;
 }
 
 .bp-lib-flow__reflect {
   display: block;
-  height: 3.75rem;
+  height: 5.65rem;
   overflow: hidden;
   margin-top: 0.1rem;
   -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, transparent 92%);
@@ -1526,14 +1544,19 @@ td {
   display: none;
 }
 
-.bp-lib-flow__reflect .bp-lib-flow__cover {
-  width: 8.75rem;
-  height: 11.65rem;
-  object-fit: cover;
+.bp-lib-flow__reflect .bp-lib-flow__cover--reflect {
+  width: 13.15rem;
+  height: 17.5rem;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: center bottom;
   transform: scaleY(-1);
+  transform-origin: center bottom;
   opacity: 0.42;
   filter: blur(0.4px);
   border-radius: 0.25rem;
+  background: #2a2a2a;
 }
 
 .bp-lib-flow__format {
@@ -1580,7 +1603,7 @@ td {
   justify-content: center;
 }
 
-.bp-lib-flow__spine.bp-lib-highlight .bp-lib-flow__spine-inner > .bp-lib-flow__cover {
+.bp-lib-flow__spine.bp-lib-highlight .bp-lib-flow__cover-frame {
   outline: 2px solid var(--accent, #6af);
   outline-offset: 2px;
 }
@@ -2590,31 +2613,35 @@ td {
   }
 
   .bp-lib-flow__spine-inner {
-    width: 6.5rem;
+    width: 9.75rem;
   }
 
-  .bp-lib-flow__spine-inner > .bp-lib-flow__cover,
-  .bp-lib-flow__reflect .bp-lib-flow__cover {
-    width: 6.5rem;
-    height: 8.65rem;
+  .bp-lib-flow__cover-frame {
+    width: 9.75rem;
+    height: 13rem;
+  }
+
+  .bp-lib-flow__reflect .bp-lib-flow__cover--reflect {
+    width: 9.75rem;
+    height: 13rem;
   }
 
   .bp-lib-flow__track {
-    height: 16.5rem;
-    padding-top: 0.5rem;
+    height: 24.75rem;
+    padding-top: 0.75rem;
     perspective: 720px;
   }
 
   .bp-lib-flow__stage {
-    min-height: 17.5rem;
+    min-height: 26.25rem;
   }
 
   .bp-lib-flow__spine {
-    bottom: 0.85rem;
+    bottom: 1.3rem;
   }
 
   .bp-lib-flow__reflect {
-    height: 2.85rem;
+    height: 4.3rem;
   }
 
   .bp-lib-card-body {

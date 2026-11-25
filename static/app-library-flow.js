@@ -18,7 +18,7 @@
     const abs = Math.abs(offset);
     const rotate = offset * -42;
     const scale = Math.max(0.55, 1 - abs * 0.12);
-    const tx = offset * 4.25;
+    const tx = offset * 6.4;
     const z = 30 - abs * 8;
     const opacity = Math.max(0.35, 1 - abs * 0.14);
     return { rotate, scale, tx, z, opacity };
@@ -116,9 +116,11 @@
       spine.setAttribute("role", "option");
       spine.innerHTML =
         '<span class="bp-lib-flow__spine-inner">' +
+        '<span class="bp-lib-flow__cover-frame">' +
         '<img class="bp-lib-cover bp-lib-flow__cover" width="120" height="160" decoding="async" alt="" />' +
+        "</span>" +
         '<span class="bp-lib-flow__reflect" aria-hidden="true">' +
-        '<img class="bp-lib-cover bp-lib-flow__cover" width="120" height="160" decoding="async" alt="" />' +
+        '<img class="bp-lib-cover bp-lib-flow__cover bp-lib-flow__cover--reflect" width="120" height="160" decoding="async" alt="" />' +
         "</span>" +
         '<span class="bp-lib-flow__format"></span>' +
         "</span>";
@@ -185,7 +187,7 @@
             : "";
           fmtEl.textContent = fmt ? fmt.toUpperCase() : "";
         }
-        const img = spine.querySelector(".bp-lib-flow__spine-inner > .bp-lib-flow__cover");
+        const img = spine.querySelector(".bp-lib-flow__cover-frame .bp-lib-flow__cover");
         const showRefl = offset === 0;
         spine.querySelector(".bp-lib-flow__reflect")?.classList.toggle("hidden", !showRefl);
         attachCoverImg(img, item, coverUrlForItem, showRefl);
