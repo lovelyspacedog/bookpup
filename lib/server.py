@@ -173,6 +173,36 @@ class Handler(BaseHTTPRequestHandler):
             raise
         return path
 
+    def do_HEAD(self) -> None:
+        parsed = urlparse(self.path)
+        path = parsed.path
+        if path == "/manifest.webmanifest":
+            body = static_files.web_manifest()
+            self.send_response(200)
+            self.send_header("Content-Type", static_files.STATIC_MIME[".webmanifest"])
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            return
+        if path == "/sw.js":
+            body = static_files.service_worker_js()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Service-Worker-Allowed", "/")
+            self.end_headers()
+            return
+        if path.startswith("/api/sideload/"):
+            token = path[len("/api/sideload/") :].strip("/")
+            if token and "/" not in token:
+                from .routes import sideload as sideload_routes
+
+                self.dispatch(lambda: sideload_routes.route_public_download_head(self, token))
+                return
+        self.send_response(404)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         path = parsed.path

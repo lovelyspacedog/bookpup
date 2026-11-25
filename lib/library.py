@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import json
 import secrets
 import shutil
@@ -395,8 +396,31 @@ def auto_stash_from_job(job: dict) -> dict | None:
         return save_from_staging(staging_id, title)
     except ValueError:
         return find_item_by_staging(staging_id)
-    except (KeyError, OSError):
+    except OSError as exc:
+        if getattr(exc, "errno", None) == errno.EEXIST:
+            return find_item_by_staging(staging_id)
         return None
+    except KeyError:
+        return None
+
+
+def discard_download_staging(staging_id: str) -> None:
+    """Drop a partial fresh catch and staged raw file after a cancelled download."""
+    sid = str(staging_id or "").strip()
+    if not sid:
+        return
+    row = find_item_by_staging(sid)
+    if row and is_staged(row):
+        try:
+            delete_item(str(row["id"]))
+        except (KeyError, OSError):
+            pass
+    base = staging_dir(sid)
+    if not base.is_dir():
+        return
+    for path in base.iterdir():
+        if path.is_file() and path.name.startswith("raw"):
+            path.unlink(missing_ok=True)
 
 
 def save_from_staging(staging_id: str, title_hint: str | None = None) -> dict:

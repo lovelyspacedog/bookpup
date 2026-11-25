@@ -839,6 +839,30 @@
       if ((full.result_count || 0) > 0) {
         throw new Error("Search finished but results could not be loaded — refresh and try again.");
       }
+      const query = (meta && meta.query) || full.query || "";
+      const channel = (meta && meta.channel) || full.channel || "";
+      sniffPage = 1;
+      resultRows = [];
+      renderResults([]);
+      BP.state.activeSearchJob = full.id;
+      updateDraftMeta(query, channel, 0);
+      updateResultsPanelVisibility();
+      void pushDraftPatch({
+        query,
+        channel,
+        filter: filterInput?.value || "",
+        results: [],
+        job_id: full.id,
+      });
+      if (searchMsg) {
+        const zeroLine =
+          full.search_notice ||
+          (typeof BP.friendlyIrcLine === "function"
+            ? BP.friendlyIrcLine("Search returned no matches")
+            : "No matches on that channel. Try different words or another network.");
+        searchMsg.textContent = zeroLine;
+        searchMsg.className = full.search_notice ? "bp-msg err" : "bp-msg muted";
+      }
       return false;
     }
     sniffPage = 1;
@@ -1733,7 +1757,7 @@
 
   async function tossLibraryItem(itemId) {
     await BP.api("/api/library/" + encodeURIComponent(itemId), { method: "DELETE" });
-    BP.loadLibrary();
+    await BP.loadLibrary();
   }
 
   // exports

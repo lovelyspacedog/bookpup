@@ -963,14 +963,13 @@
       "No fresh catches yet — sniff something on IRC.",
       filterActive
     );
-    fillLibrarySection(
-      calibreEl,
-      calibre,
-      readable,
-      "No catalogued bones yet — import Calibre or tag a fresh catch.",
-      filterActive,
-      true
-    );
+    const shelf =
+      activeShelfId && libraryShelvesCache.find((s) => s.id === activeShelfId);
+    const catalogueEmpty =
+      shelf && !filterActive
+        ? `No books on “${shelf.name}” yet — assign catalogued bones from the list or pick another shelf.`
+        : "No catalogued bones yet — import Calibre or tag a fresh catch.";
+    fillLibrarySection(calibreEl, calibre, readable, catalogueEmpty, filterActive, true);
     updateLibraryToolbar();
     updateLibFilterClearBtn();
   }

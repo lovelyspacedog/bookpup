@@ -122,6 +122,11 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         jobs.assert_job_access(job_id, handler._current_user, handler._is_admin)
         cancelled = jobs.cancel_job(job_id)
         worker.interrupt(job_id)
+        if str(cancelled.get("type") or "") == "download":
+            from .. import library
+
+            sid = str(cancelled.get("staging_id") or cancelled.get("id") or "")
+            library.discard_download_staging(sid)
         irc_feed.append_session(
             f"Job cancelled: {job_id} ({cancelled.get('type')})",
             owner=str(cancelled.get("owner") or "") or None,

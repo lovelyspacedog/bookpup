@@ -76,5 +76,13 @@ class ServerPublicTests(unittest.TestCase):
         self.assertIn("reader.js", text)
         self.assertEqual(resp.headers.get("Service-Worker-Allowed"), "/")
 
+    def test_head_manifest_and_sw(self) -> None:
+        for path in ("/manifest.webmanifest", "/sw.js"):
+            req = urllib.request.Request(self.base + path, method="HEAD")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                self.assertEqual(resp.status, 200)
+                self.assertGreater(int(resp.headers.get("Content-Length", "0")), 0)
+                self.assertEqual(resp.read(), b"")
+
 if __name__ == "__main__":
     unittest.main()

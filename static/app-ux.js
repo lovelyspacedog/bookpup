@@ -169,13 +169,13 @@
         msg.className = "bp-msg muted";
       }
       modal.classList.remove("hidden");
-      document.body.classList.add("bp-reader-open");
+      document.body.classList.add("bp-toss-modal-open");
       if (light) submitBtn?.focus();
       else input?.focus();
       tossResolver = (ok) => {
         tossResolver = null;
         modal.classList.add("hidden");
-        document.body.classList.remove("bp-reader-open");
+        document.body.classList.remove("bp-toss-modal-open");
         resolve(ok);
       };
     });

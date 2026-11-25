@@ -69,7 +69,14 @@
     const v = sel.value;
     const fromApi = sniffSourceHints[v];
     if (fromApi) {
-      hint.textContent = fromApi;
+      let text = fromApi;
+      if (v === "soulseek:slskd") {
+        const lim = BP.state?.soulseekLimits;
+        if (lim && !lim.admin_exempt && lim.searches_remaining != null) {
+          text += ` Sniffs left this hour: ${lim.searches_remaining}; fetches today: ${lim.downloads_remaining}.`;
+        }
+      }
+      hint.textContent = text;
     } else if (v === "soulseek:slskd") {
       let extra =
         "Soulseek peer search via household slskd. Shared login; per-user sniff/fetch caps (admins exempt from personal caps).";

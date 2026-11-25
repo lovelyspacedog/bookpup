@@ -35,6 +35,7 @@ def tool_probes() -> dict[str, dict[str, Any]]:
 
 def build_ready() -> dict[str, Any]:
     """Readiness: can this instance serve traffic (IRC worker, configured sidecars)?"""
+    worker.start()
     reasons: list[str] = []
     irc = worker.health_snapshot()
     if not irc.get("irc_worker_alive"):

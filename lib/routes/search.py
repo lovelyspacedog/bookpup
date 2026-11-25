@@ -11,6 +11,10 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
     if path == "/api/search/workspace":
         handler.send_json(200, search_workspace.get_workspace())
         return True
+    if path == "/api/search/saved":
+        ws = search_workspace.get_workspace()
+        handler.send_json(200, {"saved": ws.get("saved") or []})
+        return True
     return False
 
 

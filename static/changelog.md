@@ -1,5 +1,13 @@
 # BookPup changelog
 
+## 1.6.4
+
+- **Fix — Sniff:** Zero-match searches clear open results and status instead of sticking on *Querying…*; workspace draft syncs to **0** rows.
+- **Fix — Fetch:** Re-fetch same filename no longer dies on `File exists`; cancelled downloads drop partial **Fresh catches** and staged raw files.
+- **Fix — Kennel:** Empty **shelf** filter shows shelf-specific copy; toss modal no longer toggles reader layout class.
+- **Fix — Reader:** Converted MOBI EPUB gets tighter letter-spacing so section titles do not show broken gaps.
+- **Ops:** `HEAD` returns **200** on manifest, service worker, and sideload links; `GET /api/search/saved` lists bookmarks; `GET /api/ready` ensures IRC worker thread is started.
+
 ## 1.6.3
 
 - **Pack:** Compose row layout (Attach · message · Send); pending attachment chip with **Remove**; **Attach** becomes **Unattach** while something is queued.

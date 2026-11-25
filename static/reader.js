@@ -1264,6 +1264,18 @@
           body: { color: "#1a1a1a", background: "#fff" },
           p: { color: "#1a1a1a" },
         });
+        if (meta.converted) {
+          activeRendition.themes.register("mobi-pack-fix", {
+            body: { "letter-spacing": "normal", "word-spacing": "normal" },
+            p: { "letter-spacing": "normal", "word-spacing": "normal", "text-align": "start" },
+            h1: { "letter-spacing": "normal", "word-spacing": "normal" },
+            h2: { "letter-spacing": "normal", "word-spacing": "normal" },
+            h3: { "letter-spacing": "normal", "word-spacing": "normal" },
+            a: { "letter-spacing": "normal", "word-spacing": "normal" },
+            nav: { "letter-spacing": "normal", "word-spacing": "normal" },
+          });
+          activeRendition.themes.select("mobi-pack-fix");
+        }
 
         let cfi = undefined;
         if (startLoc?.type === "epub" && startLoc.cfi) {

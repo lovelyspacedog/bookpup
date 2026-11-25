@@ -179,6 +179,7 @@ window.BookPup = window.BookPup || {};
       }
       syncTabMoreAccountsLabel();
       if (adminBlock) adminBlock.classList.toggle("hidden", !BP.state.sessionAdmin);
+      BP.state.soulseekLimits = s.soulseek_limits || null;
       try {
         if (s.irc_targets) BP.applyIrcTargetOptions(s.irc_targets);
       } catch (_e) {
@@ -189,7 +190,6 @@ window.BookPup = window.BookPup || {};
       BP.state.sessionKoreaderUrl = s.koreader_sync_url || "";
       BP.state.sessionKindleSendReady = !!s.kindle_send_ready;
       BP.state.sessionKindleSmtp = !!s.kindle_smtp;
-      BP.state.soulseekLimits = s.soulseek_limits || null;
       BP.state.sessionWalkTrailComplete = !!s.walk_trail_complete;
       BP.syncWalkTrailFromSession?.();
     } catch {

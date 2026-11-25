@@ -566,6 +566,8 @@ class IrcWorker:
             safe_name = offer.filename.replace('"', "").strip()
             if safe_name and "." in safe_name:
                 final = dest.parent / f"raw{Path(safe_name).suffix}"
+                if final.exists():
+                    final.unlink()
                 shutil.move(dest, final)
             job["staging_id"] = staging_id
             job["raw_name"] = final.name

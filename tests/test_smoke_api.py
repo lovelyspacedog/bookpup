@@ -108,6 +108,18 @@ class SmokeApiTests(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertEqual(body.get("koreader_sync_url"), "https://smoke.example.test")
 
+    def test_search_saved_list(self) -> None:
+        _, login = self._request(
+            "POST",
+            "/api/login",
+            {"username": "book", "password": "secret"},
+        )
+        token = login["token"]
+        headers = {"Authorization": f"Bearer {token}", "X-Bookpup": "1"}
+        code, body = self._request("GET", "/api/search/saved", headers=headers)
+        self.assertEqual(code, 200)
+        self.assertIsInstance(body.get("saved"), list)
+
     def test_search_queues_mock_job(self) -> None:
         _, login = self._request(
             "POST",
