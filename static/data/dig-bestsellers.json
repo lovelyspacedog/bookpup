@@ -1,26 +1,51 @@
 {
   "updated": "2026-11-25",
-  "attribution": "Curated starter list for household digs — edit in static/data/dig-bestsellers.json before deploy.",
+  "attribution": "NYT Combined Print & E-Book Fiction (week of 30 Nov 2025) plus durable IRC sniff targets — curated for household Dig; edit static/data/dig-bestsellers.json before deploy.",
   "items": [
+    {
+      "title": "Exit Strategy",
+      "authors": "Lee Child and Andrew Child",
+      "sniff_query": "Lee Child Exit Strategy"
+    },
+    {
+      "title": "The Strength of the Few",
+      "authors": "James Islington",
+      "sniff_query": "James Islington Strength Few"
+    },
+    {
+      "title": "Nash Falls",
+      "authors": "David Baldacci",
+      "sniff_query": "David Baldacci Nash Falls"
+    },
+    {
+      "title": "The Widow",
+      "authors": "John Grisham",
+      "sniff_query": "John Grisham Widow"
+    },
+    {
+      "title": "Alchemised",
+      "authors": "SenLinYu",
+      "sniff_query": "SenLinYu Alchemised"
+    },
+    {
+      "title": "The Secret of Secrets",
+      "authors": "Dan Brown",
+      "sniff_query": "Dan Brown Secret Secrets"
+    },
+    {
+      "title": "Brigands & Breadknives",
+      "authors": "Travis Baldree",
+      "sniff_query": "Travis Baldree Brigands Breadknives"
+    },
+    {
+      "title": "Gone Before Goodbye",
+      "authors": "Reese Witherspoon and Harlan Coben",
+      "sniff_query": "Harlan Coben Gone Before Goodbye"
+    },
     {
       "title": "Project Hail Mary",
       "authors": "Andy Weir",
       "sniff_query": "Andy Weir Project Hail Mary"
-    },
-    {
-      "title": "The Martian",
-      "authors": "Andy Weir",
-      "sniff_query": "Andy Weir Martian"
-    },
-    {
-      "title": "Klara and the Sun",
-      "authors": "Kazuo Ishiguro",
-      "sniff_query": "Kazuo Ishiguro Klara"
-    },
-    {
-      "title": "The Silent Patient",
-      "authors": "Alex Michaelides",
-      "sniff_query": "Alex Michaelides Silent Patient"
     },
     {
       "title": "Dune",
@@ -28,44 +53,14 @@
       "sniff_query": "Frank Herbert Dune"
     },
     {
-      "title": "The Name of the Wind",
-      "authors": "Patrick Rothfuss",
-      "sniff_query": "Patrick Rothfuss Name Wind"
-    },
-    {
       "title": "The Hobbit",
       "authors": "J.R.R. Tolkien",
       "sniff_query": "Tolkien Hobbit"
     },
     {
-      "title": "Piranesi",
-      "authors": "Susanna Clarke",
-      "sniff_query": "Susanna Clarke Piranesi"
-    },
-    {
-      "title": "The Thursday Murder Club",
-      "authors": "Richard Osman",
-      "sniff_query": "Richard Osman Thursday Murder"
-    },
-    {
-      "title": "Educated",
-      "authors": "Tara Westover",
-      "sniff_query": "Tara Westover Educated"
-    },
-    {
-      "title": "Sapiens",
-      "authors": "Yuval Noah Harari",
-      "sniff_query": "Harari Sapiens"
-    },
-    {
-      "title": "The Gunslinger",
-      "authors": "Stephen King",
-      "sniff_query": "Stephen King Dark Tower"
-    },
-    {
-      "title": "Neuromancer",
-      "authors": "William Gibson",
-      "sniff_query": "William Gibson Neuromancer"
+      "title": "The Name of the Wind",
+      "authors": "Patrick Rothfuss",
+      "sniff_query": "Patrick Rothfuss Name Wind"
     },
     {
       "title": "The Way of Kings",
@@ -73,9 +68,14 @@
       "sniff_query": "Brandon Sanderson Way Kings"
     },
     {
-      "title": "Mexican Gothic",
-      "authors": "Silvia Moreno-Garcia",
-      "sniff_query": "Silvia Moreno-Garcia Mexican Gothic"
+      "title": "The Thursday Murder Club",
+      "authors": "Richard Osman",
+      "sniff_query": "Richard Osman Thursday Murder"
+    },
+    {
+      "title": "Piranesi",
+      "authors": "Susanna Clarke",
+      "sniff_query": "Susanna Clarke Piranesi"
     }
   ]
 }

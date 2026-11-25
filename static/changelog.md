@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.32
+
+- **Dig:** Refresh **Popular on the trail** bundled list (`updated` 2026-11-25; NYT Combined Fiction week of 30 Nov 2025 + household IRC picks).
+
 ## 1.7.31
 
 - **Dig:** Jacket art on catalog picks (sample from your tagged books) and popular list (Open Library, cached in `ol_covers.json`; optional `cover_url` in bestseller JSON).
