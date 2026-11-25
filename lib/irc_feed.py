@@ -104,6 +104,38 @@ def append_session(message: str, *, owner: str | None = None) -> None:
     append(direction="sys", kind="session", text=message, target=None, owner=owner)
 
 
+def current_seq() -> int:
+    with _lock:
+        return _seq
+
+
+def events_for_failure(
+    *,
+    owner: str | None,
+    since_id: int = 0,
+    since_ts: float = 0,
+) -> list[dict[str, Any]]:
+    """IRC feed lines relevant to a failed fetch (job owner + untagged reader lines)."""
+    who = str(owner or "").strip() or None
+    sid = max(0, int(since_id))
+    sts = float(since_ts or 0)
+    with _lock:
+        items = list(_events)
+    out: list[dict[str, Any]] = []
+    for ev in items:
+        eid = int(ev.get("id") or 0)
+        if eid <= sid:
+            continue
+        ev_ts = float(ev.get("ts") or 0)
+        if sts > 0 and ev_ts + 1.0 < sts:
+            continue
+        ev_owner = ev.get("owner")
+        if ev_owner and who and str(ev_owner) != who:
+            continue
+        out.append(dict(ev))
+    return out
+
+
 def snapshot(after: int = 0, limit: int = 150, viewer: str | None = None) -> dict:
     with _lock:
         items = [e for e in list(_events) if int(e["id"]) > after]

@@ -180,6 +180,7 @@ class IrcWorker:
                             job["state"] = "error"
                             job["error"] = str(exc)
                             jobs.save_job(job)
+                            jobs.fail_download_job(job, notify=False)
                     except KeyError:
                         pass
                     irc_feed.append_session(f"Worker job error: {exc}")
@@ -333,6 +334,8 @@ class IrcWorker:
         irc_feed.set_job_owner(owner)
         try:
             job["state"] = "running"
+            if job.get("type") == "download" and job.get("feed_seq_start") is None:
+                job["feed_seq_start"] = irc_feed.current_seq()
             jobs.set_irc_status(job_id, f"Starting {job.get('type', 'job')}…")
             jobs.save_job(job)
             attempts = 0
@@ -368,6 +371,7 @@ class IrcWorker:
                     job.pop("irc_status", None)
                     job.pop("irc_status_at", None)
                     jobs.save_job(job)
+                    jobs.fail_download_job(job, notify=False)
                     irc_feed.append_session(f"Download refused: {exc}")
                     return
                 except Exception as exc:
@@ -401,6 +405,7 @@ class IrcWorker:
             job.pop("irc_status", None)
             job.pop("irc_status_at", None)
             jobs.save_job(job)
+            jobs.fail_download_job(job, notify=False)
         finally:
             irc_feed.set_job_owner(None)
             user_paths.set_user(None)

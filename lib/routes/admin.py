@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
-from .. import accounts, admin_digest, bugbot, featurecat, library_export, quota, user_wipe
+from .. import (
+    accounts,
+    admin_digest,
+    bugbot,
+    featurecat,
+    fetch_fail_inbox,
+    library_export,
+    quota,
+    user_wipe,
+)
 from ._types import RequestHandler
 
 
@@ -19,6 +28,32 @@ def handle_get(handler: RequestHandler, path: str, _qs: dict) -> bool:
             handler.send_json(403, {"error": "Admin access required"})
             return True
         handler.send_json(200, {"reports": featurecat.list_inbox()})
+        return True
+    if path == "/api/admin/fetch-fail-inbox":
+        if not admin:
+            handler.send_json(403, {"error": "Admin access required"})
+            return True
+        handler.send_json(200, {"reports": fetch_fail_inbox.list_inbox()})
+        return True
+    fetch_fail_prefix = "/api/admin/fetch-fail-inbox/"
+    if path.startswith(fetch_fail_prefix):
+        if not admin:
+            handler.send_json(403, {"error": "Admin access required"})
+            return True
+        rest = path[len(fetch_fail_prefix) :].strip()
+        if not rest or "/" in rest:
+            return False
+        try:
+            entry_id = int(rest)
+        except ValueError:
+            handler.send_json(400, {"error": "Invalid entry id"})
+            return True
+        try:
+            md = fetch_fail_inbox.get_markdown(entry_id)
+        except KeyError:
+            handler.send_json(404, {"error": "Entry not found"})
+            return True
+        handler.send_json(200, {"id": entry_id, "markdown": md})
         return True
     if path == "/api/admin/digest":
         if not admin:
@@ -158,6 +193,31 @@ def handle_delete(handler: RequestHandler, path: str, qs: dict | None = None) ->
             handler.send_json(200, {"ok": True})
 
         handler.dispatch(drop_feature)
+        return True
+    fetch_fail_prefix = "/api/admin/fetch-fail-inbox/"
+    if path.startswith(fetch_fail_prefix):
+        if not handler._is_admin:
+            handler.send_json(403, {"error": "Admin access required"})
+            return True
+        rest = path[len(fetch_fail_prefix) :].strip()
+        if not rest or "/" in rest:
+            handler.send_json(400, {"error": "Invalid entry id"})
+            return True
+        try:
+            entry_id = int(rest)
+        except ValueError:
+            handler.send_json(400, {"error": "Invalid entry id"})
+            return True
+
+        def drop_fetch_fail() -> None:
+            try:
+                fetch_fail_inbox.dismiss_entry(entry_id)
+            except KeyError:
+                handler.send_json(404, {"error": "Entry not found"})
+                return
+            handler.send_json(200, {"ok": True})
+
+        handler.dispatch(drop_fetch_fail)
         return True
     if not path.startswith("/api/admin/accounts/"):
         return False

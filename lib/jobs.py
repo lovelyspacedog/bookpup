@@ -114,6 +114,7 @@ def recover_interrupted_jobs() -> int:
         job["state"] = "error"
         job["error"] = "Interrupted (restart or timeout). Try again."
         save_job(job)
+        fail_download_job(job, notify=False)
         count += 1
     return count
 
@@ -136,6 +137,7 @@ def reconcile_stale_running() -> int:
             job["state"] = "error"
             job["error"] = "Timed out waiting for IRC/DCC. Try again or pick another server."
             save_job(job)
+            fail_download_job(job, notify=False)
             count += 1
     return count
 
@@ -259,6 +261,23 @@ def cancel_job(job_id: str) -> JobDict:
         job.pop("irc_status_at", None)
         save_job(job)
         return job_summary(job)
+
+
+def fail_download_job(job: JobDict, *, notify: bool = True) -> None:
+    """Mark download failed (if needed) and file admin fetch-fail inbox entry."""
+    if str(job.get("type") or "") != "download":
+        return
+    if job.get("state") == "cancelled":
+        return
+    if notify and job.get("state") != "error":
+        job = dict(job)
+        job["state"] = "error"
+        save_job(job)
+    if str(job.get("state") or "") != "error":
+        return
+    from . import fetch_fail_inbox
+
+    fetch_fail_inbox.record_failed_download(job)
 
 
 def complete_job_success(job_id: str) -> JobDict | None:

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.14
+
+- **Fetch:** failed download jobs are logged with Den chatter and request details; admins open **Fetch fail inbox** on **Pack roster** to view markdown logs and dismiss entries.
+
 ## 1.7.13
 
 - **Fetch:** when bots refuse a book on one IRC trail, BookPup tries the other ebook networks (cached sniff rows first, then a fresh `@search` per net) before marking the fetch failed.
