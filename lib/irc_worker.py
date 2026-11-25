@@ -652,7 +652,9 @@ class IrcWorker:
                 create_staging(job["id"])
                 jobs.save_job(job)
             elif is_soulseek_search(job.get("channel")):
-                rows = soulseek_search.search_remote(str(job.get("query") or ""))
+                rows, _outcome = soulseek_search.search_remote(
+                    str(job.get("query") or "")
+                )
                 job["results"] = rows
                 job["result_count"] = len(rows)
                 job["staging_id"] = job["id"]

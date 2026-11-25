@@ -101,21 +101,48 @@ def _prefer_bookish(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
-def search_remote(query: str) -> list[dict[str, Any]]:
-    q = (query or "").strip()
-    if not q:
-        return []
-    search_id = slskd_client.start_search(q)
-
-    def _status(payload: dict[str, Any]) -> None:
-        count = len(slskd_client._iter_response_files(payload))
-
-    payload = slskd_client.wait_search_complete(search_id, on_tick=_status)
+def _rows_from_payload(payload: dict[str, Any], *, search_id: str) -> list[dict[str, Any]]:
     files = slskd_client.flatten_search(payload, search_id=search_id)
     rows = [_map_file(f) for f in files]
     rows = _dedupe(rows)
-    rows = _prefer_bookish(rows)
-    return rows
+    return _prefer_bookish(rows)
+
+
+def search_remote(query: str) -> tuple[list[dict[str, Any]], str]:
+    q = (query or "").strip()
+    if not q:
+        return [], "empty_complete"
+    search_id = slskd_client.start_search(q)
+    payload, outcome = slskd_client.wait_search_complete(search_id)
+    return _rows_from_payload(payload, search_id=search_id), outcome
+
+
+def _search_notice(query: str, outcome: str, row_count: int) -> str | None:
+    q = (query or "").strip()
+    if outcome == "in_progress_timeout" and row_count == 0:
+        return (
+            f'Soulseek was still searching when BookPup stopped waiting; '
+            f'retry shortly (nothing listed yet for "{q}")'
+        )
+    if outcome == "partial_in_progress" and row_count > 0:
+        return (
+            f"Soulseek still in progress; showing {row_count} match(es) found so far "
+            f"(retry for more)"
+        )
+    if row_count == 0 and outcome in ("empty_complete", "complete"):
+        return f'No Soulseek matches for "{q}"'
+    return None
+
+
+def _soulseek_tick_status(payload: dict[str, Any], *, count: int) -> str:
+    state = str(payload.get("state") or "").strip()
+    if state and "inprogress" in state.lower().replace(" ", ""):
+        if count:
+            return f"Soulseek in progress… ({count} file(s) so far)"
+        return "Soulseek in progress…"
+    if count:
+        return f"Soulseek: {count} match(es) so far…"
+    return "Querying Soulseek…"
 
 
 def log_begin(query: str, *, owner: str | None = None) -> None:
@@ -154,7 +181,18 @@ def run_search_job(job: dict[str, Any], *, owner: str | None = None) -> None:
         staging_id = job_id
         create_staging(staging_id)
         try:
-            rows = search_remote(query)
+            search_id = slskd_client.start_search(query)
+
+            def _status(payload: dict[str, Any]) -> None:
+                count = len(slskd_client._iter_response_files(payload))
+                jobs.set_irc_status(
+                    job_id, _soulseek_tick_status(payload, count=count)
+                )
+
+            payload, outcome = slskd_client.wait_search_complete(
+                search_id, on_tick=_status
+            )
+            rows = _rows_from_payload(payload, search_id=search_id)
         except SlskdDisabledError as exc:
             job = jobs.load_job(job_id)
             job["results"] = []
@@ -178,8 +216,11 @@ def run_search_job(job: dict[str, Any], *, owner: str | None = None) -> None:
         job["results"] = rows
         job["result_count"] = len(rows)
         job["staging_id"] = staging_id
-        if not rows:
-            job["search_notice"] = f'No Soulseek matches for "{query}"'
+        notice = _search_notice(query, outcome, len(rows))
+        if notice:
+            job["search_notice"] = notice[:240]
+        else:
+            job.pop("search_notice", None)
         job["state"] = "done"
         job.pop("error", None)
         job.pop("irc_status", None)

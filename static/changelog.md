@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.23
+
+- **Sniff — Soulseek:** Longer slskd poll window so slow searches finish before BookPup gives up; **in progress** status while peers respond; “still searching, retry” instead of false **no matches** when nothing has arrived yet.
+
 ## 1.7.22
 
 - **Sniff — Fix:** **Every ebook net** writes merged rows to your sniff draft when IRC finishes, logs **Sniff finished** for Den chatter, and reloads the table from workspace if client ingest misses a poll.

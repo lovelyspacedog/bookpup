@@ -8,7 +8,7 @@ import secrets
 import sys
 from pathlib import Path
 
-VERSION = "1.7.22"
+VERSION = "1.7.23"
 CONFIG_DIR = Path.home() / ".config" / "bookpup"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 JOBS_DIR = CONFIG_DIR / "jobs"
@@ -112,6 +112,7 @@ def load_config() -> dict:
     config.setdefault("slskd_password", "")
     config.setdefault("slskd_download_root", "")
     config.setdefault("soulseek_search_timeout_sec", 20)
+    config.setdefault("soulseek_search_poll_grace_sec", 35)
     config.setdefault("soulseek_response_limit", 300)
     config.setdefault("soulseek_limits", dict(DEFAULT_SOULSEEK_LIMITS))
     _config = config

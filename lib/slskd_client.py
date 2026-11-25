@@ -116,6 +116,18 @@ def search_timeout_ms() -> int:
     return max(1000, search_timeout_sec() * 1000)
 
 
+def search_poll_grace_sec() -> int:
+    """Extra client poll time after slskd searchTimeout (Soulseek often responds late)."""
+    try:
+        return int(load_config().get("soulseek_search_poll_grace_sec") or 35)
+    except (TypeError, ValueError):
+        return 35
+
+
+def search_poll_hard_cap_sec() -> float:
+    return float(search_timeout_sec() + max(10, search_poll_grace_sec()))
+
+
 def response_limit() -> int:
     try:
         return int(load_config().get("soulseek_response_limit") or 300)
@@ -326,24 +338,49 @@ def get_search(search_id: str, *, include_responses: bool = True) -> dict[str, A
     return payload
 
 
+def _search_state_terminal(state: str) -> bool:
+    s = str(state or "").strip().lower()
+    if not s:
+        return False
+    compact = s.replace(" ", "")
+    if "inprogress" in compact:
+        return False
+    tokens = {part for part in s.replace(",", " ").split() if part}
+    if tokens & frozenset({"completed", "complete", "timedout", "cancelled", "canceled"}):
+        return True
+    return s in ("completed", "complete", "timedout", "cancelled", "canceled")
+
+
+def classify_search_outcome(payload: dict[str, Any]) -> str:
+    """How the Soulseek poll ended (for notices, not slskd errors)."""
+    files = _iter_response_files(payload)
+    if payload.get("isComplete") is True or _search_state_terminal(
+        str(payload.get("state") or "")
+    ):
+        return "empty_complete" if not files else "complete"
+    if files:
+        return "partial_in_progress"
+    return "in_progress_timeout"
+
+
 def wait_search_complete(
     search_id: str,
     *,
     on_tick: Callable[[dict[str, Any]], None] | None = None,
-) -> dict[str, Any]:
-    deadline = time.monotonic() + search_timeout_sec() + 5.0
+) -> tuple[dict[str, Any], str]:
+    deadline = time.monotonic() + search_poll_hard_cap_sec()
     last: dict[str, Any] = {}
     while time.monotonic() < deadline:
         last = get_search(search_id)
         if last.get("isComplete") is True:
-            return last
-        state = str(last.get("state") or "").strip().lower()
-        if state in ("completed", "complete", "timedout", "cancelled"):
-            return last
+            return last, classify_search_outcome(last)
+        state = str(last.get("state") or "").strip()
+        if _search_state_terminal(state):
+            return last, classify_search_outcome(last)
         if on_tick:
             on_tick(last)
         time.sleep(POLL_INTERVAL)
-    return last
+    return last, classify_search_outcome(last)
 
 
 def _iter_response_files(payload: dict[str, Any]) -> list[dict[str, Any]]:

@@ -23,7 +23,8 @@ class SoulseekSearchTest(unittest.TestCase):
         self._tmpdir.cleanup()
 
     def test_search_mock_maps_bookish_rows(self) -> None:
-        rows = soulseek_search.search_remote("rothfuss epub")
+        rows, outcome = soulseek_search.search_remote("rothfuss epub")
+        self.assertEqual(outcome, "complete")
         self.assertGreaterEqual(len(rows), 2)
         kinds = {r["download_kind"] for r in rows}
         self.assertEqual(kinds, {"soulseek"})

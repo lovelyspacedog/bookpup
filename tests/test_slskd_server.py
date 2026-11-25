@@ -32,6 +32,45 @@ class SlskdServerReadyTest(unittest.TestCase):
         with mock.patch.object(core, "load_config", return_value={"soulseek_search_timeout_sec": 20}):
             self.assertEqual(slskd_client.search_timeout_ms(), 20000)
 
+    def test_classify_in_progress_timeout(self) -> None:
+        payload = {"isComplete": False, "state": "InProgress", "responses": []}
+        self.assertEqual(slskd_client.classify_search_outcome(payload), "in_progress_timeout")
+
+    def test_classify_empty_complete(self) -> None:
+        payload = {"isComplete": True, "state": "Completed, TimedOut", "responses": []}
+        self.assertEqual(slskd_client.classify_search_outcome(payload), "empty_complete")
+
+    def test_wait_search_keeps_polling_past_soft_deadline(self) -> None:
+        payloads = [
+            {"isComplete": False, "state": "InProgress", "responses": []},
+            {"isComplete": False, "state": "InProgress", "responses": []},
+            {
+                "isComplete": True,
+                "state": "Completed, TimedOut",
+                "responses": [
+                    {
+                        "username": "peer",
+                        "files": [{"filename": "book.epub", "size": 1}],
+                    }
+                ],
+            },
+        ]
+
+        def fake_get(_sid: str, **kwargs: object) -> dict:
+            return payloads.pop(0) if payloads else payloads[-1]
+
+        times = [0.0, 0.1, 30.0, 30.1]
+        with (
+            mock.patch.object(slskd_client, "get_search", side_effect=fake_get),
+            mock.patch.object(slskd_client, "search_poll_hard_cap_sec", return_value=60.0),
+            mock.patch.object(slskd_client, "time") as tmock,
+        ):
+            tmock.monotonic.side_effect = times
+            tmock.sleep = mock.Mock()
+            payload, outcome = slskd_client.wait_search_complete("sid")
+        self.assertEqual(outcome, "complete")
+        self.assertEqual(len(slskd_client._iter_response_files(payload)), 1)
+
     def test_list_downloads_flattens_directory_files(self) -> None:
         payload = [
             {
