@@ -264,6 +264,15 @@
         ev.preventDefault();
         index = items.length - 1;
         renderSpines();
+      } else if (ev.key === "Enter") {
+        if (ev.target.closest(".bp-lib-flow__actions")) return;
+        if (ev.target.closest(".bp-lib-toolbar")) return;
+        const item = currentItem();
+        if (!item) return;
+        const readBtn = actionsEl.querySelector(".read");
+        if (!readBtn) return;
+        ev.preventDefault();
+        readBtn.click();
       }
     }
 

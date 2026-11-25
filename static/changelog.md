@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.7
+
+- **Kennel — Flow:** **Enter** on the focussed book opens **Read** (when the format supports it).
+
 ## 1.7.6
 
 - **Kennel — Flow:** cover stage and jackets **50% taller** (wider spine spacing to match).
