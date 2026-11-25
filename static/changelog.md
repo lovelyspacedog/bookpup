@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.4
+
+- **Fix — Kennel Flow:** **←/→** advance one book per press (removed duplicate key handler); taller stage so centred covers are not clipped at the top.
+
 ## 1.7.3
 
 - **Kennel — Flow:** **←/→** work on the Kennel tab without focusing the carousel first; drag horizontally to scrub through covers; slightly taller jackets and stage.

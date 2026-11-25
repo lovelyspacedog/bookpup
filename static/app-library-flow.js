@@ -266,7 +266,6 @@
     }
 
     document.addEventListener("keydown", handleFlowKeys, { capture: true, signal: sig });
-    stage.addEventListener("keydown", handleFlowKeys, { signal: sig });
     root.addEventListener(
       "click",
       () => {
