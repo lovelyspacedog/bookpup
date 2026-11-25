@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.7.20
+
+- **UX:** Kennel grid covers show the full jacket (no top/bottom crop); matches cover-flow sizing.
+
 ## 1.7.19
 
 - **Fetch — Fix:** send **!Pondering-Ebooks2** even when the bot is missing from IRC NAMES; cross-network fallback retries **same bot** rows and does not jump to **!Horla** first.
