@@ -219,13 +219,12 @@ class IrcWorker:
             finally:
                 irc_feed.set_job_owner(None)
             return
-        with self._lock:
-            session = self._ensure_session(session_target, feed_owner=owner)
-            irc_feed.set_job_owner(owner)
-            try:
-                session.privmsg(ch, text)
-            finally:
-                irc_feed.set_job_owner(None)
+        session = self._ensure_session(session_target, feed_owner=owner)
+        irc_feed.set_job_owner(owner)
+        try:
+            session.privmsg(ch, text)
+        finally:
+            irc_feed.set_job_owner(None)
         self._idle_since = None
 
     def _on_search_no_match(self, query: str, reason: str) -> None:

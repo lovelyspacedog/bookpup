@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.8.1
+
+- **Fix — Den chatter:** **Enable Bark** no longer deadlocks the IRC worker (sniffs could stick on **Waking IRC link…** after a bark).
+
 ## 1.8.0
 
 - **UX:** **What's new** — **1.7.x** patch notes rolled into an abridged history block (same style as **1.6** / **1.7.0**).

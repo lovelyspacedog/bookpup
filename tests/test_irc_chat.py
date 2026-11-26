@@ -32,5 +32,33 @@ class IrcChatSanitizeTest(unittest.TestCase):
         self.assertFalse(self.w.disconnect_now(owner="bob"))
 
 
+class IrcChatLivePathTest(unittest.TestCase):
+    """Live send_chat path (non-mock): must not re-acquire worker lock and hang."""
+
+    def setUp(self) -> None:
+        core.IRC_MOCK = False
+        import lib.irc_worker as iw
+
+        iw.core.IRC_MOCK = False
+        self.w = IrcWorker()
+
+    def test_send_chat_returns_without_worker_lock_deadlock(self) -> None:
+        class StubSession:
+            def __init__(self) -> None:
+                self.last: tuple[str, str] | None = None
+
+            def privmsg(self, target: str, text: str) -> None:
+                self.last = (target, text)
+
+        stub = StubSession()
+
+        def fake_ensure(*_args, **_kwargs):
+            return stub
+
+        self.w._ensure_session = fake_ensure  # type: ignore[method-assign]
+        self.w.send_chat("frungi", "rizon:ebookz", "Meow")
+        self.assertEqual(stub.last, ("#ebookz", "Meow"))
+
+
 if __name__ == "__main__":
     unittest.main()
