@@ -370,6 +370,23 @@
               <p class="bp-saved-bookmarks-label">Bookmarks</p>
               <p id="saved-search-empty" class="bp-saved-empty muted">No bookmarks yet.</p>
               <ol id="saved-search-list" class="bp-saved-list" aria-label="Bookmarked search lists"></ol>
+              <div class="bp-saved-combine" id="saved-search-combine" hidden>
+                <p class="bp-saved-bookmarks-label">Notify rules</p>
+                <p class="muted bp-saved-combine-lede">
+                  Optional <strong>AND</strong> / <strong>OR</strong> across scheduled bookmarks before a
+                  <strong>BookPup</strong> message.
+                </p>
+                <ul id="saved-combine-list" class="bp-saved-combine-list" aria-label="Notify rules"></ul>
+                <div class="bp-saved-combine-form">
+                  <select id="saved-combine-mode" aria-label="Rule mode">
+                    <option value="and">AND — all must have new rows</option>
+                    <option value="or">OR — any new rows</option>
+                  </select>
+                  <select id="saved-combine-pick-a" aria-label="First bookmark"></select>
+                  <select id="saved-combine-pick-b" aria-label="Second bookmark"></select>
+                  <button type="button" id="saved-combine-add" class="bp-btn">Add rule</button>
+                </div>
+              </div>
               <div class="bp-saved-bookmark-form">
                 <label class="bp-saved-save-label" for="saved-search-name">Name open results</label>
                 <div class="bp-saved-search-actions">

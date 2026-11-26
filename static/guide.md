@@ -78,7 +78,7 @@ You can sniff many times, fetch several books, then catalog when you are ready. 
 - **Open results** is your last finished sniff — full list, query, and filters — tied to your account.
 - **Bookmark** keeps that list (up to 25 bookmarks). Use **Load**, **Remove**, or **↑↓** to manage them.
 - A new sniff replaces open results when it finishes — bookmark first if you need the old list.
-- **Scheduled sniff** (small **▸** row on the sniff card or on a bookmark) re-runs the same search on a timer while BookPup is running. Brand-new rows can arrive as a private **BookPup** message — open **Pack chat** → **Private message** → **BookPup**. If several watches fire in the same tick, BookPup usually sends **one digest message** listing each bookmark (operators can turn that off with `sniff_schedule_digest: false` in `config.json`). Busy download queues can delay scheduled sniffs.
+- **Scheduled sniff** (small **▸** row on the sniff card or on a bookmark) re-runs the same search on a timer while BookPup is running. Brand-new rows can arrive as a private **BookPup** message — open **Pack chat** → **Private message** → **BookPup**. If several watches fire in the same tick, BookPup usually sends **one digest message** listing each bookmark (operators can turn that off with `sniff_schedule_digest: false` in `config.json`). **Notify rules** (under **Open results & bookmarks**) let you require **AND** (every listed bookmark must see new rows) or **OR** (any) before a message goes out. Busy download queues can delay scheduled sniffs.
 
 ## Page 9 — Fetch queue
 

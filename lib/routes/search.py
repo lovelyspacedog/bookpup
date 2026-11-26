@@ -53,6 +53,10 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         ws = search_workspace.reorder_saved(body.get("order") or [])
         handler.send_json(200, {"ok": True, "workspace": ws})
         return True
+    if path == "/api/search/schedule-combine":
+        ws = search_workspace.update_schedule_combine_rules(body.get("rules"))
+        handler.send_json(200, {"ok": True, "workspace": ws})
+        return True
     if path == "/api/search":
         query = str(body.get("query") or "").strip()
         if not query:

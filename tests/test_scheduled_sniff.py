@@ -126,7 +126,7 @@ class ScheduledSniffRunnerTest(unittest.TestCase):
         runner = ScheduleRunner()
         due = search_workspace.list_due_watches(now=9999999999)
         self.assertTrue(due)
-        runner._run_watch(due[0])
+        runner._run_watch(due[0], send_pm=True)
         mock_pm.assert_called_once()
         self.assertEqual(mock_pm.call_args.kwargs.get("owner"), "pup")
 
@@ -180,6 +180,58 @@ class ScheduledSniffRunnerTest(unittest.TestCase):
         mock_digest.assert_called_once()
         entries = mock_digest.call_args.kwargs.get("entries") or []
         self.assertEqual(len(entries), 2)
+
+    @mock.patch("lib.search_workspace.accounts.list_users", return_value=[{"username": "pup"}])
+    @mock.patch("lib.scheduled_sniff.search_run.run_search_job_for_user")
+    @mock.patch("lib.scheduled_sniff.notify.sniff_watch_digest_pm")
+    def test_and_rule_suppresses_tick_digest(self, mock_digest, mock_run, _mock_users) -> None:
+        from lib import jobs
+        from lib.scheduled_sniff import ScheduleRunner
+
+        core._config = {
+            "username": "book",
+            "password": "x",
+            "port": 1,
+            "sniff_schedule_digest": True,
+        }
+        ids = []
+        for name in ("Watch A", "Watch B"):
+            search_workspace.update_draft(
+                {"query": "q", "channel": "irchighway:ebooks", "results": [_row("Old")]}
+            )
+            out = search_workspace.save_draft_as(name)
+            saved_id = out["id"]
+            ids.append(saved_id)
+            search_workspace.update_saved_schedule(saved_id, {"enabled": True, "interval_hours": 6})
+            data = search_workspace._load_raw()  # noqa: SLF001
+            item = next(x for x in data["saved"] if x["id"] == saved_id)
+            item["schedule"]["last_run_at"] = 0
+            search_workspace._write(data)  # noqa: SLF001
+        search_workspace.update_schedule_combine_rules(
+            [{"mode": "and", "saved_ids": ids}]
+        )
+
+        call_n = {"n": 0}
+
+        def _job(_user: str, _q: str, _ch: str, *, wait: bool = False) -> dict:
+            call_n["n"] += 1
+            extra = [_row("Fresh")] if call_n["n"] == 1 else []
+            return jobs.create_job(
+                "search",
+                query="q",
+                channel="irchighway:ebooks",
+                owner="pup",
+                state="done",
+                results=[_row("Old")] + extra,
+                result_count=1 + len(extra),
+            )
+
+        mock_run.side_effect = _job
+        runner = ScheduleRunner()
+        with mock.patch.object(runner, "_lock") as mock_lock:
+            mock_lock.acquire.return_value = True
+            runner._tick_once()
+        mock_digest.assert_not_called()
 
 
 if __name__ == "__main__":

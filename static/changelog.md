@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.8.5
+
+- **Sniff:** **Notify rules** on bookmarks — optional **AND** / **OR** across scheduled bookmarks before **BookPup** Pack messages; works with **scheduled sniff digest** (`POST /api/search/schedule-combine`).
+
 ## 1.8.4
 
 - **Sniff:** **Scheduled sniff digest** — one **BookPup** private message per tick when several bookmark watches find new rows (set `sniff_schedule_digest: false` in `config.json` for one message per bookmark).

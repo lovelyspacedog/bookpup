@@ -20,6 +20,9 @@ MAX_NAME_LEN = 80
 MAX_FILE_BYTES = 4_000_000
 MAX_SCHEDULED_PER_USER = 5
 MAX_SEEN_KEYS = 5000
+MAX_COMBINE_RULES = 8
+MAX_COMBINE_IDS = 5
+COMBINE_MODES = frozenset({"and", "or"})
 DEFAULT_INTERVAL_HOURS = 24
 DEFAULT_MIN_INTERVAL_HOURS = 6
 
@@ -42,20 +45,23 @@ def _empty_draft() -> dict[str, Any]:
 def _load_raw(username: str | None = None) -> dict[str, Any]:
     path = _path(username)
     if not path.is_file():
-        return {"draft": _empty_draft(), "saved": []}
+        return {"draft": _empty_draft(), "saved": [], "schedule_combine_rules": []}
     try:
         data = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError):
-        return {"draft": _empty_draft(), "saved": []}
+        return {"draft": _empty_draft(), "saved": [], "schedule_combine_rules": []}
     if not isinstance(data, dict):
-        return {"draft": _empty_draft(), "saved": []}
+        return {"draft": _empty_draft(), "saved": [], "schedule_combine_rules": []}
     draft = data.get("draft")
     saved = data.get("saved")
     if not isinstance(draft, dict):
         draft = _empty_draft()
     if not isinstance(saved, list):
         saved = []
-    return {"draft": draft, "saved": saved}
+    rules = data.get("schedule_combine_rules")
+    if not isinstance(rules, list):
+        rules = []
+    return {"draft": draft, "saved": saved, "schedule_combine_rules": rules}
 
 
 def _write(data: dict[str, Any], username: str | None = None) -> None:
@@ -90,6 +96,136 @@ def _min_interval_hours() -> int:
 
 def _max_scheduled() -> int:
     return _schedule_cfg_int("sniff_schedule_max_per_user", MAX_SCHEDULED_PER_USER)
+
+
+def _normalize_combine_rules(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for item in raw[:MAX_COMBINE_RULES]:
+        if not isinstance(item, dict):
+            continue
+        mode = str(item.get("mode") or "").strip().lower()
+        if mode not in COMBINE_MODES:
+            continue
+        ids_raw = item.get("saved_ids")
+        if not isinstance(ids_raw, list):
+            continue
+        saved_ids = []
+        seen: set[str] = set()
+        for sid in ids_raw:
+            s = str(sid or "").strip()
+            if not s or s in seen:
+                continue
+            seen.add(s)
+            saved_ids.append(s)
+            if len(saved_ids) >= MAX_COMBINE_IDS:
+                break
+        if len(saved_ids) < 2:
+            continue
+        rid = str(item.get("id") or "").strip() or secrets.token_hex(8)
+        name = str(item.get("name") or "").strip()[:MAX_NAME_LEN]
+        out.append({"id": rid, "mode": mode, "saved_ids": saved_ids, "name": name})
+    return out
+
+
+def _combine_rules_public(rules: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": str(r.get("id") or ""),
+            "mode": str(r.get("mode") or ""),
+            "saved_ids": list(r.get("saved_ids") or []),
+            "name": str(r.get("name") or ""),
+        }
+        for r in rules
+    ]
+
+
+def _prune_combine_rules(data: dict[str, Any], removed_id: str) -> None:
+    rules = _normalize_combine_rules(data.get("schedule_combine_rules"))
+    if not rules:
+        return
+    nxt: list[dict[str, Any]] = []
+    for rule in rules:
+        ids = [x for x in rule.get("saved_ids") or [] if x != removed_id]
+        if len(ids) >= 2:
+            rule = dict(rule)
+            rule["saved_ids"] = ids
+            nxt.append(rule)
+    data["schedule_combine_rules"] = nxt
+
+
+def filter_notify_entries(
+    username: str,
+    entries: list[dict[str, Any]],
+    ran_saved_ids: set[str],
+) -> list[dict[str, Any]]:
+    """Apply AND/OR bookmark rules before Pack DM."""
+    if not entries:
+        return []
+    data = _load_raw(username)
+    rules = _normalize_combine_rules(data.get("schedule_combine_rules"))
+    if not rules or not ran_saved_ids:
+        return entries
+    by_sid: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        sid = str(entry.get("saved_id") or "").strip()
+        if sid:
+            by_sid[sid] = entry
+    suppress: set[str] = set()
+    for rule in rules:
+        sids = {str(x) for x in rule.get("saved_ids") or [] if x}
+        ran = sids & ran_saved_ids
+        if not ran:
+            continue
+        hits = {sid for sid in ran if by_sid.get(sid) and by_sid[sid].get("new_rows")}
+        mode = str(rule.get("mode") or "")
+        if mode == "and" and len(hits) < len(ran):
+            suppress |= sids
+        elif mode == "or" and not hits:
+            suppress |= sids
+    return [e for e in entries if str(e.get("saved_id") or "") not in suppress]
+
+
+def update_schedule_combine_rules(rules: Any) -> dict[str, Any]:
+    if not isinstance(rules, list):
+        raise ValueError("rules must be a list")
+    data = _load_raw()
+    saved_ids = {
+        str(x.get("id"))
+        for x in data.get("saved") or []
+        if isinstance(x, dict) and x.get("id")
+    }
+    normalized: list[dict[str, Any]] = []
+    for item in rules[:MAX_COMBINE_RULES]:
+        if not isinstance(item, dict):
+            raise ValueError("each rule must be an object")
+        mode = str(item.get("mode") or "").strip().lower()
+        if mode not in COMBINE_MODES:
+            raise ValueError("mode must be and or or")
+        ids_raw = item.get("saved_ids")
+        if not isinstance(ids_raw, list):
+            raise ValueError("saved_ids required")
+        picked: list[str] = []
+        seen: set[str] = set()
+        for sid in ids_raw:
+            s = str(sid or "").strip()
+            if not s or s in seen:
+                continue
+            if s not in saved_ids:
+                raise ValueError("unknown bookmark id in rule")
+            seen.add(s)
+            picked.append(s)
+        if len(picked) < 2:
+            raise ValueError("each rule needs at least two bookmarks")
+        if len(picked) > MAX_COMBINE_IDS:
+            raise ValueError(f"at most {MAX_COMBINE_IDS} bookmarks per rule")
+        rid = str(item.get("id") or "").strip() or secrets.token_hex(8)
+        name = str(item.get("name") or "").strip()[:MAX_NAME_LEN]
+        normalized.append({"id": rid, "mode": mode, "saved_ids": picked, "name": name})
+    data["schedule_combine_rules"] = normalized
+    _write(data)
+    return get_workspace()
 
 
 def _empty_schedule() -> dict[str, Any]:
@@ -268,7 +404,11 @@ def get_workspace() -> dict[str, Any]:
             "max_rows": MAX_ROWS,
             "max_scheduled": _max_scheduled(),
             "min_interval_hours": _min_interval_hours(),
+            "max_combine_rules": MAX_COMBINE_RULES,
         },
+        "schedule_combine_rules": _combine_rules_public(
+            _normalize_combine_rules(data.get("schedule_combine_rules"))
+        ),
     }
 
 
@@ -427,6 +567,7 @@ def delete_saved(saved_id: str) -> dict[str, Any]:
     if len(nxt) == len(saved):
         raise KeyError(saved_id)
     data["saved"] = nxt
+    _prune_combine_rules(data, sid)
     _write(data)
     return get_workspace()
 

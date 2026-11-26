@@ -49,7 +49,7 @@ Runtime config and libraries live under `~/.config/bookpup/`:
 
 | Path | Purpose |
 |------|---------|
-| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy, optional **household Gmail SMTP** for Send-to-Kindle (`smtp_*` keys below), optional scheduled-sniff tuning (`sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`, `sniff_schedule_digest` — batch new rows into one Pack DM per tick, default **true**) |
+| `config.json` | Port, `public_url`, IRC/XDCC/Soulseek options, optional ntfy, optional **household Gmail SMTP** for Send-to-Kindle (`smtp_*` keys below), optional scheduled-sniff tuning (`sniff_schedule_tick_seconds`, `sniff_schedule_min_interval_hours`, `sniff_schedule_max_per_user`, `sniff_schedule_digest` — batch new rows into one Pack DM per tick, default **true**). Per-user **notify rules** (AND/OR across bookmarks) live in `users/<pup>/search_workspace.json` as `schedule_combine_rules` or via **Open results & bookmarks → Notify rules** / `POST /api/search/schedule-combine`. |
 | `accounts.json` | Household users (admin creates accounts in UI) |
 | `users/<name>/` | Per-user library files, covers, indexes |
 | `sessions.json` | Bearer sessions (7-day TTL) |

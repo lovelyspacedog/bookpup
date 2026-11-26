@@ -17,6 +17,12 @@
   const savedSearchName = document.getElementById("saved-search-name");
   const savedSearchSaveBtn = document.getElementById("saved-search-save");
   const savedSearchMsg = document.getElementById("saved-search-msg");
+  const combinePanel = document.getElementById("saved-search-combine");
+  const combineList = document.getElementById("saved-combine-list");
+  const combineMode = document.getElementById("saved-combine-mode");
+  const combinePickA = document.getElementById("saved-combine-pick-a");
+  const combinePickB = document.getElementById("saved-combine-pick-b");
+  const combineAdd = document.getElementById("saved-combine-add");
   const formSchedEnabled = document.getElementById("sniff-form-schedule-enabled");
   const formSchedInterval = document.getElementById("sniff-form-schedule-interval");
   const formSchedStatus = document.getElementById("sniff-form-schedule-status");
@@ -31,6 +37,7 @@
   let sniffPage = 1;
   let sniffPageSize = parseInt(localStorage.getItem(SNIFF_PAGE_SIZE_KEY), 10) || 50;
   let workspaceSaved = [];
+  let workspaceCombineRules = [];
   let draftSyncTimer = null;
   let suppressDraftSync = false;
 
@@ -406,6 +413,74 @@
     });
     updateResultsPanelVisibility();
     updateFormSchedule();
+    renderCombineRules(workspaceCombineRules);
+  }
+
+  function bookmarkLabel(id) {
+    const hit = workspaceSaved.find((s) => s.id === id);
+    return hit ? (hit.name || hit.query || id).slice(0, 40) : id;
+  }
+
+  function renderCombinePickers() {
+    if (!combinePickA || !combinePickB) return;
+    const opts = workspaceSaved.map((s) => {
+      const o = document.createElement("option");
+      o.value = s.id;
+      o.textContent = (s.name || s.query || "Bookmark").slice(0, 48);
+      return o;
+    });
+    combinePickA.textContent = "";
+    combinePickB.textContent = "";
+    opts.forEach((o) => {
+      combinePickA.appendChild(o.cloneNode(true));
+      combinePickB.appendChild(o.cloneNode(true));
+    });
+  }
+
+  function renderCombineRules(rules) {
+    workspaceCombineRules = Array.isArray(rules) ? rules.slice() : [];
+    const show = workspaceSaved.length >= 2;
+    if (combinePanel) combinePanel.hidden = !show;
+    if (!combineList || !show) return;
+    combineList.textContent = "";
+    renderCombinePickers();
+    workspaceCombineRules.forEach((rule) => {
+      const li = document.createElement("li");
+      const mode = (rule.mode || "and").toUpperCase();
+      const names = (rule.saved_ids || []).map(bookmarkLabel).join(" · ");
+      const label = document.createElement("span");
+      label.textContent = `${mode}: ${names}`;
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "bp-btn";
+      rm.textContent = "Remove";
+      rm.addEventListener("click", () => {
+        const next = workspaceCombineRules.filter((r) => r.id !== rule.id);
+        void persistCombineRules(next);
+      });
+      li.append(label, rm);
+      combineList.appendChild(li);
+    });
+  }
+
+  async function persistCombineRules(rules) {
+    try {
+      const data = await BP.api("/api/search/schedule-combine", {
+        method: "POST",
+        body: JSON.stringify({ rules }),
+      });
+      renderSavedSearchList(data.workspace?.saved);
+      renderCombineRules(data.workspace?.schedule_combine_rules);
+      if (savedSearchMsg) {
+        savedSearchMsg.textContent = "Notify rules saved.";
+        savedSearchMsg.className = "bp-msg muted";
+      }
+    } catch (err) {
+      if (savedSearchMsg) {
+        savedSearchMsg.textContent = err.message;
+        savedSearchMsg.className = "bp-msg err";
+      }
+    }
   }
 
   let workspaceLoadToken = 0;
@@ -433,6 +508,7 @@
       const ws = await BP.api("/api/search/workspace");
       if (token !== workspaceLoadToken) return;
       renderSavedSearchList(ws.saved);
+      renderCombineRules(ws.schedule_combine_rules);
       const draft = ws.draft;
       const draftRows = draft?.results?.length || 0;
       const wantDraft =
@@ -507,6 +583,7 @@
     try {
       const data = await BP.api("/api/search/saved/" + encodeURIComponent(id), { method: "DELETE" });
       renderSavedSearchList(data.workspace?.saved);
+      renderCombineRules(data.workspace?.schedule_combine_rules);
       if (savedSearchMsg) {
         savedSearchMsg.textContent = "Removed.";
         savedSearchMsg.className = "bp-msg muted";
@@ -541,6 +618,21 @@
     }
   }
 
+  combineAdd?.addEventListener("click", () => {
+    const mode = combineMode?.value === "or" ? "or" : "and";
+    const a = combinePickA?.value || "";
+    const b = combinePickB?.value || "";
+    if (!a || !b || a === b) {
+      if (savedSearchMsg) {
+        savedSearchMsg.textContent = "Pick two different bookmarks.";
+        savedSearchMsg.className = "bp-msg err";
+      }
+      return;
+    }
+    const next = workspaceCombineRules.concat([{ mode, saved_ids: [a, b] }]);
+    void persistCombineRules(next);
+  });
+
   savedSearchSaveBtn?.addEventListener("click", async () => {
     const name = (savedSearchName?.value || "").trim();
     if (!name) {
@@ -571,6 +663,7 @@
       });
       if (savedSearchName) savedSearchName.value = "";
       renderSavedSearchList(data.workspace?.saved);
+      renderCombineRules(data.workspace?.schedule_combine_rules);
       if (savedSearchMsg) {
         savedSearchMsg.textContent = `Bookmarked “${data.name}”.`;
         savedSearchMsg.className = "bp-msg muted";

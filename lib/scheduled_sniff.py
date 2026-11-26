@@ -77,20 +77,44 @@ class ScheduleRunner:
             return
         digest = digest_notify_enabled()
         pending: dict[str, list[dict[str, Any]]] = {}
+        ran_saved: dict[str, set[str]] = {}
         for watch in due:
             if jobs.queue_has_active_work():
                 break
-            entry = self._run_watch(watch, send_pm=not digest)
-            if digest and entry:
+            owner = str(watch.get("username") or "")
+            sid = str(watch.get("saved_id") or "")
+            if owner and sid:
+                ran_saved.setdefault(owner, set()).add(sid)
+            entry = self._run_watch(watch, send_pm=False)
+            if entry:
                 owner = str(entry.get("owner") or "")
                 if owner:
                     pending.setdefault(owner, []).append(entry)
-        if digest:
-            for owner, entries in pending.items():
-                if entries:
-                    notify.sniff_watch_digest_pm(owner=owner, entries=entries)
+        now = time.time()
+        for owner, entries in pending.items():
+            filtered = search_workspace.filter_notify_entries(
+                owner, entries, ran_saved.get(owner, set())
+            )
+            if not filtered:
+                continue
+            if digest:
+                notify.sniff_watch_digest_pm(owner=owner, entries=filtered)
+            else:
+                for entry in filtered:
+                    notify.sniff_watch_pm(
+                        owner=owner,
+                        watch_name=str(entry.get("watch_name") or "bookmark"),
+                        query=str(entry.get("query") or ""),
+                        new_rows=entry.get("new_rows") or [],
+                    )
+            for entry in filtered:
+                sid = str(entry.get("saved_id") or "")
+                if sid:
+                    search_workspace.patch_saved_schedule(
+                        owner, sid, {"last_notify_at": now}
+                    )
 
-    def _run_watch(self, watch: dict[str, Any], *, send_pm: bool = True) -> dict[str, Any] | None:
+    def _run_watch(self, watch: dict[str, Any], *, send_pm: bool = False) -> dict[str, Any] | None:
         username = str(watch["username"])
         saved_id = str(watch["saved_id"])
         if not self._lock.acquire(blocking=False):
@@ -140,17 +164,23 @@ class ScheduleRunner:
             if new_rows:
                 payload = {
                     "owner": username,
+                    "saved_id": saved_id,
                     "watch_name": str(watch.get("name") or "bookmark"),
                     "query": str(watch.get("query") or ""),
                     "new_rows": new_rows,
                 }
                 if send_pm:
-                    notify.sniff_watch_pm(**payload)
-                search_workspace.patch_saved_schedule(
-                    username,
-                    saved_id,
-                    {"last_notify_at": now},
-                )
+                    notify.sniff_watch_pm(
+                        owner=username,
+                        watch_name=payload["watch_name"],
+                        query=payload["query"],
+                        new_rows=new_rows,
+                    )
+                    search_workspace.patch_saved_schedule(
+                        username,
+                        saved_id,
+                        {"last_notify_at": now},
+                    )
                 return payload
         except SearchStartError as exc:
             search_workspace.patch_saved_schedule(
