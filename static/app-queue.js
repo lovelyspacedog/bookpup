@@ -122,6 +122,8 @@
 
   async function ensureDownloadStashed(job) {
     if (job?.library_item_id) return;
+    const who = BP.state.sessionUsername;
+    if (job?.owner && who && job.owner !== who) return;
     const stagingId = job?.staging_id || job?.id;
     if (!stagingId || !(job?.raw_bytes || job?.library_item_id)) return;
     try {

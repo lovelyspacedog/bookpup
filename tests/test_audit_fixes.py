@@ -62,6 +62,16 @@ class AuditFixesTest(unittest.TestCase):
         with self.assertRaises(PermissionError):
             transfer.assert_staging_access(sid, "bob", False)
 
+    def test_staging_save_owner_only(self) -> None:
+        job = jobs.create_job("download", owner="alice", title="book")
+        sid = job["id"]
+        create_staging(sid)
+        (core.STAGING_DIR / sid / "raw.epub").write_bytes(b"data")
+        jobs.save_job({**job, "staging_id": sid, "state": "done", "raw_bytes": 4})
+        transfer.assert_staging_save(sid, "alice")
+        with self.assertRaises(PermissionError):
+            transfer.assert_staging_save(sid, "bob")
+
     def test_cover_quota(self) -> None:
         user_paths.set_user("alice")
         accounts.update_user("alice", {"quota_bytes": 100})

@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.8.2
+
+- **Fix — Kennel:** Admin tabs no longer auto-save another pup's finished fetch into your **Fresh catches**; queue backfill and **Tag** save stay scoped to the job owner.
+
 ## 1.8.1
 
 - **Fix — Den chatter:** **Enable Bark** no longer deadlocks the IRC worker (sniffs could stick on **Waking IRC link…** after a bark).

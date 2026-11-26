@@ -45,6 +45,32 @@ class JobsCancelTest(unittest.TestCase):
         out = jobs.cancel_job(job["id"])
         self.assertEqual(out["state"], "cancelled")
 
+    def test_recent_done_download_scoped_to_viewer(self) -> None:
+        import time
+
+        bob = jobs.create_job(
+            "download",
+            owner="bob",
+            state="done",
+            raw_bytes=100,
+            title="Bob book",
+        )
+        bob["updated_at"] = time.time()
+        jobs.save_job(bob)
+        alice = jobs.create_job(
+            "download",
+            owner="alice",
+            state="done",
+            raw_bytes=200,
+            title="Alice book",
+        )
+        alice["updated_at"] = time.time() + 1
+        jobs.save_job(alice)
+        admin_view = jobs.recent_done_download(owner="admin", admin=True)
+        self.assertIsNone(admin_view)
+        self.assertEqual(jobs.recent_done_download(owner="alice")["id"], alice["id"])
+        self.assertEqual(jobs.recent_done_download(owner="bob")["id"], bob["id"])
+
 
 if __name__ == "__main__":
     unittest.main()

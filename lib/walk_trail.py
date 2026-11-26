@@ -159,6 +159,9 @@ def complete_tutorial_fetch(owner: str, query: str, title: str | None = None) ->
         item = _find_existing_tutorial_item(display_title)
     if not item:
         raise RuntimeError("Could not stash tutorial book")
+    if item.get("id"):
+        job["library_item_id"] = item["id"]
+        jobs.save_job(job)
     return {
         "ok": True,
         "job_id": job_id,

@@ -338,7 +338,7 @@ def recent_done_search(*, owner: str | None, admin: bool = False) -> JobDict | N
     for job in list_jobs():
         if job.get("type") != "search" or job.get("state") != "done":
             continue
-        if not _owner_ok(job, owner, admin):
+        if str(job.get("owner") or "") != owner:
             continue
         results = job.get("results")
         if not isinstance(results, list) or not results:
@@ -369,7 +369,7 @@ def recent_done_download(*, owner: str | None, admin: bool = False) -> JobDict |
     for job in list_jobs():
         if job.get("type") != "download" or job.get("state") != "done":
             continue
-        if not _owner_ok(job, owner, admin):
+        if str(job.get("owner") or "") != owner:
             continue
         if not int(job.get("raw_bytes") or 0):
             continue

@@ -626,9 +626,7 @@ def handle_post(handler: RequestHandler, path: str, body: dict) -> bool:
         return True
     if path.startswith("/api/library/save/"):
         staging_id = path[len("/api/library/save/") :].strip("/")
-        transfer.assert_staging_access(
-            staging_id, handler._current_user, handler._is_admin
-        )
+        transfer.assert_staging_save(staging_id, handler._current_user)
         title = str(body.get("title") or "").strip() or None
         item = library.save_from_staging(staging_id, title)
         handler.send_json(201, {"item": item, "library": library.status()})

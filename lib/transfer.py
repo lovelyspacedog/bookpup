@@ -59,6 +59,16 @@ def assert_staging_access(staging_id: str, owner: str, admin: bool) -> None:
     raise PermissionError("Staging not found")
 
 
+def assert_staging_save(staging_id: str, owner: str) -> None:
+    """Fresh-catch save into the caller's kennel — job owner must match (no admin bypass)."""
+    sid = str(staging_id or "").strip()
+    if not staging_dir(sid).is_dir():
+        raise KeyError(sid)
+    job_owner = _staging_owner(sid)
+    if not job_owner or job_owner != owner:
+        raise PermissionError("This fetch belongs to another pup")
+
+
 def send_library_item(from_user: str, to_user: str, item_id: str) -> dict:
     _validate_recipient(from_user, to_user)
     try:
