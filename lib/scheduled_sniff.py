@@ -15,6 +15,21 @@ from .search_run import SearchStartError
 _runner: "ScheduleRunner | None" = None
 
 
+def digest_notify_enabled() -> bool:
+    cfg = core._config if core._config is not None else None
+    if cfg is None and core.CONFIG_FILE.is_file():
+        try:
+            cfg = load_config()
+        except OSError:
+            cfg = None
+    if not isinstance(cfg, dict):
+        return True
+    raw = cfg.get("sniff_schedule_digest")
+    if raw is None:
+        return True
+    return bool(raw)
+
+
 def tick_seconds() -> float:
     cfg = core._config if core._config is not None else None
     if cfg is None and core.CONFIG_FILE.is_file():
@@ -60,16 +75,26 @@ class ScheduleRunner:
         due = search_workspace.list_due_watches()
         if not due:
             return
+        digest = digest_notify_enabled()
+        pending: dict[str, list[dict[str, Any]]] = {}
         for watch in due:
             if jobs.queue_has_active_work():
-                return
-            self._run_watch(watch)
+                break
+            entry = self._run_watch(watch, send_pm=not digest)
+            if digest and entry:
+                owner = str(entry.get("owner") or "")
+                if owner:
+                    pending.setdefault(owner, []).append(entry)
+        if digest:
+            for owner, entries in pending.items():
+                if entries:
+                    notify.sniff_watch_digest_pm(owner=owner, entries=entries)
 
-    def _run_watch(self, watch: dict[str, Any]) -> None:
+    def _run_watch(self, watch: dict[str, Any], *, send_pm: bool = True) -> dict[str, Any] | None:
         username = str(watch["username"])
         saved_id = str(watch["saved_id"])
         if not self._lock.acquire(blocking=False):
-            return
+            return None
         try:
             search_workspace.patch_saved_schedule(
                 username,
@@ -94,7 +119,7 @@ class ScheduleRunner:
                         "last_error": err[:240],
                     },
                 )
-                return
+                return None
             results = job.get("results")
             if not isinstance(results, list):
                 results = []
@@ -113,17 +138,20 @@ class ScheduleRunner:
             }
             search_workspace.patch_saved_schedule(username, saved_id, patch)
             if new_rows:
-                notify.sniff_watch_pm(
-                    owner=username,
-                    watch_name=str(watch.get("name") or "bookmark"),
-                    query=str(watch.get("query") or ""),
-                    new_rows=new_rows,
-                )
+                payload = {
+                    "owner": username,
+                    "watch_name": str(watch.get("name") or "bookmark"),
+                    "query": str(watch.get("query") or ""),
+                    "new_rows": new_rows,
+                }
+                if send_pm:
+                    notify.sniff_watch_pm(**payload)
                 search_workspace.patch_saved_schedule(
                     username,
                     saved_id,
                     {"last_notify_at": now},
                 )
+                return payload
         except SearchStartError as exc:
             search_workspace.patch_saved_schedule(
                 username,
@@ -135,7 +163,7 @@ class ScheduleRunner:
                 },
             )
         except KeyError:
-            pass
+            return None
         except Exception as exc:
             search_workspace.patch_saved_schedule(
                 username,
@@ -148,6 +176,7 @@ class ScheduleRunner:
             )
         finally:
             self._lock.release()
+        return None
 
 
 def start_scheduler() -> None:

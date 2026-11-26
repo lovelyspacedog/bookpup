@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.8.4
+
+- **Sniff:** **Scheduled sniff digest** — one **BookPup** private message per tick when several bookmark watches find new rows (set `sniff_schedule_digest: false` in `config.json` for one message per bookmark).
+
 ## 1.8.3
 
 - **Fix — Walk the Trail:** **Catalogued bones** coach step no longer thrashes scroll on iPhone (spotlight targets your practice card; no repeat scroll nudges).

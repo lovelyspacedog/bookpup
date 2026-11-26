@@ -76,6 +76,62 @@ def _format_sniff_watch_alert(
     return "\n".join(lines)[:900]
 
 
+def _format_sniff_digest_alert(
+    *,
+    owner: str,
+    entries: list[dict[str, Any]],
+) -> str:
+    total_rows = sum(len(e.get("new_rows") or []) for e in entries)
+    watch_n = len(entries)
+    lines = [
+        f"Scheduled sniff digest: {total_rows} new row{'s' if total_rows != 1 else ''} "
+        f"across {watch_n} bookmark{'s' if watch_n != 1 else ''}",
+    ]
+    for entry in entries:
+        wname = str(entry.get("watch_name") or "bookmark")[:60]
+        query = str(entry.get("query") or "")[:120]
+        new_rows = entry.get("new_rows") if isinstance(entry.get("new_rows"), list) else []
+        count = len(new_rows)
+        lines.append(f"— “{wname}”: {count} new")
+        if query:
+            lines.append(f"  Sniff: {query}")
+        for row in new_rows[:3]:
+            t = str(row.get("title") or row.get("display") or "").strip()
+            if t:
+                lines.append(f"  • {t[:90]}")
+        if count > 3:
+            lines.append(f"  …and {count - 3} more")
+    cfg = load_config()
+    base = public_base_url(cfg)
+    lines.append(f"Open BookPup — Pack chat: {base}")
+    if owner:
+        lines[0] = f"Scheduled sniff for {owner}: {lines[0]}"
+    return "\n".join(lines)[:900]
+
+
+def sniff_watch_digest_pm(
+    *,
+    owner: str,
+    entries: list[dict[str, Any]],
+) -> None:
+    if not entries:
+        return
+    dest = str(owner or "").strip()
+    if not dest:
+        return
+    from . import pack_chat
+
+    text = _format_sniff_digest_alert(owner=dest, entries=entries)
+
+    def run() -> None:
+        try:
+            pack_chat.append_system_dm(dest, text, kind="scheduled_sniff")
+        except (ValueError, OSError):
+            pass
+
+    threading.Thread(target=run, daemon=True).start()
+
+
 def sniff_watch_pm(
     *,
     owner: str,

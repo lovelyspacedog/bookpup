@@ -130,6 +130,57 @@ class ScheduledSniffRunnerTest(unittest.TestCase):
         mock_pm.assert_called_once()
         self.assertEqual(mock_pm.call_args.kwargs.get("owner"), "pup")
 
+    @mock.patch("lib.search_workspace.accounts.list_users", return_value=[{"username": "pup"}])
+    @mock.patch("lib.scheduled_sniff.search_run.run_search_job_for_user")
+    @mock.patch("lib.scheduled_sniff.notify.sniff_watch_digest_pm")
+    @mock.patch("lib.scheduled_sniff.notify.sniff_watch_pm")
+    def test_runner_digest_batches_watches(
+        self, mock_pm, mock_digest, mock_run, _mock_users
+    ) -> None:
+        from lib import jobs
+        from lib.scheduled_sniff import ScheduleRunner
+
+        core._config = {
+            "username": "book",
+            "password": "x",
+            "port": 1,
+            "sniff_schedule_digest": True,
+        }
+        for name, title in (("Watch A", "Fresh A"), ("Watch B", "Fresh B")):
+            search_workspace.update_draft(
+                {"query": "q", "channel": "irchighway:ebooks", "results": [_row("Old")]}
+            )
+            out = search_workspace.save_draft_as(name)
+            saved_id = out["id"]
+            search_workspace.update_saved_schedule(saved_id, {"enabled": True, "interval_hours": 6})
+            data = search_workspace._load_raw()  # noqa: SLF001
+            item = next(x for x in data["saved"] if x["id"] == saved_id)
+            item["schedule"]["last_run_at"] = 0
+            search_workspace._write(data)  # noqa: SLF001
+
+        def _job(_user: str, _q: str, _ch: str, *, wait: bool = False) -> dict:
+            return jobs.create_job(
+                "search",
+                query="q",
+                channel="irchighway:ebooks",
+                owner="pup",
+                state="done",
+                results=[_row("Old"), _row("Fresh A"), _row("Fresh B")],
+                result_count=3,
+            )
+
+        mock_run.side_effect = _job
+
+        runner = ScheduleRunner()
+        with mock.patch.object(runner, "_lock") as mock_lock:
+            mock_lock.acquire.return_value = True
+            runner._tick_once()
+
+        mock_pm.assert_not_called()
+        mock_digest.assert_called_once()
+        entries = mock_digest.call_args.kwargs.get("entries") or []
+        self.assertEqual(len(entries), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
