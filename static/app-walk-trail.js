@@ -221,6 +221,11 @@
       if (libOpen) return document.getElementById("lib-section-downloads");
       return document.querySelector("#tab-library");
     }
+    if (st.id === "catalog") {
+      const card = tutorialPracticeCard();
+      if (card) return card;
+      return document.getElementById("lib-section-calibre");
+    }
     if (st.id === "cleanup") {
       const card = tutorialPracticeCard();
       if (card) return card.querySelector(".del") || card;
@@ -430,7 +435,7 @@
   function primeCatalogScroll() {
     if (catalogIntroScrolled) return;
     catalogIntroScrolled = true;
-    const el = document.getElementById("lib-section-calibre");
+    const el = tutorialPracticeCard() || document.getElementById("lib-section-calibre");
     if (!el) return;
     try {
       el.scrollIntoView({ block: "start", behavior: "instant", inline: "nearest" });
@@ -576,7 +581,10 @@
       if (skipMobileScroll) return;
       requestAnimationFrame(() => {
         if (!active || target !== resolveStepTarget(currentStep())) return;
-        if (st?.id !== "kennel") scrollRevealBelowTopCoach(target);
+        const sid = st?.id;
+        const skipReveal =
+          sid === "kennel" || sid === "catalog" || sid === "cleanup" || sid === "den" || sid === "fetch";
+        if (!skipReveal) scrollRevealBelowTopCoach(target);
         scheduleWalkTrailLayout(target, st?.placement);
       });
       return;
@@ -1058,6 +1066,21 @@
     }
   }
 
+  function syncAdvanceButtons() {
+    const st = currentStep();
+    const tip = tipEl();
+    if (!st || !tip) return;
+    const nextBtn = tip.querySelector("[data-wt-next]");
+    const retryBtn = tip.querySelector("[data-wt-retry]");
+    const canNext = canAdvanceManual();
+    if (nextBtn) {
+      nextBtn.disabled = !canNext && st.advance !== "cleanup" && st.advance !== "finish";
+    }
+    if (retryBtn) {
+      retryBtn.classList.toggle("hidden", st.id !== "fetch" || !fetchError);
+    }
+  }
+
   function autoWatchAdvance() {
     if (stepAdvanceTimer) clearInterval(stepAdvanceTimer);
     stepAdvanceTimer = setInterval(() => {
@@ -1069,7 +1092,7 @@
         autoAdvanceFired.add(key);
         setTimeout(() => void goNext(), 400);
       }
-      updateTipChrome();
+      syncAdvanceButtons();
     }, 350);
   }
 

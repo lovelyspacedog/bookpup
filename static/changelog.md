@@ -1,5 +1,9 @@
 # BookPup changelog
 
+## 1.8.3
+
+- **Fix — Walk the Trail:** **Catalogued bones** coach step no longer thrashes scroll on iPhone (spotlight targets your practice card; no repeat scroll nudges).
+
 ## 1.8.2
 
 - **Fix — Kennel:** Admin tabs no longer auto-save another pup's finished fetch into your **Fresh catches**; queue backfill and **Tag** save stay scoped to the job owner.
